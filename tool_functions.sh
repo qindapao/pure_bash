@@ -14,64 +14,48 @@ trim_s ()
     printf '%s\n' "$_"
 }
 
-# trim_all The first version, with lower performance
-# Usage: trim_all_1 "   example   string    "
-trim_all_1 ()
-{
-    local deal_str="$1" new_str
-    deal_str=$(trim_s "$deal_str")
-    declare -i i mark=0
-    for((i=0;i<${#deal_str};i++)) ; do
-        [[ "${deal_str:i:1}" == [[:space:]] ]]  && {
-            [[ "1" = "$mark" ]] && continue
-            mark=1 ; new_str+=' ' ; continue
-        }
-        mark=0 ; new_str+="${deal_str:i:1}"
-    done
-    printf "%s\n" "$new_str"
-}
-
-# trim_all The second version has higher performance, but triggers shell_check
-# shellcheck disable=SC2086,SC2048
 trim_all () {
     # Usage: trim_all "   example   string    "
-    set -f
-    set -- $*
-    printf '%s\n' "$*"
-    set +f
+    local deal_str="$1"
+    declare -a str_arr
+    read -d "" -ra str_arr <<<"$deal_str"
+    deal_str="${str_arr[*]}"
+    printf "%s\n" "$deal_str"
+    
 }
 
-# awk_str "   *dge**ge:g;;e;ge:gege*x   dge" ' ' 1 "**" 2 ":" 2 ";" 3
+# awk_str ' ' 1 "**" 2 ":" 2 ";" 3 <<<"   *dge**ge:g;;e;ge:gege*x   dge"
+# e
 # todo:
 #     1. Support reverse interception -1 -2 ... ...
 awk_str ()
 {
-    local tmp_str="$1" old_str
+    local tmp_str old_str
     declare -i index cnt i_index
-    for((index=2;index<=$#;index+=2)) ; do
-        ((cnt=index+1))
-        [[ -z "$tmp_str" ]] && break
-        # If it is an empty separator, use string interception directly
-        [[ -z "${!index}" ]] && tmp_str=${tmp_str:${!cnt}-1:1} && continue
-        # If it is a space delimiter (the default space delimiter is an empty delimiter, 
-        # which does not distinguish between TAB), 
-        # first trim the string to remove all redundant spaces
-        [[ "${!index}" == [[:space:]] ]] && {
-            set -f
-            local tmp_arr=($tmp_str)
-            tmp_str="${tmp_arr[*]}"
-            set +f
-        }
+    while IFS= read -r tmp_str ; do
+        for((index=1;index<=$#;index+=2)) ; do
+            ((cnt=index+1))
+            [[ -z "$tmp_str" ]] && break
+            # If it is an empty separator, use string interception directly
+            [[ -z "${!index}" ]] && tmp_str=${tmp_str:${!cnt}-1:1} && continue
+            # If it is a space delimiter (the default space delimiter is an empty delimiter, 
+            # which does not distinguish between TAB), 
+            # first trim the string to remove all redundant spaces
+            [[ "${!index}" == [[:space:]] ]] && {
+                declare -a tmp_arr
+                read -d "" -ra tmp_arr <<<"$tmp_str"
+                tmp_str="${tmp_arr[*]}"
+            }
 
-        for((i_index=0;i_index<${!cnt}-1;i_index++)) ; do
-            old_str="$tmp_str"
-            tmp_str=${tmp_str#*"${!index}"}
-            [ -z "$tmp_str" ] && break 2
-            # If tmp_str is the same as old_str, it proves that the interception is invalid, and it is empty directly
-            [[ "$tmp_str" == "$old_str" ]] && tmp_str='' && break 2
+            for((i_index=0;i_index<${!cnt}-1;i_index++)) ; do
+                old_str="$tmp_str"
+                tmp_str=${tmp_str#*"${!index}"}
+                [ -z "$tmp_str" ] && break 2
+                # If tmp_str is the same as old_str, it proves that the interception is invalid, and it is empty directly
+                [[ "$tmp_str" == "$old_str" ]] && tmp_str='' && break 2
+            done
+            tmp_str=${tmp_str%%"${!index}"*}
         done
-        tmp_str=${tmp_str%%"${!index}"*}
+        printf "%s\n" "$tmp_str"
     done
-    printf "%s\n" "$tmp_str"
 }
-
