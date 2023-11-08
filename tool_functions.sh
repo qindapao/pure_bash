@@ -59,3 +59,34 @@ awk_str ()
         printf "%s\n" "$tmp_str"
     done
 }
+
+dbg ()
+{
+    LOG_LEVEL=0
+    declare -a LOG_LEVEL_KIND=("d i w e" "i w e" "w e" "e")
+    DEBUG_LOG="xx.log"
+    
+    local log_type=$1
+    [[ "${LOG_LEVEL_KIND[LOG_LEVEL]}" != *"$log_type"* ]] && return
+    local msg="$2 " i declare_str
+    
+    for((i=3;i<=$#;i++)) ; do
+        declare_str="$(declare -p "${!i}" 2>/dev/null)"
+        [[ -n "$declare_str" ]] && declare_str=${declare_str:8} || declare_str="-- ${!i}=null"
+        msg+="
+        $declare_str "
+    done
+    local log_info
+    log_info="[${log_type} ${BASH_LINENO[0]}:${FUNCNAME[1]} $(date +'%FT%H:%M:%S')] ${msg}"
+    case "$log_type" in
+        d) : 35 ;;
+        i) : 32 ;;
+        w) : 33 ;;
+        e) : 31 ;;
+    esac
+    
+    printf "\033[${_}m%s\033[0m\n" "$log_info"
+    printf "%s\n" "$log_info" >>"$DEBUG_LOG"
+
+}
+
