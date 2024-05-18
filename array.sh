@@ -115,7 +115,7 @@ array_grep ()
     done
 
     if((${#_array_grep_ref_out_arr[@]})) ; then
-        if atom_identify_data_type _array_grep_ref_out_arr 'a' ; then
+        if array_is_normal_array _array_grep_ref_out_arr ; then
             _array_grep_ref_out_arr=("${_array_grep_ref_out_arr[@]}")
         fi
         return 0
@@ -131,7 +131,7 @@ array_grep_block ()
     _array_grep_block_out_arr=()
     local _array_grep_block_exec_block="$3"
 
-    eval "_array_grep_block_tmp_function() { "$_array_grep_block_exec_block" }"
+    eval "_array_grep_block_tmp_function() { "$_array_grep_block_exec_block" ; }"
     local _array_grep_block_index
 
     for _array_grep_block_index in "${!_array_grep_block_ref_arr[@]}" ; do
@@ -143,7 +143,7 @@ array_grep_block ()
     unset -f _array_grep_block_tmp_function
 
     if((${#_array_grep_ref_out_arr[@]})) ; then
-        if atom_identify_data_type _array_grep_block_out_arr 'a' ; then
+        if array_is_normal_array _array_grep_block_out_arr ; then
             _array_grep_block_out_arr=("${_array_grep_block_out_arr[@]}")
         fi
         return 0
@@ -195,7 +195,7 @@ array_map_block ()
     local -n _array_map_block_ref_arr="$1"
     local _array_map_block_exec_block="$2" 
     
-    eval "_array_map_block_tmp_function() { "$_array_map_block_exec_block" }"
+    eval "_array_map_block_tmp_function() { "$_array_map_block_exec_block" ; }"
     local _array_map_block_index
 
     for _array_map_block_index in "${!_array_map_block_ref_arr[@]}" ; do
@@ -224,7 +224,7 @@ array_map_readonly_block ()
     local -n array_map_readonly_block_ref_arr="$1"
     local array_map_readonly_block_exec_block="$2" 
     
-    eval "array_map_readonly_block_tmp_function() { "$array_map_readonly_block_exec_block" }"
+    eval "array_map_readonly_block_tmp_function() { "$array_map_readonly_block_exec_block" ; }"
     local array_map_readonly_block_index
 
     for array_map_readonly_block_index in "${!array_map_readonly_block_ref_arr[@]}" ; do
@@ -234,40 +234,77 @@ array_map_readonly_block ()
     unset -f array_map_readonly_block_tmp_function
 }
 
-
-
 # 排序一个数组中的元素(只能用于普通数组),关联数组没有顺序无法排序
 # 规则:默认按照字典序排序
 # 算法:当前使用冒泡排序算法
 # 1: 需要排序数组引用名
-array_sort ()
+_array_sort ()
 {
-    local -n _array_sort_ref_arr="$1"
-    declare -a _array_sort_arr_indexs=("${!_array_sort_ref_arr[@]}")
-    ((${#_array_sort_arr_indexs[@]})) || return 
+    local -n __array_sort_ref_arr="$1"
+    local __array_sort_mark="$2" __array_sort_delimiter="$3" __array_sort_field="$4"
+    declare -a __array_sort_arr_indexs=("${!__array_sort_ref_arr[@]}")
+    ((${#__array_sort_arr_indexs[@]})) || return 
 
-    local -a _array_sort_tmp_arr=("${_array_sort_ref_arr[@]}")
-    local -i _array_sort_tmp_arr_size=${#_array_sort_tmp_arr[@]}
+    local -a __array_sort_tmp_arr=("${__array_sort_ref_arr[@]}")
+    local -a __array_sort_tmp_arr_filed=("${__array_sort_ref_arr[@]}")
 
-    local -i _array_sort_i _array_sort_j
-    local _array_sort_tmp
+    # 如果有分隔符和域段,那么取它们作为子数组来排序
+    if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
+        # str_split "<" "2" < <(printf "%s" "$1")
+        # str_split_pure "<" "2" < <(printf "%s\n" "$1") 注意换行符的区别
+        array_map_block __array_sort_tmp_arr_filed "str_split \""$__array_sort_delimiter"\" \""$__array_sort_field"\" < <(printf \"%s\" \"\$1\")"
+    fi
 
-    for ((_array_sort_i = 0; _array_sort_i < _array_sort_tmp_arr_size; _array_sort_i++)); do
-        for ((_array_sort_j = 0; _array_sort_j < _array_sort_tmp_arr_size-$_array_sort_i-1; _array_sort_j++)); do
-            if [[ "${_array_sort_tmp_arr[_array_sort_j]}" > "${_array_sort_tmp_arr[_array_sort_j+1]}" ]]; then
-                _array_sort_tmp="${_array_sort_tmp_arr[_array_sort_j]}"
-                _array_sort_tmp_arr[_array_sort_j]="${_array_sort_tmp_arr[_array_sort_j+1]}"
-                _array_sort_tmp_arr[_array_sort_j+1]="$_array_sort_tmp"
+    local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}
+
+    local -i __array_sort_i __array_sort_j
+    local __array_sort_tmp
+
+    for ((__array_sort_i = 0; __array_sort_i < __array_sort_tmp_arr_size; __array_sort_i++)); do
+        for ((__array_sort_j = 0; __array_sort_j < __array_sort_tmp_arr_size-$__array_sort_i-1; __array_sort_j++)); do
+            if eval [[ "\"${__array_sort_tmp_arr_filed[__array_sort_j]}\"" "${__array_sort_mark}" "\"${__array_sort_tmp_arr_filed[__array_sort_j+1]}\"" ]] ; then
+                __array_sort_tmp="${__array_sort_tmp_arr[__array_sort_j]}"
+                __array_sort_tmp_arr[__array_sort_j]="${__array_sort_tmp_arr[__array_sort_j+1]}"
+                __array_sort_tmp_arr[__array_sort_j+1]="$__array_sort_tmp"
             fi
         done
     done
     
     # 还原原始数组的索引(因为可能是个稀疏数组)
-    _array_sort_j=0
-    for _array_sort_i in "${_array_sort_arr_indexs[@]}" ; do
-        _array_sort_ref_arr[_array_sort_i]="${_array_sort_tmp_arr[_array_sort_j++]}"
+    __array_sort_j=0
+    for __array_sort_i in "${__array_sort_arr_indexs[@]}" ; do
+        __array_sort_ref_arr[__array_sort_i]="${__array_sort_tmp_arr[__array_sort_j++]}"
     done
 }
+
+# 1: 需要排序的数组
+# 2: 排序mark(> < gt lt)
+#       >: 字典升序(默认)
+#       <: 字典降序
+#       -gt: 数字升序
+#       -lt: 数字降序
+# 3: 分割符
+# 4: 域段
+# ...
+# ... 一直往下循环组成,每组三个元素(可以看成三个元素的元组)
+array_sort ()
+{
+    local -n _array_sort_ref_arr="$1"
+    shift
+    
+    (($#)) || {
+        # 默认字典升序
+        _array_sort _array_sort_ref_arr '>'
+    }
+
+    while (($#)) ; do
+        _array_sort _array_sort_ref_arr "$1" "${2}" "${3}"
+        (($#)) && shift
+        (($#)) && shift
+        (($#)) && shift
+    done
+}
+
 
 # 读取文件中的所有行并追加到一个数组中
 array_read_file ()
@@ -500,6 +537,7 @@ array_rotate_left ()
 }
 
 
+# 处理集合的时候注意下,集合可能不只要处理两个,可能是超过2个
 # hash模拟集合的交集
 array_set_intersection ()
 {

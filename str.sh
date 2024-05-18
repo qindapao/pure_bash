@@ -10,7 +10,7 @@
 str_join ()
 {
     local connector="$1"
-    shift 1
+    shift
     local join_str
     join_str=$(printf "%s${connector}" "${@}")
     printf "%s" "${join_str%"$connector"*}"
@@ -41,7 +41,8 @@ str_split ()
         local field_number="$2"
         
         output=$(awk -F "$delimiter" "{print \$$field_number}" < <(printf "%s" "$output"))
-        shift 2
+        (($#)) && shift
+        (($#)) && shift
     done
     
     printf "%s" "$output"
@@ -264,6 +265,8 @@ str_set_bit_value ()
 # e
 # todo:
 #     1. Support reverse interception -1 -2 ... ...
+#     目前不支持下面这种语法(因为这里需要用换行符来一行一行处理,所以必须要一个换行符)
+#     2. str_split_pure ":" "2" < <(printf "%s" "4:c")
 str_split_pure ()
 {
     local tmp_str old_str
