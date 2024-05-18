@@ -1,15 +1,14 @@
-((__DBG++)) && {
-    return
-}
+((__DBG++)) && return
 
 . ./str.sh
+. ./date_utils.sh
 
 # 0 debug 1 info 2 warning 3 error(打印三层记录)
 LOG_LEVEL=0
 ALLOW_BREAK=0
 declare -a LOG_LEVEL_KIND=("d i w e" "i w e" "w e" "e")
 
-DEBUG_LOG_FILE_NAME="test_log_$(str_date_log).log"
+DEBUG_LOG_FILE_NAME="test_log_$(date_log).log"
 
 dbg_dbg ()
 {
@@ -25,7 +24,7 @@ dbg_dbg ()
         $declare_str "
     done
     local log_info
-    log_info="[${log_type} ${BASH_SOURCE[1]} ${BASH_LINENO[0]}:${FUNCNAME[1]}:${FUNCNAME[2]}:${FUNCNAME[3]} $(date +'%FT%H:%M:%S')] ${msg}"
+    log_info="[${log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date +'%FT%H:%M:%S')] ${msg}"
     case "$log_type" in
         d) : 35 ;;
         i) : 32 ;;
@@ -58,4 +57,7 @@ dbg_show_params ()
     local params=("$@")
     dbg_dbg 'd' "show params" params
 }
+
+# :TODO: 失败需要打印调用栈的函数
+
 

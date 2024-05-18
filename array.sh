@@ -1,17 +1,15 @@
 # 数组操作集合(模拟perl5的行为)
 
+# 往数组的尾部添加元素(添加的元素可以是数组,不能是稀疏数组)
 # 命令行参数有大小限制，不能太大
 # 为了防止有引用变量的情况下的变量污染,所有带引用变量的库函数都以_函数名_打头
 # 所有 : 的函数都是暂时未实现的
 
-((__ARRAY++)) && {
-    return
-}
+((__ARRAY++)) && return
 
 . ./atom.sh
 . ./str.sh
 
-# 往数组的尾部添加元素(添加的元素可以是数组,不能是稀疏数组)
 array_push ()
 {
     local -n _array_push_ref_arr="$1"
@@ -46,7 +44,7 @@ array_pop ()
 {
     local -n _array_pop__ref_arr="$1"
     local _array_pop_ref_pop_element=
-    [[ "0" == "${#_array_pop__ref_arr[@]}" ]] && return
+    ((${#_array_pop__ref_arr[@]})) || return 
     
     _array_pop_ref_pop_element=${_array_pop__ref_arr[-1]}
     unset _array_pop__ref_arr[-1]
@@ -110,13 +108,50 @@ array_grep ()
     local _array_grep_i
     
     for _array_grep_i in "${!_array_grep_ref_arr[@]}" ; do
-        if "$_array_grep_function" "${_array_grep_ref_arr[_array_grep_i]}" "${_array_grep_params[@]}" "$_array_grep_i" ; then
-            _array_grep_ref_out_arr+="${_array_grep_ref_arr[$_array_grep_i]}"
+        if "$_array_grep_function" "${_array_grep_ref_arr[$_array_grep_i]}" "$_array_grep_i" "${_array_grep_params[@]}"  ; then
+            # 为了支持关联数组普通数组最后可能是一个稀疏数组
+            _array_grep_ref_out_arr[$_array_grep_i]="${_array_grep_ref_arr[$_array_grep_i]}"
         fi
     done
 
-    [[ "0" == "${#_array_grep_ref_out_arr[@]}" ]] && return 1 || return 0
+    if((${#_array_grep_ref_out_arr[@]})) ; then
+        if atom_identify_data_type _array_grep_ref_out_arr 'a' ; then
+            _array_grep_ref_out_arr=("${_array_grep_ref_out_arr[@]}")
+        fi
+        return 0
+    else
+        return 1
+    fi
 }
+
+# 使用匿名代码块来进行过滤
+array_grep_block ()
+{
+    local -n _array_grep_block_ref_arr="$1" _array_grep_block_out_arr="$2"
+    _array_grep_block_out_arr=()
+    local _array_grep_block_exec_block="$3"
+
+    eval "_array_grep_block_tmp_function() { "$_array_grep_block_exec_block" }"
+    local _array_grep_block_index
+
+    for _array_grep_block_index in "${!_array_grep_block_ref_arr[@]}" ; do
+        if _array_grep_block_tmp_function "${_array_grep_block_ref_arr[$_array_grep_block_index]}" "$_array_grep_block_index" ; then
+            _array_grep_block_out_arr[$_array_grep_block_index]="${_array_grep_block_ref_arr[$_array_grep_block_index]}"
+        fi
+    done
+
+    unset -f _array_grep_block_tmp_function
+
+    if((${#_array_grep_ref_out_arr[@]})) ; then
+        if atom_identify_data_type _array_grep_block_out_arr 'a' ; then
+            _array_grep_block_out_arr=("${_array_grep_block_out_arr[@]}")
+        fi
+        return 0
+    else
+        return 1
+    fi
+}
+
 
 # 数组的map函数，对数组中的每个元素执行特定的函数
 # 1: 需要操作的数组的名字
@@ -142,8 +177,32 @@ array_map ()
     local _array_map_function_params=("${@}")
     local _array_map_index
     for _array_map_index in "${!_array_map_ref_arr[@]}" ; do
-        _array_map_ref_arr[_array_map_index]=$("$_array_map_function" "${_array_map_ref_arr[_array_map_index]}" "${_array_map_function_params[@]}" "$_array_map_index")
+        _array_map_ref_arr[$_array_map_index]=$("$_array_map_function" "${_array_map_ref_arr[$_array_map_index]}" "$_array_map_index" "${_array_map_function_params[@]}")
     done
+}
+
+# 执行一个匿名函数
+# $ array_map_block a "$(cat <<-'EOF'
+# local x=$1 ;
+# printf "%s" $((x+1)) ;
+# EOF  
+# )" 
+#
+# 1: 需要迭代操作的数据引用
+# 2: 执行的匿名代码块
+array_map_block ()
+{
+    local -n _array_map_block_ref_arr="$1"
+    local _array_map_block_exec_block="$2" 
+    
+    eval "_array_map_block_tmp_function() { "$_array_map_block_exec_block" }"
+    local _array_map_block_index
+
+    for _array_map_block_index in "${!_array_map_block_ref_arr[@]}" ; do
+        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "${_array_map_block_ref_arr[$_array_map_block_index]}" "$_array_map_block_index")
+    done
+
+    unset -f _array_map_block_tmp_function
 }
 
 # 对映射的每个数组元素进行操作,但是不改变原数组
@@ -155,9 +214,27 @@ array_map_readonly ()
     local array_map_readonly_function_params=("${@}")
     local array_map_readonly_index
     for array_map_readonly_index in "${!array_map_readonly_ref_arr[@]}" ; do
-        "$array_map_readonly_function" "${array_map_readonly_ref_arr[array_map_readonly_index]}" "${array_map_readonly_function_params[@]}" "$array_map_readonly_index"
+        "$array_map_readonly_function" "${array_map_readonly_ref_arr[$array_map_readonly_index]}" "$array_map_readonly_index" "${array_map_readonly_function_params[@]}"
     done
 }
+
+# 执行匿名代码块不改变原始数组
+array_map_readonly_block ()
+{
+    local -n array_map_readonly_block_ref_arr="$1"
+    local array_map_readonly_block_exec_block="$2" 
+    
+    eval "array_map_readonly_block_tmp_function() { "$array_map_readonly_block_exec_block" }"
+    local array_map_readonly_block_index
+
+    for array_map_readonly_block_index in "${!array_map_readonly_block_ref_arr[@]}" ; do
+        array_map_readonly_block_tmp_function "${array_map_readonly_block_ref_arr[$array_map_readonly_block_index]}" "$array_map_readonly_block_index"
+    done
+
+    unset -f array_map_readonly_block_tmp_function
+}
+
+
 
 # 排序一个数组中的元素(只能用于普通数组),关联数组没有顺序无法排序
 # 规则:默认按照字典序排序
@@ -167,7 +244,7 @@ array_sort ()
 {
     local -n _array_sort_ref_arr="$1"
     declare -a _array_sort_arr_indexs=("${!_array_sort_ref_arr[@]}")
-    [[ "0" == "${#_array_sort_arr_indexs[@]}" ]] && return
+    ((${#_array_sort_arr_indexs[@]})) || return 
 
     local -a _array_sort_tmp_arr=("${_array_sort_ref_arr[@]}")
     local -i _array_sort_tmp_arr_size=${#_array_sort_tmp_arr[@]}
@@ -234,7 +311,7 @@ array_uniq ()
     else
         local -a _array_uniq_ref_out_arr=()
     fi
-    local -i _array_uniq_is_not_keep_index="${3:=1}"
+    local -i _array_uniq_is_not_keep_index="${3:-1}"
 
     local -A _array_uniq_element_hash=()
     local _array_uniq_i
@@ -309,7 +386,7 @@ array_any ()
 
     local _array_any_index
     for _array_any_index in "${!_array_any_ref_arr[@]}" ; do
-        if "$_array_any_function" "${_array_any_ref_arr[_array_any_index]}" "${@}" "$_array_any_index" ; then
+        if "$_array_any_function" "${_array_any_ref_arr[$_array_any_index]}" "$_array_any_index" "${@}" ; then
             return 0
         fi
     done
@@ -329,7 +406,7 @@ array_all ()
 
     local _array_all_index
     for _array_all_index in "${!_array_all_ref_arr[@]}" ; do
-        if ! "$_array_all_function" "${_array_all_ref_arr[_array_all_index]}" "${@}" "$_array_all_index" ; then
+        if ! "$_array_all_function" "${_array_all_ref_arr[$_array_all_index]}" "$_array_all_index" "${@}" ; then
             return 1
         fi
     done
@@ -349,7 +426,7 @@ array_none ()
 
     local _array_none_index
     for _array_none_index in "${!_array_none_ref_arr[@]}" ; do
-        if "$_array_none_function" "${_array_none_ref_arr[_array_none_index]}" "${@}" "$_array_none_index" ; then
+        if "$_array_none_function" "${_array_none_ref_arr[$_array_none_index]}" "$_array_none_index" "${@}" ; then
             return 1
         fi
     done
@@ -389,10 +466,10 @@ array_first ()
 # 1: 数组引用
 # 2: 条件函数
 # @: 条件函数带的参数
-# 最后一个参数(可选): 当前迭代数组索引 
 array_first_value ()
 {
     local -n _array_first_value_ref_arr="$1"
+    local array_name="$1"
     local out_element=
     local _array_first_value_function="$2"
     shift 2
@@ -400,9 +477,9 @@ array_first_value ()
     local -a _array_first_value_params=("${@}")
     local _array_first_value_i
 
-    for _array_first_value_i in "${_array_first_value_ref_arr[@]}" ; do
-        if "$_array_first_value_function" "$_array_first_value_i" "${_array_first_value_params[@]}" "$_array_first_value_i" ; then
-            printf "%s" "$_array_first_value_i"
+    for _array_first_value_i in "${!_array_first_value_ref_arr[@]}" ; do
+        if "$_array_first_value_function" "${_array_first_value_ref_arr[$_array_first_value_i]}" "$_array_first_value_i" "${_array_first_value_params[@]}" ; then
+            printf "%s" "${_array_first_value_ref_arr[$_array_first_value_i]}"
             break
         fi
     done

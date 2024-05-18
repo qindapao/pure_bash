@@ -2,10 +2,9 @@
 # 注意:命令行参数大小限制,数组参数不能过大
 # 为了保证引用变量不会重名,所有带引用变量的函数中的局部变量都带函数名字,不带引用变量的函数不受影响
 
+# :TODO: 根据业务需求来实现封装,尽量使纯bash实现
 
-((__STR++)) && {
-    return
-}
+((__STR++)) && return
 
 # join_str=$(str_join '--' "${array[@]}")
 str_join ()
@@ -37,11 +36,11 @@ str_split ()
     read -d '' input_str
     local output="$input_str"
 
-    while [[ $# -gt 0 ]] ; do
+    while (($#)) ; do
         local delimiter="$1"
         local field_number="$2"
         
-        output=$(awk -F "$delimiter" "{print \$$field_number}" <<<"$output")
+        output=$(awk -F "$delimiter" "{print \$$field_number}" < <(printf "%s" "$output"))
         shift 2
     done
     
@@ -57,29 +56,17 @@ str_is_num ()
     fi
 }
 
+# 获取目录字符串中的当前目录名
+str_dirname ()
+{
+    :
+}
 
-IFS=$'\n' read -d '' -r __str_bash_major_version __str_bash_minor_version < <(atom_get_bash_version)
-if ((__str_bash_major_version>=4 && __str_bash_minor_version>=2))
-    str_date_prt ()
-    {
-        printf '%(%Y-%m-%d %H:%M:%S)T\n' -1
-    }
-
-    str_date_log ()
-    {
-        printf '%(%Y_%m_%d_%H_%M_%S)T\n' -1
-    }
-else
-    str_date_prt ()
-    {
-        date +"%y-%m-%d %H:%M:%S"
-    }
-
-    str_date_log ()
-    {
-        date +'%Y_%m_%d_%H_%M_%S'
-    }
-fi
+# 获取目录字符串中的完整路径
+str_abs_path ()
+{
+    :
+}
 
 # 从文件路径字符串中解析文件名(不带后缀)
 str_basename ()
@@ -145,22 +132,24 @@ str_ltrim_zeros ()
 
 # 字符串以什么开头(满足返回true,否则返回false,大小写敏感)
 # 1: 需要检查的字符串
-# 2: 需要检查的前缀
-# 3: 是否忽略大小写(默认不忽略)
-# 4: 字符串开始索引[可选,如果没有就是从0开始]
-# 5: 字符串结束索引[可选,如果没有就是在最大结束]
+# 2: 如果字符串在一个数组中,那么这个数组的索引(主要是为了高阶函数)
+# 3: 需要检查的前缀
+# 4: 是否忽略大小写(默认不忽略)
+# 5: 字符串开始索引[可选,如果没有就是从0开始]
+# 6: 字符串结束索引[可选,如果没有就是在最大结束]
 str_startswith() 
 {
     local in_str="$1"
-    local prefix="$2"
-    local is_ignore_case="$3"   
+    local index="$2"
+    local prefix="$3"
+    local is_ignore_case="$4"   
     ((is_ignore_case)) && {
         in_str=${in_str,,}
         prefix=${prefix,,}
     }
-    local start_pos="${4:-0}"
+    local start_pos="${5:-0}"
     local str_len=${#in_str}
-    local end_pos="${5:-${str_len}}"
+    local end_pos="${6:-${str_len}}"
 
     # 如果开始或结束位置是负数，则从字符串末尾开始计算
     ((start_pos<0)) && ((start_pos+=str_len))
@@ -184,22 +173,24 @@ str_startswith()
 
 # 字符串以什么结尾(满足返回true,否则返回false,大小写敏感)
 # 1: 需要检查的字符串
-# 2: 需要检查的后缀
-# 3: 是否忽略大小写(默认不忽略)
-# 3: 字符串开始索引[可选,如果没有就是从0开始]
-# 4: 字符串结束索引[可选,如果没有就是在最大结束]
+# 2: 如果字符串在一个数组中,那么这个数组的索引(主要是为了高阶函数)
+# 3: 需要检查的后缀
+# 4: 是否忽略大小写(默认不忽略)
+# 5: 字符串开始索引[可选,如果没有就是从0开始]
+# 6: 字符串结束索引[可选,如果没有就是在最大结束]
 str_endswith ()
 {
     local in_str="$1"
-    local suffix="$2"
-    local is_ignore_case="$3"
+    local index="$2"
+    local suffix="$3"
+    local is_ignore_case="$4"
     ((is_ignore_case)) && {
         in_str=${in_str,,}
         suffix=${suffix,,}
     }
-    local start_pos="${4:-0}"
+    local start_pos="${5:-0}"
     local str_len=${#in_str}
-    local end_pos="${5:-${str_len}}"
+    local end_pos="${6:-${str_len}}"
 
     # 如果开始或结束位置是负数，则从字符串末尾开始计算
     ((start_pos<0)) && ((start_pos+=str_len))
@@ -301,7 +292,8 @@ str_split_pure ()
             done
             tmp_str=${tmp_str%%"${!index}"*}
         done
-        printf "%s" "$tmp_str"
+        printf "%s\n" "$tmp_str"
     done
 }
+
 
