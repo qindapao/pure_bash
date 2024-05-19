@@ -134,9 +134,9 @@ array_grep ()
     local _array_grep_i
     
     for _array_grep_i in "${!_array_grep_ref_arr[@]}" ; do
-        if "$_array_grep_function" "${_array_grep_ref_arr[$_array_grep_i]}" "$_array_grep_i" "${_array_grep_params[@]}"  ; then
+        if "$_array_grep_function" "${_array_grep_ref_arr["$_array_grep_i"]}" "$_array_grep_i" "${_array_grep_params[@]}"  ; then
             # 为了支持关联数组普通数组最后可能是一个稀疏数组
-            _array_grep_ref_out_arr[$_array_grep_i]="${_array_grep_ref_arr[$_array_grep_i]}"
+            _array_grep_ref_out_arr["$_array_grep_i"]="${_array_grep_ref_arr["$_array_grep_i"]}"
         fi
     done
 
@@ -161,8 +161,8 @@ array_grep_block ()
     local _array_grep_block_index
 
     for _array_grep_block_index in "${!_array_grep_block_ref_arr[@]}" ; do
-        if _array_grep_block_tmp_function "${_array_grep_block_ref_arr[$_array_grep_block_index]}" "$_array_grep_block_index" ; then
-            _array_grep_block_out_arr[$_array_grep_block_index]="${_array_grep_block_ref_arr[$_array_grep_block_index]}"
+        if _array_grep_block_tmp_function "${_array_grep_block_ref_arr["$_array_grep_block_index"]}" "$_array_grep_block_index" ; then
+            _array_grep_block_out_arr["$_array_grep_block_index"]="${_array_grep_block_ref_arr["$_array_grep_block_index"]}"
         fi
     done
 
@@ -203,7 +203,7 @@ array_map ()
     local _array_map_function_params=("${@}")
     local _array_map_index
     for _array_map_index in "${!_array_map_ref_arr[@]}" ; do
-        _array_map_ref_arr[$_array_map_index]=$("$_array_map_function" "${_array_map_ref_arr[$_array_map_index]}" "$_array_map_index" "${_array_map_function_params[@]}")
+        _array_map_ref_arr[$_array_map_index]=$("$_array_map_function" "${_array_map_ref_arr["$_array_map_index"]}" "$_array_map_index" "${_array_map_function_params[@]}")
     done
 }
 
@@ -225,7 +225,7 @@ array_map_block ()
     local _array_map_block_index
 
     for _array_map_block_index in "${!_array_map_block_ref_arr[@]}" ; do
-        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "${_array_map_block_ref_arr[$_array_map_block_index]}" "$_array_map_block_index")
+        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "${_array_map_block_ref_arr["$_array_map_block_index"]}" "$_array_map_block_index")
     done
 
     unset -f _array_map_block_tmp_function
@@ -240,7 +240,7 @@ array_map_readonly ()
     local array_map_readonly_function_params=("${@}")
     local array_map_readonly_index
     for array_map_readonly_index in "${!array_map_readonly_ref_arr[@]}" ; do
-        "$array_map_readonly_function" "${array_map_readonly_ref_arr[$array_map_readonly_index]}" "$array_map_readonly_index" "${array_map_readonly_function_params[@]}"
+        "$array_map_readonly_function" "${array_map_readonly_ref_arr["$array_map_readonly_index"]}" "$array_map_readonly_index" "${array_map_readonly_function_params[@]}"
     done
 }
 
@@ -254,7 +254,7 @@ array_map_readonly_block ()
     local array_map_readonly_block_index
 
     for array_map_readonly_block_index in "${!array_map_readonly_block_ref_arr[@]}" ; do
-        array_map_readonly_block_tmp_function "${array_map_readonly_block_ref_arr[$array_map_readonly_block_index]}" "$array_map_readonly_block_index"
+        array_map_readonly_block_tmp_function "${array_map_readonly_block_ref_arr["$array_map_readonly_block_index"]}" "$array_map_readonly_block_index"
     done
 
     unset -f array_map_readonly_block_tmp_function
@@ -379,8 +379,8 @@ array_uniq ()
     local _array_uniq_i
 
     for _array_uniq_i in "${!_array_uniq_ref_arr[@]}" ; do
-        if ! ((_array_uniq_element_hash[${_array_uniq_ref_arr[$_array_uniq_i]}]++)) ; then
-            _array_uniq_ref_out_arr[$_array_uniq_i]="${_array_uniq_ref_arr[$_array_uniq_i]}"
+        if ! ((_array_uniq_element_hash["${_array_uniq_ref_arr["$_array_uniq_i"]}"]++)) ; then
+            _array_uniq_ref_out_arr["$_array_uniq_i"]="${_array_uniq_ref_arr["$_array_uniq_i"]}"
         fi
     done
 
@@ -404,8 +404,8 @@ hash_uniq ()
     local _hash_uniq_i
 
     for _hash_uniq_i in "${!_hash_uniq_ref_arr[@]}" ; do
-        if ! ((_hash_uniq_element_hash[${_hash_uniq_ref_arr[$_hash_uniq_i]}]++)) ; then
-            _hash_uniq_ref_out_arr[$_hash_uniq_i]="${_hash_uniq_ref_arr[$_hash_uniq_i]}"
+        if ! ((_hash_uniq_element_hash[${_hash_uniq_ref_arr["$_hash_uniq_i"]}]++)) ; then
+            _hash_uniq_ref_out_arr["$_hash_uniq_i"]="${_hash_uniq_ref_arr["$_hash_uniq_i"]}"
         fi
     done
 }
@@ -460,7 +460,7 @@ array_any ()
 
     local _array_any_index
     for _array_any_index in "${!_array_any_ref_arr[@]}" ; do
-        if "$_array_any_function" "${_array_any_ref_arr[$_array_any_index]}" "$_array_any_index" "${@}" ; then
+        if "$_array_any_function" "${_array_any_ref_arr["$_array_any_index"]}" "$_array_any_index" "${@}" ; then
             return 0
         fi
     done
@@ -480,7 +480,7 @@ array_all ()
 
     local _array_all_index
     for _array_all_index in "${!_array_all_ref_arr[@]}" ; do
-        if ! "$_array_all_function" "${_array_all_ref_arr[$_array_all_index]}" "$_array_all_index" "${@}" ; then
+        if ! "$_array_all_function" "${_array_all_ref_arr["$_array_all_index"]}" "$_array_all_index" "${@}" ; then
             return 1
         fi
     done
@@ -500,7 +500,7 @@ array_none ()
 
     local _array_none_index
     for _array_none_index in "${!_array_none_ref_arr[@]}" ; do
-        if "$_array_none_function" "${_array_none_ref_arr[$_array_none_index]}" "$_array_none_index" "${@}" ; then
+        if "$_array_none_function" "${_array_none_ref_arr["$_array_none_index"]}" "$_array_none_index" "${@}" ; then
             return 1
         fi
     done
@@ -550,8 +550,8 @@ array_first_value ()
     local _array_first_value_i
 
     for _array_first_value_i in "${!_array_first_value_ref_arr[@]}" ; do
-        if "$_array_first_value_function" "${_array_first_value_ref_arr[$_array_first_value_i]}" "$_array_first_value_i" "${_array_first_value_params[@]}" ; then
-            printf "%s" "${_array_first_value_ref_arr[$_array_first_value_i]}"
+        if "$_array_first_value_function" "${_array_first_value_ref_arr["$_array_first_value_i"]}" "$_array_first_value_i" "${_array_first_value_params[@]}" ; then
+            printf "%s" "${_array_first_value_ref_arr["$_array_first_value_i"]}"
             break
         fi
     done
@@ -593,7 +593,7 @@ array_set_intersection ()
     local _array_set_intersection_key
 
     for _array_set_intersection_key in "${!_array_set_intersection_tmp_hash[@]}"; do
-        _array_set_intersection_ref_result_hash[$_array_set_intersection_key]=1
+        _array_set_intersection_ref_result_hash["$_array_set_intersection_key"]=1
     done
 
     shift 2
@@ -601,7 +601,7 @@ array_set_intersection ()
     while(($#)) ; do
         local -n _array_set_intersection_tmp_hash="${1}"
         for _array_set_intersection_key in "${!_array_set_intersection_ref_result_hash[@]}" ; do
-            [[ -v _array_set_intersection_tmp_hash[$_array_set_intersection_key] ]] || unset _array_set_intersection_ref_result_hash[$_array_set_intersection_key]
+            [[ -v _array_set_intersection_tmp_hash["$_array_set_intersection_key"] ]] || unset _array_set_intersection_ref_result_hash["$_array_set_intersection_key"]
         done
         (($#)) && shift
     done
