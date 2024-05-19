@@ -19,13 +19,13 @@ array_push ()
 
 # 往数组的头部添加元素(添加的元素可以是数组,不能是稀疏数组)
 # 命令行参数有大小限制，不能太大
+# 可以处理稀疏数组，但是效率不高
 array_unshift ()
 {
     local -n _array_unshift_ref_arr="${1}"
     shift
-    local -a _array_unshift_new_arr=()
+    local -a _array_unshift_new_arr=("${@}")
     local -i _array_unshift_i
-    _array_unshift_new_arr+=("${@}")
     local -i _array_unshift_new_arr_cnt=${#_array_unshift_new_arr[@]}
     for _array_unshift_i in "${!_array_unshift_ref_arr[@]}" ; do
         _array_unshift_new_arr[_array_unshift_i+_array_unshift_new_arr_cnt]="${_array_unshift_ref_arr[_array_unshift_i]}"
@@ -36,6 +36,15 @@ array_unshift ()
     for _array_unshift_i in "${!_array_unshift_new_arr[@]}" ; do
         _array_unshift_ref_arr[_array_unshift_i]="${_array_unshift_new_arr[_array_unshift_i]}"
     done
+}
+
+# 把数组都按照稀疏数组处理(添加的元素可以是数组,不能是稀疏数组)t
+# 不能处理稀疏数组，效率高，这个函数也是没什么用，直接操作即可
+array_unshift_dense ()
+{
+    local -n _array_unshift_dense_ref_arr="${1}"
+    shift
+    _array_unshift_dense_ref_arr=("${@}" "${_array_unshift_dense_ref_arr[@]}")
 }
 
 # 删除数组的最后一个元素并且返回
@@ -51,15 +60,15 @@ array_pop ()
     printf "%s" "$_array_pop_ref_pop_element"
 }
 
-# 删除数组的第一个元素并且返回
+# 删除数组的第一个元素并且返回,支持稀疏数组与非稀疏
 # 使用方法 element=$(array_shift "arr_name")
 array_shift ()
 {
     local -n _array_shift_ref_arr="${1}"
     local array_shift_shift_element=
-    local _array_shift_index_str="${!_array_shift_ref_arr[*]}"
-    [[ -z "$_array_shift_index_str" ]] && return
-    local _array_shift_first_index=${_array_shift_index_str%%[[:space:]]*}
+    local _array_shift_indexs=("${!_array_shift_ref_arr[@]}")
+    ((${#_array_shift_indexs[@]})) || return
+    local _array_shift_first_index=${_array_shift_indexs[0]}
     
     array_shift_shift_element="${_array_shift_ref_arr[_array_shift_first_index]}"
     unset _array_shift_ref_arr[_array_shift_first_index]
@@ -78,14 +87,24 @@ array_shift ()
     printf "%s" "$array_shift_shift_element"
 }
 
+# 数组按照稀疏数组处理,性能更高
+array_shift_dense ()
+{
+    local -n _array_shift_dense_ref_arr="${1}"
+    ((${#_array_shift_dense_ref_arr[@]})) || return
+
+    local _array_shift_dense_first_element="${_array_shift_dense_ref_arr[@]:0:1}"
+    _array_shift_dense_ref_arr=("${_array_shift_dense_ref_arr[@]:1}")
+    printf "%s" "$_array_shift_dense_first_element"
+}
+
 # 取数组的第一个元素，但是不删除它(对应 shift)
+# 这是考虑稀疏数组的情况,如果是要取索引0,直接arr[0]即可
+# 这个函数好像意义也不大,直接${arr[@]:0:1}更简洁直接
 array_peek ()
 {
     local -n _array_peek_ref_arr="${1}"
-    ((${#_array_peek_ref_arr[@]})) || return
-
-    local -a _array_peek_indexs=("${!_array_peek_ref_arr[@]}")
-    printf "%s" "${_array_peek_ref_arr[${_array_peek_indexs[0]}]}"
+    printf "%s" "${_array_peek_ref_arr[@]:0:1}"
 }
 
 # 取数组的最后一个元素，但是不删除它(对应 pop)
@@ -405,10 +424,22 @@ array_reduce ()
 }
 
 
-# 反转一个数组(:TODO:)
+# 保持数组的索引不变
 array_revert ()
 {
-    :
+    local -n _array_revert_ref_arr="${1}"
+    
+    local _array_revert_arr_size="${#_array_revert_ref_arr[@]}"
+    ((_array_revert_arr_size)) || return
+
+    local -a _array_revert_tmp_arr=("${_array_revert_ref_arr[@]}")
+    local -a _array_revert_indexs=("${!_array_revert_ref_arr[@]}")
+
+    local _array_revert_index
+
+    for((_array_revert_index=0;_array_revert_index<_array_revert_arr_size;_array_revert_index++)) ; do
+        _array_revert_ref_arr[${_array_revert_indexs[_array_revert_index]}]="${_array_revert_tmp_arr[_array_revert_arr_size-_array_revert_index-1]}"
+    done
 }
 
 # 只要数组中的元素有一个能满足给定函数的要求，就返回真，否则返回假
@@ -549,17 +580,49 @@ array_rotate ()
     done
 }
 
+# :TODO: 关于集合的4个操作是否需要处理数组的情况？(数组去重后当集合用?还是用hash键比较好,天生不重复)
 # 处理集合的时候注意下,集合可能不只要处理两个,可能是超过2个
+# 所有的数组都必须是关联数组(需要在传进函数前声明好)
 # hash模拟集合的交集
+# 1: 最终交集保存的hash引用
+# @: 所有求交集的hash引用
 array_set_intersection ()
 {
-    :
+    local -n _array_set_intersection_ref_result_hash="${1}"
+    local -n _array_set_intersection_tmp_hash="${2}"
+    local _array_set_intersection_key
+
+    for _array_set_intersection_key in "${!_array_set_intersection_tmp_hash[@]}"; do
+        _array_set_intersection_ref_result_hash[$_array_set_intersection_key]=1
+    done
+
+    shift 2
+
+    while(($#)) ; do
+        local -n _array_set_intersection_tmp_hash="${1}"
+        for _array_set_intersection_key in "${!_array_set_intersection_ref_result_hash[@]}" ; do
+            [[ -v _array_set_intersection_tmp_hash[$_array_set_intersection_key] ]] || unset _array_set_intersection_ref_result_hash[$_array_set_intersection_key]
+        done
+        (($#)) && shift
+    done
 }
 
 # hash模拟集合的并集
 array_set_union ()
 {
-    :
+    local -n _array_set_union_ref_result_hash="${1}"
+    shift
+
+    local _array_set_union_key
+    
+    while(($#)) ; do
+        local -n _array_set_union_tmp_hash="${1}"
+        for _array_set_union_key in "${!_array_set_union_tmp_hash[@]}" ; do
+            _array_set_union_ref_result_hash["$_array_set_union_key"]=1
+        done
+        
+        (($#)) && shift
+    done
 }
 
 # hash模拟集合的差集
