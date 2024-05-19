@@ -21,7 +21,7 @@ array_push ()
 # 命令行参数有大小限制，不能太大
 array_unshift ()
 {
-    local -n _array_unshift_ref_arr="$1"
+    local -n _array_unshift_ref_arr="${1}"
     shift
     local -a _array_unshift_new_arr=()
     local -i _array_unshift_i
@@ -42,7 +42,7 @@ array_unshift ()
 # 使用方法 element=$(array_pop "arr_name")
 array_pop ()
 {
-    local -n _array_pop__ref_arr="$1"
+    local -n _array_pop__ref_arr="${1}"
     local _array_pop_ref_pop_element=
     ((${#_array_pop__ref_arr[@]})) || return 
     
@@ -55,7 +55,7 @@ array_pop ()
 # 使用方法 element=$(array_shift "arr_name")
 array_shift ()
 {
-    local -n _array_shift_ref_arr="$1"
+    local -n _array_shift_ref_arr="${1}"
     local array_shift_shift_element=
     local _array_shift_index_str="${!_array_shift_ref_arr[*]}"
     [[ -z "$_array_shift_index_str" ]] && return
@@ -100,9 +100,9 @@ array_tail ()
 # 假: 无元素捕捉到
 array_grep ()
 {
-    local -n _array_grep_ref_arr="$1" _array_grep_ref_out_arr="$2"
+    local -n _array_grep_ref_arr="${1}" _array_grep_ref_out_arr="${2}"
     _array_grep_ref_out_arr=()
-    local _array_grep_function="$3"
+    local _array_grep_function="${3}"
     shift 3
     local -a _array_grep_params=("${@}")
     local _array_grep_i
@@ -127,9 +127,9 @@ array_grep ()
 # 使用匿名代码块来进行过滤
 array_grep_block ()
 {
-    local -n _array_grep_block_ref_arr="$1" _array_grep_block_out_arr="$2"
+    local -n _array_grep_block_ref_arr="${1}" _array_grep_block_out_arr="${2}"
     _array_grep_block_out_arr=()
-    local _array_grep_block_exec_block="$3"
+    local _array_grep_block_exec_block="${3}"
 
     eval "_array_grep_block_tmp_function() { "$_array_grep_block_exec_block" ; }"
     local _array_grep_block_index
@@ -171,8 +171,8 @@ array_grep_block ()
 
 array_map ()
 {
-    local -n _array_map_ref_arr="$1"
-    local _array_map_function="$2"
+    local -n _array_map_ref_arr="${1}"
+    local _array_map_function="${2}"
     shift 2
     local _array_map_function_params=("${@}")
     local _array_map_index
@@ -192,8 +192,8 @@ array_map ()
 # 2: 执行的匿名代码块
 array_map_block ()
 {
-    local -n _array_map_block_ref_arr="$1"
-    local _array_map_block_exec_block="$2" 
+    local -n _array_map_block_ref_arr="${1}"
+    local _array_map_block_exec_block="${2}" 
     
     eval "_array_map_block_tmp_function() { "$_array_map_block_exec_block" ; }"
     local _array_map_block_index
@@ -208,8 +208,8 @@ array_map_block ()
 # 对映射的每个数组元素进行操作,但是不改变原数组
 array_map_readonly ()
 {
-    local -n array_map_readonly_ref_arr="$1"
-    local array_map_readonly_function="$2"
+    local -n array_map_readonly_ref_arr="${1}"
+    local array_map_readonly_function="${2}"
     shift 2
     local array_map_readonly_function_params=("${@}")
     local array_map_readonly_index
@@ -221,8 +221,8 @@ array_map_readonly ()
 # 执行匿名代码块不改变原始数组
 array_map_readonly_block ()
 {
-    local -n array_map_readonly_block_ref_arr="$1"
-    local array_map_readonly_block_exec_block="$2" 
+    local -n array_map_readonly_block_ref_arr="${1}"
+    local array_map_readonly_block_exec_block="${2}" 
     
     eval "array_map_readonly_block_tmp_function() { "$array_map_readonly_block_exec_block" ; }"
     local array_map_readonly_block_index
@@ -240,8 +240,8 @@ array_map_readonly_block ()
 # 1: 需要排序数组引用名
 _array_sort ()
 {
-    local -n __array_sort_ref_arr="$1"
-    local __array_sort_mark="$2" __array_sort_delimiter="$3" __array_sort_field="$4"
+    local -n __array_sort_ref_arr="${1}"
+    local __array_sort_mark="${2}" __array_sort_delimiter="${3}" __array_sort_field="${4}"
     declare -a __array_sort_arr_indexs=("${!__array_sort_ref_arr[@]}")
     ((${#__array_sort_arr_indexs[@]})) || return 
 
@@ -250,8 +250,7 @@ _array_sort ()
 
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
-        # str_split "<" "2" < <(printf "%s" "$1")
-        # str_split_pure "<" "2" < <(printf "%s\n" "$1") 注意换行符的区别
+        # str_split_pure "<" "2" < <(printf "%s" "$1") 也可以
         array_map_block __array_sort_tmp_arr_filed "str_split \""$__array_sort_delimiter"\" \""$__array_sort_field"\" < <(printf \"%s\" \"\$1\")"
     fi
 
@@ -289,7 +288,7 @@ _array_sort ()
 # ... 一直往下循环组成,每组三个元素(可以看成三个元素的元组)
 array_sort ()
 {
-    local -n _array_sort_ref_arr="$1"
+    local -n _array_sort_ref_arr="${1}"
     shift
     
     (($#)) || {
@@ -298,7 +297,7 @@ array_sort ()
     }
 
     while (($#)) ; do
-        _array_sort _array_sort_ref_arr "$1" "${2}" "${3}"
+        _array_sort _array_sort_ref_arr "${1}" "${2}" "${3}"
         (($#)) && shift
         (($#)) && shift
         (($#)) && shift
@@ -309,7 +308,7 @@ array_sort ()
 # 读取文件中的所有行并追加到一个数组中
 array_read_file ()
 {
-    local -n _array_read_file_ref_arr="$1"
+    local -n _array_read_file_ref_arr="${1}"
     shift
     
     local _array_read_file_path
@@ -332,7 +331,7 @@ array_qsort ()
 # :TODO: 后续可以加参数支持关联数组判断(看起来意义不大?可以使用别的函数名)
 array_is_normal_array ()
 {
-    atom_identify_data_type "$1" "a" && return 0 || return 1
+    atom_identify_data_type "${1}" "a" && return 0 || return 1
 }
 
 # 去重一个数组中的元素,最后返回一个新的去重后的数组
@@ -342,9 +341,9 @@ array_is_normal_array ()
 # 注意:linux下的uniq和其它语言的都是针对相邻重复行的去重,但是这里不是
 array_uniq ()
 {
-    local -n _array_uniq_ref_arr="$1"
+    local -n _array_uniq_ref_arr="${1}"
     if [[ -n "$2" ]] ; then
-        local -n _array_uniq_ref_out_arr="$2"
+        local -n _array_uniq_ref_out_arr="${2}"
     else
         local -a _array_uniq_ref_out_arr=()
     fi
@@ -372,8 +371,8 @@ array_uniq ()
 # 保持hash的值不重复(这个好像意义不大)
 hash_uniq ()
 {
-    local -n _hash_uniq_ref_arr="$1"
-    local -n _hash_uniq_ref_out_arr="$2"
+    local -n _hash_uniq_ref_arr="${1}"
+    local -n _hash_uniq_ref_out_arr="${2}"
 
     local -A _hash_uniq_element_hash=()
     local _hash_uniq_i
@@ -417,8 +416,8 @@ array_revert ()
 # 特别是在处理空集合时的全称量化和存在量化的原则。)
 array_any ()
 {
-    local -n _array_any_ref_arr="$1"
-    local _array_any_function="$2"
+    local -n _array_any_ref_arr="${1}"
+    local _array_any_function="${2}"
     shift 2
 
     local _array_any_index
@@ -437,8 +436,8 @@ array_any ()
 # 特别是在处理空集合时的全称量化和存在量化的原则。)
 array_all ()
 {
-    local -n _array_all_ref_arr="$1"
-    local _array_all_function="$2"
+    local -n _array_all_ref_arr="${1}"
+    local _array_all_function="${2}"
     shift 2
 
     local _array_all_index
@@ -457,8 +456,8 @@ array_all ()
 # 特别是在处理空集合时的全称量化和存在量化的原则。)
 array_none ()
 {
-    local -n _array_none_ref_arr="$1"
-    local _array_none_function="$2"
+    local -n _array_none_ref_arr="${1}"
+    local _array_none_function="${2}"
     shift 2
 
     local _array_none_index
@@ -505,10 +504,8 @@ array_first ()
 # @: 条件函数带的参数
 array_first_value ()
 {
-    local -n _array_first_value_ref_arr="$1"
-    local array_name="$1"
-    local out_element=
-    local _array_first_value_function="$2"
+    local -n _array_first_value_ref_arr="${1}"
+    local _array_first_value_function="${2}"
     shift 2
 
     local -a _array_first_value_params=("${@}")

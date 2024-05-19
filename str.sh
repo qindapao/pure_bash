@@ -9,7 +9,7 @@
 # join_str=$(str_join '--' "${array[@]}")
 str_join ()
 {
-    local connector="$1"
+    local connector="${1}"
     shift
     local join_str
     join_str=$(printf "%s${connector}" "${@}")
@@ -19,9 +19,9 @@ str_join ()
 # 字符串转换成数组
 str_to_array ()
 {
-    local _str_to_array_in_str="$1"
-    local -n _str_to_array_out_arr="$2"
-    local delimiter="$3"
+    local _str_to_array_in_str="${1}"
+    local -n _str_to_array_out_arr="${2}"
+    local delimiter="${3}"
     # 不要使用<<<防止多一个回车符号
     IFS="$delimiter" read -d '' -r -a _str_to_array_out_arr < <(printf "%s" "$_str_to_array_in_str")
 }
@@ -37,8 +37,8 @@ str_split ()
     local output="$input_str"
 
     while (($#)) ; do
-        local delimiter="$1"
-        local field_number="$2"
+        local delimiter="${1}"
+        local field_number="${2}"
         
         output=$(awk -F "$delimiter" "{print \$$field_number}" < <(printf "%s" "$output"))
         (($#)) && shift
@@ -111,7 +111,7 @@ str_rtrim ()
 # Usage: trim_all "   example   string    "
 str_trim_all ()
 {
-    local deal_str="$1"
+    local deal_str="${1}"
     declare -a str_arr
     read -d "" -ra str_arr <<<"$deal_str"
     deal_str="${str_arr[*]}"
@@ -124,7 +124,7 @@ str_ltrim_zeros ()
     local out_str=$(printf "%s" "${1#"${1%%[!0]*}"}" )
 
     if [[ -z "$out_str" ]] ; then
-        printf "%s" "$1"
+        printf "%s" "${1}"
     else
         printf "%s" "$out_str"
 
@@ -140,10 +140,10 @@ str_ltrim_zeros ()
 # 6: 字符串结束索引[可选,如果没有就是在最大结束]
 str_startswith() 
 {
-    local in_str="$1"
-    local index="$2"
-    local prefix="$3"
-    local is_ignore_case="$4"   
+    local in_str="${1}"
+    local index="${2}"
+    local prefix="${3}"
+    local is_ignore_case="${4}"   
     ((is_ignore_case)) && {
         in_str=${in_str,,}
         prefix=${prefix,,}
@@ -181,10 +181,10 @@ str_startswith()
 # 6: 字符串结束索引[可选,如果没有就是在最大结束]
 str_endswith ()
 {
-    local in_str="$1"
-    local index="$2"
-    local suffix="$3"
-    local is_ignore_case="$4"
+    local in_str="${1}"
+    local index="${2}"
+    local suffix="${3}"
+    local is_ignore_case="${4}"
     ((is_ignore_case)) && {
         in_str=${in_str,,}
         suffix=${suffix,,}
@@ -227,7 +227,7 @@ str_upper ()
 
 str_to_hex ()
 {
-    local in_str="$1"
+    local in_str="${1}"
     
     str_is_num "$in_str" || return
 
@@ -241,7 +241,7 @@ str_to_hex ()
 # 最后得到的值是0x335b
 str_set_bit_value ()
 {
-    local value=$1
+    local value="${1}"
     shift
     # write_info的格式为(表示每个bit对应需要写入的值):
     # 0:0 2:1 4:0 5:0 7:1 14:1
@@ -265,13 +265,16 @@ str_set_bit_value ()
 # e
 # todo:
 #     1. Support reverse interception -1 -2 ... ...
-#     目前不支持下面这种语法(因为这里需要用换行符来一行一行处理,所以必须要一个换行符)
-#     2. str_split_pure ":" "2" < <(printf "%s" "4:c")
 str_split_pure ()
 {
     local tmp_str old_str
     declare -i index cnt i_index
-    while IFS= read -r tmp_str ; do
+    local input_str
+    local -a input_arr
+    read -d '' input_str
+    mapfile -t input_arr < <(printf "%s" "$input_str")
+
+    for tmp_str in "${input_arr[@]}" ; do
         for((index=1;index<=$#;index+=2)) ; do
             ((cnt=index+1))
             [[ -z "$tmp_str" ]] && break

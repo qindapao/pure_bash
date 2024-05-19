@@ -24,13 +24,13 @@ if ((__str_bash_major_version>=4)) && ((__str_bash_minor_version>=2)) ; then
     # 使用给定的格式打印
     date_cur_datetime ()
     {
-        printf "%($1)T" "-1"
+        printf "%(${1})T" "-1"
     }
 
     # 转换一个时间字符串
     date_datetime ()
     {
-        printf "%($2)T" "$1"
+        printf "%(${2})T" "$1"
     }
 
     date_print_elapsed_time ()
