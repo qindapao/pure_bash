@@ -1,16 +1,17 @@
-((__DBG++)) && return
+
+((__LOG++)) && return
 
 . ./str.sh
 . ./date_utils.sh
 
 # 0 debug 1 info 2 warning 3 error(打印三层记录)
 LOG_LEVEL=0
-ALLOW_BREAK=0
+LOG_ALLOW_BREAK=0
 declare -a LOG_LEVEL_KIND=("d i w e" "i w e" "w e" "e")
 
-DEBUG_LOG_FILE_NAME="test_log_$(date_log).log"
+LOG_FILE_NAME="test_log_$(date_log).log"
 
-dbg_dbg ()
+log_dbg ()
 {
     local log_type=${1#*-}
     local is_need_break=0
@@ -24,17 +25,27 @@ dbg_dbg ()
         $declare_str "
     done
     local log_info
-    log_info="[${log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date +'%FT%H:%M:%S')] ${msg}"
+    log_info="[${log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)] ${msg}"
     case "$log_type" in
         d) : 35 ;;
         i) : 32 ;;
         w) : 33 ;;
         e) : 31 ;;
     esac
+    
     printf "\033[${_}m%s\033[0m\n" "$log_info"
-    printf "%s\n" "$log_info" >>"$DEBUG_LOG_FILE_NAME"
+    printf "%s\n" "$log_info" >>"$LOG_FILE_NAME"
 
-    if((ALLOW_BREAK&is_need_break)) ; then
+    if [[ "e" == "$log_type" ]] ; then
+        # :TODO: 待测试
+        local -i func_index=1
+        for((func_index=1;func_index<${#FUNCNAME[@]};func_index++)) ; do
+            printf "%s\n" $'\t'"at ${FUNCNAME[func_index]}(${BASH_SOURCE[func_index]}:${BASH_LINENO[func_index-1]})"
+            printf "%s\n" $'\t'"at ${FUNCNAME[func_index]}(${BASH_SOURCE[func_index]}:${BASH_LINENO[func_index-1]})" >>"$LOG_FILE_NAME"
+        done
+    fi
+
+    if((LOG_ALLOW_BREAK&is_need_break)) ; then
         printf "\033[32m%s\033[0m\n" "you are in break mode,press Enter to Continue,Ctrl+c to End"
         #保存全部终端设置
         local savedstty=`stty -g 2>/dev/null`
@@ -52,12 +63,11 @@ dbg_dbg ()
 # 显示所有参数
 # 在函数中调用,可以显示所有位置入参
 # show_params "${@}"
-dbg_show_params ()
+log_show_params ()
 {
     local params=("$@")
     dbg_dbg 'd' "show params" params
 }
 
 # :TODO: 失败需要打印调用栈的函数
-
 

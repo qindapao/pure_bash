@@ -28,6 +28,7 @@ str_to_array ()
 
 # 字符串拆分函数,只是对awk的封装,功能多,支持连续分隔符和global
 # 由于要开新进程,效率一般
+# :TODO: 如果想支持从文件中读取,可以把最后一个参数设计成文件名(最后一个参数并且索引是奇数)
 # $ echo "1:xx;yy:12;kk:" | str_split ':' 2 ';' 2
 # yy
 str_split ()
@@ -57,25 +58,41 @@ str_is_num ()
     fi
 }
 
-# 获取目录字符串中的当前目录名
-str_dirname ()
+# 判断一个字符串是否是另外一个子字符串
+# 1: 需要判断的字符串
+# 2: 打桩的参数(高阶函数调用中传入的数组索引)
+# 3: 判断是否包含的字符串
+str_contains ()
 {
-    :
+    local long_str="${1}"
+    # 这个是一个索引,一般用于map函数中
+    local arr_index="${2}"
+    local short_str="${3}"
+
+    [[ "$long_str" == *"$short_str"* ]] && return 0 || return 1
 }
 
-# 获取目录字符串中的完整路径
+
+# 获取目录字符串中的当前目录名
+# 用于带文件名的字符串
+str_dirname ()
+{
+    local in_str="${1%/*}"
+    printf "%s" "${in_str##*/}"
+}
+
+# 获取目录字符串中的完整路径(不带最后的斜杠)
+# 用于带文件名的字符串
 str_abs_path ()
 {
-    :
+    printf "%s" "${1%/*}"
 }
 
 # 从文件路径字符串中解析文件名(不带后缀)
 str_basename ()
 {
-    local out_str=
-    out_str=${1##*/}
-    out_str=${out_str%%.*}
-    printf "%s" "$out_str"
+    local out_str="${1##*/}"
+    printf "%s" "${out_str%%.*}"
 }
 
 # 1: 输入字符串
@@ -89,22 +106,19 @@ str_tr_cr_to_space ()
 str_trim ()
 {
     : "${1#"${1%%[![:space:]]*}"}"
-    : "${_%"${_##*[![:space:]]}"}"
-    printf '%s' "$_"
+    printf "%s" "${_%"${_##*[![:space:]]}"}"
 }
 
 # 去掉行首空白字符
 str_ltrim ()
 {
-    : "${1#"${1%%[![:space:]]*}"}"
-    printf '%s' "$_"
+    printf "%s" "${1#"${1%%[![:space:]]*}"}"
 }
 
 # 去掉行尾空白字符
 str_rtrim ()
 {
-    : "${_%"${_##*[![:space:]]}"}"
-    printf '%s' "$_"
+    printf "%s" "${1%"${1##*[![:space:]]}"}"
 }
 
 # 去掉行首行尾所有空格，中间的所有空白保留一个空格
@@ -113,7 +127,7 @@ str_trim_all ()
 {
     local deal_str="${1}"
     declare -a str_arr
-    read -d "" -ra str_arr <<<"$deal_str"
+    read -d "" -ra str_arr < <(printf "%s" "$deal_str")
     deal_str="${str_arr[*]}"
     printf "%s" "$deal_str"
 }
@@ -127,7 +141,6 @@ str_ltrim_zeros ()
         printf "%s" "${1}"
     else
         printf "%s" "$out_str"
-
     fi
 }
 
@@ -261,10 +274,12 @@ str_set_bit_value ()
 
 # 字符串拆分函数,下面是纯bash实现
 # 效率极高
-# str_split_pure ' ' 1 "**" 2 ":" 2 ";" 3 <<<"   *dge**ge:g;;e;ge:gege*x   dge"
+# str_split_pure ' ' 1 "**" 2 ":" 2 ";" 3 < (printf "%s" "   *dge**ge:g;;e;ge:gege*x   dge")
 # e
 # todo:
 #     1. Support reverse interception -1 -2 ... ...
+#     2. 如果想支持从文件中读取,可以把最后一个参数设计成文件名(最后一个参数并且索引是奇数)
+#
 str_split_pure ()
 {
     local tmp_str old_str
@@ -285,7 +300,7 @@ str_split_pure ()
             # first trim the string to remove all redundant spaces
             [[ "${!index}" == [[:space:]] ]] && {
                 declare -a tmp_arr
-                read -d "" -ra tmp_arr <<<"$tmp_str"
+                read -d "" -ra tmp_arr < <(printf "%s" "$tmp_str")
                 tmp_str="${tmp_arr[*]}"
             }
 
@@ -301,5 +316,4 @@ str_split_pure ()
         printf "%s\n" "$tmp_str"
     done
 }
-
 

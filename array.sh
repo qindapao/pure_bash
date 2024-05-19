@@ -42,12 +42,12 @@ array_unshift ()
 # 使用方法 element=$(array_pop "arr_name")
 array_pop ()
 {
-    local -n _array_pop__ref_arr="${1}"
+    local -n _array_pop_ref_arr="${1}"
     local _array_pop_ref_pop_element=
-    ((${#_array_pop__ref_arr[@]})) || return 
+    ((${#_array_pop_ref_arr[@]})) || return 
     
-    _array_pop_ref_pop_element=${_array_pop__ref_arr[-1]}
-    unset _array_pop__ref_arr[-1]
+    _array_pop_ref_pop_element=${_array_pop_ref_arr[-1]}
+    unset _array_pop_ref_arr[-1]
     printf "%s" "$_array_pop_ref_pop_element"
 }
 
@@ -81,15 +81,22 @@ array_shift ()
 # 取数组的第一个元素，但是不删除它(对应 shift)
 array_peek ()
 {
-    :
+    local -n _array_peek_ref_arr="${1}"
+    ((${#_array_peek_ref_arr[@]})) || return
+
+    local -a _array_peek_indexs=("${!_array_peek_ref_arr[@]}")
+    printf "%s" "${_array_peek_ref_arr[${_array_peek_indexs[0]}]}"
 }
 
 # 取数组的最后一个元素，但是不删除它(对应 pop)
+# 这个函数意义不大,直接用${arr[-1]}更好
 array_tail ()
 {
-    :
-}
+    local -n _array_tail_ref_arr="${1}"
+    ((${#_array_tail_ref_arr[@]})) || return
 
+    printf "%s" "${_array_tail_ref_arr[-1]}"
+}
 
 # 数组元素查找(支持关联数组和普通数组)
 # 1: 需要操作的数组引用
@@ -521,18 +528,26 @@ array_first_value ()
 
 
 
-# 数组的顺时针轮转
-array_rotate_right ()
+# 数组的轮转(不改变索引)
+# 1: 需要操作的数组引用
+# 2: 旋转步长
+#       正数: 向左旋转一个给定步长
+#       负数: 向右旋转一个给定步长(顺时针,最后元素变成最前元素)
+array_rotate ()
 {
-    :
+    local -n _array_rotate_ref_arr="${1}"
+    local -i _array_rotate_step="${2}"
+    local -i _array_rotate_arr_size=${#_array_rotate_ref_arr[@]}
+    
+    ((_array_rotate_arr_size)) || return
+    local -a _array_rotate_arr_indexs=("${!_array_rotate_ref_arr[@]}")
+    local -a _array_rotate_arr_tmp_arr=("${_array_rotate_ref_arr[@]}")
+    
+    local _array_rotate_index
+    for((_array_rotate_index=0;_array_rotate_index<_array_rotate_arr_size;_array_rotate_index++)) ; do
+        _array_rotate_ref_arr[${_array_rotate_arr_indexs[_array_rotate_index]}]=${_array_rotate_arr_tmp_arr[(_array_rotate_index+_array_rotate_step)%_array_rotate_arr_size]}
+    done
 }
-
-# 数组的逆时针轮转
-array_rotate_left ()
-{
-    :
-}
-
 
 # 处理集合的时候注意下,集合可能不只要处理两个,可能是超过2个
 # hash模拟集合的交集
