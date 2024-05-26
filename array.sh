@@ -1,15 +1,19 @@
+# :TODO: 操作引用变量的函数和不操作引用变量的函数需要区分开，目前混淆在一起的
 # 数组操作集合(模拟perl5的行为)
 
-# 往数组的尾部添加元素(添加的元素可以是数组,不能是稀疏数组)
 # 命令行参数有大小限制，不能太大
 # 为了防止有引用变量的情况下的变量污染,所有带引用变量的库函数都以_函数名_打头
 # 所有 : 的函数都是暂时未实现的
 
-((__ARRAY++)) && return
+
+# :TODO: 建议使用一个统一的hash表来管理所以的头部防御变量,方便日志函数统一处理
+. ./meta.sh
+((DEFENSE_VARIABLES[array]++)) && return
 
 . ./atom.sh
 . ./str.sh
 
+# 这个函数并没有用,直接操作更简单
 array_push ()
 {
     local -n _array_push_ref_arr="$1"
@@ -17,6 +21,7 @@ array_push ()
     _array_push_ref_arr+=("${@}")
 }
 
+# 这个函数几乎无用
 # 往数组的头部添加元素(添加的元素可以是数组,不能是稀疏数组)
 # 命令行参数有大小限制，不能太大
 # 可以处理稀疏数组，但是效率不高
@@ -38,6 +43,7 @@ array_unshift ()
     done
 }
 
+# 这个函数也没有用,直接操作更简单
 # 把数组都按照稀疏数组处理(添加的元素可以是数组,不能是稀疏数组)t
 # 不能处理稀疏数组，效率高，这个函数也是没什么用，直接操作即可
 array_unshift_dense ()
@@ -47,6 +53,7 @@ array_unshift_dense ()
     _array_unshift_dense_ref_arr=("${@}" "${_array_unshift_dense_ref_arr[@]}")
 }
 
+# 这个函数也无用,直接操作更简单
 # 删除数组的最后一个元素并且返回
 # 使用方法 element=$(array_pop "arr_name")
 array_pop ()
@@ -55,13 +62,21 @@ array_pop ()
     local _array_pop_ref_pop_element=
     ((${#_array_pop_ref_arr[@]})) || return 
     
-    _array_pop_ref_pop_element=${_array_pop_ref_arr[-1]}
-    unset _array_pop_ref_arr[-1]
+    _array_pop_ref_pop_element="${_array_pop_ref_arr[-1]}"
+    # 这个语法bash4.3才支持,数据的负向索引是从4.3才开始引入的
+    unset '_array_pop_ref_arr[-1]'
     printf "%s" "$_array_pop_ref_pop_element"
 }
 
 # 删除数组的第一个元素并且返回,支持稀疏数组与非稀疏
 # 使用方法 element=$(array_shift "arr_name")
+# :TODO: 目前有一个问题,$(function xx yy)这种调用方式是在子shell中执行的,因此
+#        无法更改父shell环境中的数组,所以原始的数组无法被更新,需要调用两次函数解决
+#        first_element=$(array_shift my_arr)
+#        array_shift
+#        但是这样感觉很冗余了
+#        如果通过引用变量传递需要获取的元素又无法在命令替换的$()中使用,用起来不方便
+#        鱼和熊掌不可兼得!
 array_shift ()
 {
     local -n _array_shift_ref_arr="${1}"
@@ -71,7 +86,7 @@ array_shift ()
     local _array_shift_first_index=${_array_shift_indexs[0]}
     
     array_shift_shift_element="${_array_shift_ref_arr[_array_shift_first_index]}"
-    unset _array_shift_ref_arr[_array_shift_first_index]
+    unset '_array_shift_ref_arr[_array_shift_first_index]'
     local -i _array_shift_i
     local -a _array_shift_new_arr=()
     
@@ -117,7 +132,7 @@ array_tail ()
     printf "%s" "${_array_tail_ref_arr[-1]}"
 }
 
-# 数组元素查找(支持关联数组和普通数组)
+# 数组元素查找(不改变原始的数组)
 # 1: 需要操作的数组引用
 # 2: 输出的数组引用(满足条件的元素放这里,得到的数组不是稀疏数组)
 # 3: 一个函数,第一个参数是当前的字符串,其它的参数为函数自带,最后一个参数是当前索引(可选,如果筛选函数需要使用数组索引)
@@ -135,19 +150,15 @@ array_grep ()
     
     for _array_grep_i in "${!_array_grep_ref_arr[@]}" ; do
         if "$_array_grep_function" "${_array_grep_ref_arr["$_array_grep_i"]}" "$_array_grep_i" "${_array_grep_params[@]}"  ; then
-            # 为了支持关联数组普通数组最后可能是一个稀疏数组
             _array_grep_ref_out_arr["$_array_grep_i"]="${_array_grep_ref_arr["$_array_grep_i"]}"
         fi
     done
 
-    if((${#_array_grep_ref_out_arr[@]})) ; then
-        if array_is_normal_array _array_grep_ref_out_arr ; then
-            _array_grep_ref_out_arr=("${_array_grep_ref_out_arr[@]}")
-        fi
+    if ((${#_array_grep_ref_out_arr[@]})) ; then
+        _array_grep_ref_out_arr=("${_array_grep_ref_out_arr[@]}")
         return 0
-    else
-        return 1
     fi
+    return 1
 }
 
 # 使用匿名代码块来进行过滤
@@ -169,13 +180,10 @@ array_grep_block ()
     unset -f _array_grep_block_tmp_function
 
     if((${#_array_grep_ref_out_arr[@]})) ; then
-        if array_is_normal_array _array_grep_block_out_arr ; then
-            _array_grep_block_out_arr=("${_array_grep_block_out_arr[@]}")
-        fi
+        _array_grep_block_out_arr=("${_array_grep_block_out_arr[@]}")
         return 0
-    else
-        return 1
     fi
+    return 1
 }
 
 
@@ -354,10 +362,19 @@ array_qsort ()
 
 # 判断一个数据结构是否是一个数组(不管是否是引用都能正确处理)
 # 1: 需要判断的数组的名字
-# :TODO: 后续可以加参数支持关联数组判断(看起来意义不大?可以使用别的函数名)
-array_is_normal_array ()
+array_is_array ()
 {
     atom_identify_data_type "${1}" "a" && return 0 || return 1
+}
+
+# 去重多个数组中的重复元素,并且更新原数组,不保留原始的index
+array_uniq_multi ()
+{
+    while(($#)) ; do
+        local -n _array_uniq_multi_ref_arr="${1}"
+        array_uniq _array_uniq_multi_ref_arr
+        shift
+    done
 }
 
 # 去重一个数组中的元素,最后返回一个新的去重后的数组
@@ -379,8 +396,30 @@ array_uniq ()
     local _array_uniq_i
 
     for _array_uniq_i in "${!_array_uniq_ref_arr[@]}" ; do
-        if ! ((_array_uniq_element_hash["${_array_uniq_ref_arr["$_array_uniq_i"]}"]++)) ; then
-            _array_uniq_ref_out_arr["$_array_uniq_i"]="${_array_uniq_ref_arr["$_array_uniq_i"]}"
+        local _array_uniq_tmp_key="${_array_uniq_ref_arr["$_array_uniq_i"]}"
+        # :TODO: 这里空元素被直接干掉了是否合理？
+        [[ -z "$_array_uniq_tmp_key" ]] && continue
+        
+        # 方括号中用-v和双圆括号中要特别小心参数扩展的问题
+        # 当前hash判断键是很危险的,使用单引号才能防止以外解释
+        # :TODO: 这个问题要去社区求助下
+        # 验证字符串
+        # xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+        # 下面这种写法和[[ -v _array_uniq_element_hash['$_array_uniq_tmp_key'] ]] 这里单双引号嵌套环境不一样表现不太一样，最好别用
+        # if ((_array_uniq_element_hash['$_array_uniq_tmp_key']++)) ; then
+        #     _array_uniq_ref_out_arr["$_array_uniq_i"]="${_array_uniq_tmp_key}"
+        # fi
+        # 
+        # 可以使用下面的代码验证
+        # declare -A k=(["(xx:yy)"]="6" ["xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx
+        # ->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="2" )
+        # tmp_key="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
+        # if [[ -v k['$tmp_key'] ]] ; then echo xx; fi
+        # if ((k['$tmp_key']++)) ; then echo xx; fi
+
+        if [[ -z "${_array_uniq_element_hash["${_array_uniq_tmp_key}"]}" ]] ; then
+            _array_uniq_element_hash["${_array_uniq_tmp_key}"]=1
+            _array_uniq_ref_out_arr["$_array_uniq_i"]="${_array_uniq_tmp_key}"
         fi
     done
 
@@ -394,27 +433,25 @@ array_uniq ()
     fi
 }
 
-# 保持hash的值不重复(这个好像意义不大)
-hash_uniq ()
+
+# 过滤掉某些数组中满足条件的元素，并且更新原数组(原数组处理后不是稀疏数组)
+# 只考虑数组的情况(不考虑关联数组,关联数组用单独的函数处理)
+# :TODO: index还有没有意义?这里数组的index可能已经改变
+array_filter ()
 {
-    local -n _hash_uniq_ref_arr="${1}"
-    local -n _hash_uniq_ref_out_arr="${2}"
+    local -n _array_filter_ref_arr="${1}"
+    local _array_filter_copy_arr=("${_array_filter_ref_arr[@]}")
+    _array_filter_ref_arr=()
+    local _array_filter_function="${2}"
+    shift 2
 
-    local -A _hash_uniq_element_hash=()
-    local _hash_uniq_i
+    local _array_filter_i
 
-    for _hash_uniq_i in "${!_hash_uniq_ref_arr[@]}" ; do
-        if ! ((_hash_uniq_element_hash[${_hash_uniq_ref_arr["$_hash_uniq_i"]}]++)) ; then
-            _hash_uniq_ref_out_arr["$_hash_uniq_i"]="${_hash_uniq_ref_arr["$_hash_uniq_i"]}"
+    for _array_filter_i in "${!_array_filter_copy_arr[@]}" ; do
+        if ! "$_array_filter_function" "${_array_filter_copy_arr["$_array_filter_i"]}" "$_array_filter_i" "${@}" ; then
+            _array_filter_ref_arr+=("${_array_filter_copy_arr["$_array_filter_i"]}")
         fi
     done
-}
-
-
-# :TODO: 过滤器
-array_fillter ()
-{
-    :
 }
 
 # :TODO: 累加器？
@@ -508,14 +545,32 @@ array_none ()
     return 0
 }
 
+# 非引用传递函数
+# 求数组中按照数字排序最大的元素
+# @: 整个数组的参数
 array_max ()
 {
-    :
+    local max_var="${1}"
+    shift
+    local i
+    for i in "${@}" ; do
+        [[ "$i" -gt "$max_var" ]] && max_var="$i"
+    done
+    printf "%s" "$max_var"
 }
 
+# 非引用传递函数
+# 求数组中按照数字排序最小的元素
+# @: 整个数组的参数
 array_min ()
 {
-    :
+    local min_var="${1}"
+    shift
+    local i
+    for i in "${@}" ; do
+        [[ "$i" -lt "$min_var" ]] && min_var="$i"
+    done
+    printf "%s" "$min_var"
 }
 
 array_strmax ()
@@ -546,17 +601,31 @@ array_first_value ()
     local _array_first_value_function="${2}"
     shift 2
 
-    local -a _array_first_value_params=("${@}")
     local _array_first_value_i
 
     for _array_first_value_i in "${!_array_first_value_ref_arr[@]}" ; do
-        if "$_array_first_value_function" "${_array_first_value_ref_arr["$_array_first_value_i"]}" "$_array_first_value_i" "${_array_first_value_params[@]}" ; then
+        if "$_array_first_value_function" "${_array_first_value_ref_arr["$_array_first_value_i"]}" "$_array_first_value_i" "${@}" ; then
             printf "%s" "${_array_first_value_ref_arr["$_array_first_value_i"]}"
             break
         fi
     done
 }
 
+# 返回数组中满足一系列条件(可能不只一个)的第一个值,同时按照条件函数打印的信息返回(满足条件然后过滤)
+# 约定打印的值以回车分隔每一个(过滤函数可以返回多个值),过滤函数以返回值0 1表示成功失败,打印信息用于返回字符串
+array_first_value_fillter ()
+{
+    local -n _array_first_value_fillter_ref_arr="${1}"
+    local _array_first_value_fillter_function="${2}"
+    shift 2
+
+    local _array_first_value_fillter_i get_value
+    
+    for _array_first_value_fillter_i in "${!_array_first_value_fillter_ref_arr[@]}" ; do
+        get_value=$("$_array_first_value_fillter_function" "${_array_first_value_fillter_ref_arr["$_array_first_value_fillter_i"]}" "$_array_first_value_fillter_i" "$@")
+        (($?)) || { printf "%s" "$get_value" ; break ; }
+    done
+}
 
 
 # 数组的轮转(不改变索引)
@@ -580,61 +649,38 @@ array_rotate ()
     done
 }
 
-# :TODO: 关于集合的4个操作是否需要处理数组的情况？(数组去重后当集合用?还是用hash键比较好,天生不重复)
-# 处理集合的时候注意下,集合可能不只要处理两个,可能是超过2个
-# 所有的数组都必须是关联数组(需要在传进函数前声明好)
-# hash模拟集合的交集
-# 1: 最终交集保存的hash引用
-# @: 所有求交集的hash引用
-array_set_intersection ()
+
+# :TODO: 从数组中删除一个元素(删除后的数组索引保留吗？或者提供两种函数，保留索引的，和致密的)
+array_delete_elements ()
 {
-    local -n _array_set_intersection_ref_result_hash="${1}"
-    local -n _array_set_intersection_tmp_hash="${2}"
-    local _array_set_intersection_key
-
-    for _array_set_intersection_key in "${!_array_set_intersection_tmp_hash[@]}"; do
-        _array_set_intersection_ref_result_hash["$_array_set_intersection_key"]=1
-    done
-
-    shift 2
-
-    while(($#)) ; do
-        local -n _array_set_intersection_tmp_hash="${1}"
-        for _array_set_intersection_key in "${!_array_set_intersection_ref_result_hash[@]}" ; do
-            [[ -v _array_set_intersection_tmp_hash["$_array_set_intersection_key"] ]] || unset _array_set_intersection_ref_result_hash["$_array_set_intersection_key"]
-        done
-        (($#)) && shift
-    done
+    :
 }
 
-# hash模拟集合的并集
-array_set_union ()
+# 不保留索引,删除后的数组是一个致密数组(稀疏输入进来,也转换成致密数组)
+# 1: 需要处理的数组引用
+# 2~@: 需要删除的元素的值
+array_del_elements_dense ()
 {
-    local -n _array_set_union_ref_result_hash="${1}"
+    local -n _array_del_elements_dense_ref_arr="${1}"
+    local -a _array_del_elements_dense_copy_arr=()
     shift
+    local _array_del_elements_delete_value _array_del_elements_delete_arr_value
 
-    local _array_set_union_key
-    
-    while(($#)) ; do
-        local -n _array_set_union_tmp_hash="${1}"
-        for _array_set_union_key in "${!_array_set_union_tmp_hash[@]}" ; do
-            _array_set_union_ref_result_hash["$_array_set_union_key"]=1
+    for _array_del_elements_delete_value in "${@}" ; do
+        _array_del_elements_dense_copy_arr=("${_array_del_elements_dense_ref_arr[@]}")
+        _array_del_elements_dense_ref_arr=()
+        for _array_del_elements_delete_arr_value in "${_array_del_elements_dense_copy_arr[@]}" ; do
+            if [[ "$_array_del_elements_delete_arr_value" != "$_array_del_elements_delete_value" ]] ; then
+                _array_del_elements_dense_ref_arr+=("$_array_del_elements_delete_arr_value")
+            fi
         done
-        
-        (($#)) && shift
     done
 }
 
-# hash模拟集合的差集
-array_set_diff ()
-{
-    :
-}
+# :TODO: 一种利用参数扩展连续给数组赋值的方法,不知道有什么用
+# let 'a['{1..4}']=2'
+# eval let 'a['{1.."$x"}']=2'
+# eval "declare -a a[{1..$x}]=xxxgege"
 
-# hash模拟集合的补集
-array_set_complement ()
-{
-    :
-}
-
+# :TODO: 数组是否需要实现集合的4种操作?
 

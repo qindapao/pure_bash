@@ -1,4 +1,5 @@
-((__DATE_UTILS++)) && retun
+. ./meta.sh
+((DEFENSE_VARIABLES[date]++)) && return
 
 . ./atom.sh
 
@@ -25,6 +26,7 @@ if ((__str_bash_major_version>=4)) && ((__str_bash_minor_version>=2)) ; then
     {
         printf "%(${1})T" "-1"
     }
+
 else
     date_prt_t ()
     {
@@ -45,10 +47,14 @@ else
     {
         date +"$1"
     }
+
 fi
 
 date_print_elapsed_time ()
 {
     printf "Elapsed time: %d days %02d:%02d:%02d.\n" $((SECONDS/(24*60*60))) $(((SECONDS/(60*60))%24)) $(((SECONDS/60)%60)) $((SECONDS%60))
 }
+
+# 系统起来后经过的秒数
+date_up_sec () { printf "%s" "$SECONDS" ; }
 

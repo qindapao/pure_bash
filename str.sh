@@ -1,10 +1,43 @@
 # 字符串操作集合(模拟perl5的行为)
 # 注意:命令行参数大小限制,数组参数不能过大
 # 为了保证引用变量不会重名,所有带引用变量的函数中的局部变量都带函数名字,不带引用变量的函数不受影响
+# 如果不需要改变原数组,可以使用下面的方式获取数组内容
+# array::merge() {
+#     [[ $# -ne 2 ]] && printf "%s: Missing arguments\n" "${FUNCNAME[0]}" && return 2
+#     declare -a arr1=("${!1}")
+#     declare -a arr2=("${!2}")
+#     declare out=("${arr1[@]}" "${arr2[@]}")
+#     printf "%s\n" "${out[@]}"
+# }
+#
+# 有一种临时保存变量的好方法，可以利用declare -p 把需要保存的变量打印到一个临时文件中
+# 当需要还原变量的时候，直接source ./tmp_file 就可以在当前环境下加载这些变量
 
 # :TODO: 根据业务需求来实现封装,尽量使纯bash实现
 
-((__STR++)) && return
+# :TODO: https://github.com/vlisivka/bash-modules/blob/master/bash-modules/src/bash-modules/string.sh
+# 这里有一些有用的函数，空了可以整理下
+
+. ./meta.sh
+((DEFENSE_VARIABLES[str]++)) && return
+
+# 判断两个字符串相等($2保留为高阶数组中的索引)
+str_is_equa () { [[ "$3" == "$1" ]] && return 0 || return 1 ; }
+
+# 判断两个字符串不相等($2保留为高阶数组中的索引)
+str_is_not_equa () { [[ "$3" != "$1" ]] && return 0 || return 1 ; }
+
+# 判断一个字符串是否只包含空白字符或者是空字符串
+str_is_black_or_empty ()
+{
+    : "${1#"${1%%[![:space:]]*}"}"
+    local deal_str="${_%"${_##*[![:space:]]}"}"
+    
+    [[ -z "$deal_str" ]] && return 0 || return 1
+}
+
+
+# :TODO: 正则匹配?
 
 # join_str=$(str_join '--' "${array[@]}")
 str_join ()
@@ -62,12 +95,21 @@ str_is_num ()
 # 1: 需要判断的字符串
 # 2: 打桩的参数(高阶函数调用中传入的数组索引)
 # 3: 判断是否包含的字符串
+# 4: 是否忽略大小写
+#       1: 忽略
+#       0: 不忽略(默认)
 str_contains ()
 {
     local long_str="${1}"
     # 这个是一个索引,一般用于map函数中
     local arr_index="${2}"
     local short_str="${3}"
+    local is_ignore_case="${4:-0}"
+    
+    ((is_ignore_case)) && {
+        long_str="${long_str,,}"
+        short_str="${short_str,,}"
+    }
 
     [[ "$long_str" == *"$short_str"* ]] && return 0 || return 1
 }
@@ -98,7 +140,9 @@ str_basename ()
 # 1: 输入字符串
 str_tr_cr_to_space ()
 {
-    printf "%s" "${1//$'\n'/ }"
+    local out_str=''
+    out_str="${1//$'\r'/}"
+    printf "%s" "${out_str//$'\n'/ }"
 }
 
 # 去掉行首和行尾空白字符
@@ -248,30 +292,6 @@ str_to_hex ()
     printf "0x%x" "$in_str" 
 }
 
-
-# 使用方法
-# xx=$(set_bit_value "0x34a" 0:1 2:0 3:1 4:1 12:1 13:1)
-# 最后得到的值是0x335b
-str_set_bit_value ()
-{
-    local value="${1}"
-    shift
-    # write_info的格式为(表示每个bit对应需要写入的值):
-    # 0:0 2:1 4:0 5:0 7:1 14:1
-    
-    local write_bit=() bit_value=()
-    local i
-    for i in "$@" ; do
-        write_bit+=("${i%:*}") ; bit_value+=("${i##*:}")
-    done
-    
-    for((i=0;i<${#write_bit[@]};i++))
-    do
-        value=$(( (bit_value[i] << write_bit[i]) | (value & (~(0x1 << write_bit[i]))) ))
-    done
-    printf "0x%02x" "$value"
-}
-
 # 字符串拆分函数,下面是纯bash实现
 # 效率极高
 # str_split_pure ' ' 1 "**" 2 ":" 2 ";" 3 < (printf "%s" "   *dge**ge:g;;e;ge:gege*x   dge")
@@ -316,4 +336,23 @@ str_split_pure ()
         printf "%s\n" "$tmp_str"
     done
 }
+
+# 可以在函数中使用local修改全局IFS的值，退出函数后，值被还原，只在函数内生效
+# 可以避免对全局IFS的变更
+# test_1 ()
+# {
+# 	local IFS=':'
+# 	read -r xx yy zz <<< "1:2:3"
+# 	echo $xx
+# 	echo $yy
+# 	echo $zz
+# }
+# 
+# test_1
+# 
+# read -r xx yy zz <<< "1 2 3"
+# echo $xx
+# echo $yy
+# echo $zz
+
 
