@@ -18,76 +18,76 @@ LOG_FILE_NAME="test_log_$(date_log).log"
 
 log_dbg ()
 {
-    local log_type=${1#*-}
-    local is_need_break=0
-    [[ "$1" == *'-'* ]] && is_need_break=${1%-*}
-    [[ "${LOG_LEVEL_KIND[LOG_LEVEL]}" != *"$log_type"* ]] && return
-    local msg="${2} " i declare_str prt_str
+    local _log_dbg_log_type=${1#*-}
+    local _log_dbg_is_need_break=0
+    [[ "$1" == *'-'* ]] && _log_dbg_is_need_break=${1%-*}
+    [[ "${LOG_LEVEL_KIND[LOG_LEVEL]}" != *"$_log_dbg_log_type"* ]] && return
+    local _log_dbg_msg="${2} " _log_dbg_i _log_dbg_declare_str _log_dbg_prt_str
 
-    for((i=3;i<=$#;i++)) ; do
+    for((_log_dbg_i=3;_log_dbg_i<=$#;_log_dbg_i++)) ; do
         # 如果是引用变量那么找到真正变量
-        declare_str="$(declare -p "${!i}" 2>/dev/null)"
-        prt_str="${!i}"
+        _log_dbg_declare_str="$(declare -p "${!_log_dbg_i}" 2>/dev/null)"
+        _log_dbg_prt_str="${!_log_dbg_i}"
         while true ; do
             # :TODO: 确认后面的双引号或者单引号一定会出现
-            if [[ "$declare_str" =~ ^declare\ [^\ ]*n[^\ ]*\ [^=]+=[\"\'](.+)[\"\']$ ]] ; then
-                declare_str="$(declare -p "${BASH_REMATCH[1]}" 2>/dev/null)"
-                prt_str+="->${BASH_REMATCH[1]}"
+            if [[ "$_log_dbg_declare_str" =~ ^declare\ [^\ ]*n[^\ ]*\ [^=]+=[\"\'](.+)[\"\']$ ]] ; then
+                _log_dbg_declare_str="$(declare -p "${BASH_REMATCH[1]}" 2>/dev/null)"
+                _log_dbg_prt_str+="->${BASH_REMATCH[1]}"
             else
-                if [[ -n "$declare_str" ]] ; then
-                    [[ "$prt_str" == "${!i}" ]] && prt_str='' || prt_str+=' '
-                    declare_str="${prt_str}${declare_str:8}"
+                if [[ -n "$_log_dbg_declare_str" ]] ; then
+                    [[ "$_log_dbg_prt_str" == "${!_log_dbg_i}" ]] && _log_dbg_prt_str='' || _log_dbg_prt_str+=' '
+                    _log_dbg_declare_str="${_log_dbg_prt_str}${_log_dbg_declare_str:8}"
                 else
-                    declare_str="-- ${prt_str}=null"
+                    _log_dbg_declare_str="-- ${_log_dbg_prt_str}=null"
                 fi
                 break
             fi
         done
 
-        msg+="
-        $declare_str "
+        _log_dbg_msg+="
+        $_log_dbg_declare_str "
     done
-    local log_info
-    log_info="[${log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)] ${msg}"
-    case "$log_type" in
+    local _log_dbg_log_info
+    _log_dbg_log_info="[${_log_dbg_log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)] ${_log_dbg_msg}"
+    case "$_log_dbg_log_type" in
         d) : 35 ;;
         i) : 32 ;;
         w) : 33 ;;
         e) : 31 ;;
     esac
     
-    printf "\033[${_}m%s\033[0m\n" "$log_info"
-    printf "%s\n" "$log_info" >>"$LOG_FILE_NAME"
+    printf "\033[${_}m%s\033[0m\n" "$_log_dbg_log_info"
+    printf "%s\n" "$_log_dbg_log_info" >>"$LOG_FILE_NAME"
 
-    if [[ "e" == "$log_type" ]] ; then
-        local -i func_index=1
-        for((func_index=1;func_index<${#FUNCNAME[@]};func_index++)) ; do
-            printf "%s\n" $'\t'"at ${FUNCNAME[func_index]}(${BASH_SOURCE[func_index]}:${BASH_LINENO[func_index-1]})"
-            printf "%s\n" $'\t'"at ${FUNCNAME[func_index]}(${BASH_SOURCE[func_index]}:${BASH_LINENO[func_index-1]})" >>"$LOG_FILE_NAME"
+    if [[ "e" == "$_log_dbg_log_type" ]] ; then
+        local -i _log_dbg_func_index=1
+        for((_log_dbg_func_index=1;_log_dbg_func_index<${#FUNCNAME[@]};_log_dbg_func_index++)) ; do
+            printf "%s\n" $'\t'"at ${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})"
+            printf "%s\n" $'\t'"at ${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})" >>"$LOG_FILE_NAME"
         done
 
         # 把当前环境中所有变量的值记录到日志文件中(不打印)
-        local -a all_vars_name_list
-        mapfile -t all_vars_name_list < <(compgen -A variable)
-        array_del_elements_dense all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" 'log_type' 'is_need_break' 'msg' \
-            'i' 'declare_str' 'prt_str' 'log_info' 'func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \
+        local -a _log_dbg_all_vars_name_list
+        mapfile -t _log_dbg_all_vars_name_list < <(compgen -A variable)
+        array_del_elements_dense _log_dbg_all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" '_log_dbg_log_type' '_log_dbg_is_need_break' '_log_dbg_msg' \
+            '_log_dbg_i' '_log_dbg_declare_str' '_log_dbg_prt_str' '_log_dbg_log_info' '_log_dbg_func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \
             'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__date_vars_bash_major_version' '__date_vars_bash_minor_version' 'DEFENSE_VARIABLES' '__META'
         
-        for i in "${all_vars_name_list[@]}" ; do
-           declare -p "$i" >> "$LOG_FILE_NAME"
+        for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do
+           declare -p "$_log_dbg_i" >> "$LOG_FILE_NAME"
         done
     fi
 
-    if ((LOG_ALLOW_BREAK&is_need_break)) ; then
+    if ((LOG_ALLOW_BREAK&_log_dbg_is_need_break)) ; then
         printf "\033[32m%s\033[0m\n" "you are in break mode,press Enter to Continue,Ctrl+c to End"
         #保存全部终端设置
-        local savedstty=`stty -g 2>/dev/null`
+        local _log_dbg_savedstty=`stty -g 2>/dev/null`
         #禁止回显
         stty -echo 2>/dev/null
         dd if=/dev/tty bs=1 count=1 2>/dev/null
         #打开回显
         stty echo 2>/dev/null
-        stty $savedstty 2>/dev/null
+        stty $_log_dbg_savedstty 2>/dev/null
     fi
 
 }

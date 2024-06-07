@@ -4,6 +4,8 @@
 ((__META++)) && return 
 
 declare -gA DEFENSE_VARIABLES=([meta]=1 )
+# 脚本中启用别名扩展(默认关闭)
+shopt -s expand_aliases
 
 # :TODO: 其它库的粒度可以进一步缩小,节省业务脚本的内存消耗
 # 比如数组操作就可以分成几个库
