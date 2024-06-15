@@ -18,6 +18,9 @@ LOG_FILE_NAME="test_log_$(date_log).log"
 
 log_dbg ()
 {
+    local -i _log_dbg_is_set_x=0
+    [[ $- == *x* ]] && ((_log_dbg_is_set_x++)) && set +x
+
     local _log_dbg_log_type=${1#*-}
     local _log_dbg_is_need_break=0
     [[ "$1" == *'-'* ]] && _log_dbg_is_need_break=${1%-*}
@@ -90,6 +93,7 @@ log_dbg ()
         stty $_log_dbg_savedstty 2>/dev/null
     fi
 
+    ((_log_dbg_is_set_x)) && set -x
 }
 
 return 0

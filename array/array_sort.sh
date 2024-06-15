@@ -28,11 +28,15 @@ _array_sort ()
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}
 
     local -i __array_sort_i __array_sort_j
-    local __array_sort_tmp
+    local __array_sort_tmp __array_sort_field_tmp
 
     for ((__array_sort_i = 0; __array_sort_i < __array_sort_tmp_arr_size; __array_sort_i++)); do
         for ((__array_sort_j = 0; __array_sort_j < __array_sort_tmp_arr_size-$__array_sort_i-1; __array_sort_j++)); do
             if eval [[ "\"${__array_sort_tmp_arr_filed[__array_sort_j]}\"" "${__array_sort_mark}" "\"${__array_sort_tmp_arr_filed[__array_sort_j+1]}\"" ]] ; then
+                # filed 数组一样需要更新
+                __array_sort_field_tmp="${__array_sort_tmp_arr_filed[__array_sort_j]}"
+                __array_sort_tmp_arr_filed[__array_sort_j]="${__array_sort_tmp_arr_filed[__array_sort_j+1]}"
+                __array_sort_tmp_arr_filed[__array_sort_j+1]="$__array_sort_field_tmp"
                 __array_sort_tmp="${__array_sort_tmp_arr[__array_sort_j]}"
                 __array_sort_tmp_arr[__array_sort_j]="${__array_sort_tmp_arr[__array_sort_j+1]}"
                 __array_sort_tmp_arr[__array_sort_j+1]="$__array_sort_tmp"
