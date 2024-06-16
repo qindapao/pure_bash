@@ -1,21 +1,33 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[struct_del_field]++)) && return 0
 
-# . ./log/log_dbg.sh || return 1
+. ./log/log_dbg.sh || return 1
 
 # 删除不需要指定键的类型
 # struct_del_field 'struct_name' 'filed_name' 'key1' 0 4
 # 结构体复合变量创建
 # 第一级要么是一个数组要么是一个关联数组
+# 返回值:
+#   bit0: 外部传入的键是空键
+#   bit1: 外部传入的键无法找到索引
 struct_del_field ()
 {
     local -n _struct_del_field_struct_ref="${1}"
     shift
+    local -i _struct_del_field_ret=0
 
     # 最简单的情况,删除顶级键
     if (($#==1)) ; then
-        [[ -n "$1" ]] && unset '_struct_del_field_struct_ref["${1}"]'
-        return
+        if [[ -n "$1" ]] ; then
+            if [[ -v '_struct_del_field_struct_ref["${1}"]' ]] ; then
+                unset '_struct_del_field_struct_ref["${1}"]'
+            else
+                ((_struct_del_field_ret|=2))
+            fi
+        else
+            ((_struct_del_field_ret|=1))
+        fi
+        return $_struct_del_field_ret
     fi
 
     # 不是顶级键的情况,从上到下查找
@@ -24,29 +36,34 @@ struct_del_field ()
     local -a _struct_del_field_index_lev=('')
     local _struct_del_field_index _struct_del_field_top_level_str=''
     local _struct_del_field_lev_cnt=1
-    local _struct_del_field_index_first="${1}"
-    local _struct_del_field_data_lev_ref_last=${_struct_del_field_struct_ref["$_struct_del_field_index_first"]}
+
+    local -i _struct_del_field_is_not_first_lev=0
 
     for _struct_del_field_index in "${@:1:$#}" ; do
         ((_struct_del_field_lev_cnt++))
-        [[ -z "$_struct_del_field_index" ]] && return 1
+        [[ -z "$_struct_del_field_index" ]] && {
+            ((_struct_del_field_ret|=1))
+            return $_struct_del_field_ret
+        }
         local -n _struct_del_field_data_lev_ref=_struct_set_field_data_lev${_struct_del_field_lev_cnt}
 
         # 转换上一个数据类型
-        if [[ "$_struct_del_field_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _struct_set_field_data_lev[0-9]+=(.*) ]] ; then
-            declare ${BASH_REMATCH[2]} _struct_set_field_data_lev${_struct_del_field_lev_cnt}
-            eval _struct_del_field_data_lev_ref="${BASH_REMATCH[3]}"
-            # log_dbg d "_struct_set_field_data_lev${_struct_del_field_lev_cnt}" _struct_set_field_data_lev${_struct_del_field_lev_cnt}
+        if ((_struct_del_field_is_not_first_lev++)) ; then
+            if [[ "$_struct_del_field_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _struct_set_field_data_lev[0-9]+=(.*) ]] ; then
+                declare ${BASH_REMATCH[2]} _struct_set_field_data_lev${_struct_del_field_lev_cnt}
+                eval _struct_del_field_data_lev_ref="${BASH_REMATCH[3]}"
+            fi
+            _struct_del_field_data_lev_ref_last="${_struct_del_field_data_lev_ref["$_struct_del_field_index"]}"
+        else
+            _struct_del_field_data_lev_ref_last="${_struct_del_field_struct_ref["$_struct_del_field_index"]}"
         fi
 
-        _struct_del_field_data_lev_ref_last="${_struct_del_field_data_lev_ref["$_struct_del_field_index"]}"
+        log_dbg d '' _struct_del_field_data_lev_ref _struct_del_field_index
 
         _struct_del_field_index_lev+=("$_struct_del_field_index")
     done
 
-    _struct_del_field_index_lev=('' "${_struct_del_field_index_lev[@]}")
-
-    # log_dbg d "_struct_del_field_index_lev _struct_del_field_lev_cnt" _struct_del_field_index_lev _struct_del_field_lev_cnt
+    log_dbg d '' _struct_del_field_index_lev
 
     # 删除最后一级,然后依次往上更新
     local -i _struct_del_field_is_not_last_lev=0
@@ -56,12 +73,28 @@ struct_del_field ()
 
         if ! ((_struct_del_field_is_not_last_lev++)) ; then
             # 删除底级键
-            # log_dbg d "_struct_del_field_data_lev_ref" _struct_del_field_data_lev_ref 
-            unset '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]'
+            if [[ -v '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]' ]] ; then
+                unset '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]'
+            else
+                ((_struct_del_field_ret|=2))
+            fi
         else
             # 如果上一级删除的结果导致了空数组或者空hash,那么继续删除
             if [[ -z "$_struct_del_field_top_level_str" ]] ; then
-                unset '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]'
+                # 里面不要加双引号
+
+                if [[ -v '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]' ]] ; then
+                    unset '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]'
+                else
+                    ((_struct_del_field_ret|=2))
+                fi
+            else
+                # 如果没有导致空数组或者空hash,那么需要更新当前层级对应键(因为内容已经改变)
+                if [[ -v '_struct_del_field_data_lev_ref[${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}]' ]] ; then
+                    _struct_del_field_data_lev_ref["${_struct_del_field_index_lev[_struct_del_field_lev_cnt]}"]="$_struct_del_field_top_level_str"
+                else
+                    ((_struct_del_field_ret|=2))
+                fi
             fi
         fi
         
@@ -74,15 +107,22 @@ struct_del_field ()
         ((_struct_del_field_lev_cnt--))
     done
     
+    # 只要有任何错误发生,都不能更新顶级键(防止数据被错误篡改)
+    ((_struct_del_field_ret)) && return $_struct_del_field_ret
+
     # 查看是否需要删除顶级键
     if [[ -z "$_struct_del_field_top_level_str" ]] ; then
-        unset '_struct_del_field_struct_ref["$_struct_del_field_index_first"]'
+        if [[ -v '_struct_del_field_struct_ref["$_struct_del_field_index_first"]' ]] ; then
+            unset '_struct_del_field_struct_ref[$_struct_del_field_index_first]'
+        else
+            ((_struct_del_field_ret|=2))
+        fi
     else
         # 否则更新顶级键
         _struct_del_field_struct_ref["$_struct_del_field_index_first"]="$_struct_del_field_top_level_str"
     fi
 
-    return 0
+    return $_struct_del_field_ret
 }
 
 return 0
