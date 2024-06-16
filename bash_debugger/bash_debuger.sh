@@ -608,6 +608,7 @@ log_debug ()
     if [ "1" = "$__xlogdebugflag" -a "x" = "$__break_flag" ] \
         || [ "1" = "$__xlogdebugflag" -a "b-x" = "$__break_flag" ] ; then
         shift 3
+        # :TODO: eval -- $@ 更安全?
         eval $@
     fi
     [ "1" = "$__set_x" ] && set -x

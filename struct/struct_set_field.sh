@@ -47,7 +47,7 @@ struct_set_field ()
             eval _struct_set_field_data_lev_ref="${BASH_REMATCH[2]}"
         fi
 
-        local _struct_set_field_data_lev_ref_last="${_struct_set_field_data_lev_ref["$_struct_set_field_set_index"]}"
+        _struct_set_field_data_lev_ref_last="${_struct_set_field_data_lev_ref["$_struct_set_field_set_index"]}"
 
         _struct_set_field_index_lev+=("$_struct_set_field_set_index")
         _struct_set_filed_index_type+=("$_struct_set_field_set_type")
