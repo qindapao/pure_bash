@@ -49,7 +49,9 @@ https://link.springer.com/book/10.1007/978-1-4842-9588-5
 
 https://dokumen.pub/bash-it-out-strengthen-your-bash-knowledge-with-17-scripting-challenges-of-varied-difficulties-1521773262-9781521773260.html
 
+https://blog.dario-hamidi.de/a/build-a-bash-builtin
 
+https://github.com/cjungmann/bash_builtin
 
 ## bash特殊语法记录
 
@@ -1041,4 +1043,80 @@ $ echo ${a[@]@Q}
 q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
 $ 
 ```
+
+## git
+
+### 分支操作
+
+#### 强制合并分支
+
+- git A 分支合并B分支，并强制使用B分支代码（不手动解决冲突）
+
+```bash
+git checkout A
+git merge --strategy-option=theirs B
+```
+
+
+- git A 分支合并B分支，并强制使用A分支代码(不手动解决冲突)
+
+```bash
+git checkout A
+git merge --strategy-option=ours B
+git checkout A
+git reset --hard B
+```
+
+## 关于动态可加载模块
+
+### 是否可以实现多线程？
+
+思路：用C编写可动态可加载模块，然后在bash中通过`enable -f /path/xx.so xx`来启用，然后在
+可加载模块中做多线程。
+
+## 一些疑问
+
+### 关于bash函数的参数长度
+
+先看验证结论：
+
+```bash
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$     for((i=0;i<100000;i++)) ; do
+>         tmp_str+="i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str."
+>     done
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$     test_case ()
+>     {
+>         local my_big_str="${1}"
+>         echo "success, str lenth:${#my_big_str}"
+>     }
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ test_case "$tmp_str"
+success, str lenth:10500000
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ getconf ARG_MAX
+2097152
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ 
+
+```
+
+我生成的字符串长度是`10.5M`，已经超过了最大的参数长度`2M`，但是这里并没有报错，是因为，不管是直接运行
+脚本还是在命令行执行bash函数，参数的长度都不受`ARG_MAX的限制`，因为这里主要用`bash`内部的规则，是没有
+限制的。但是如果传递这个参数给一个外部命令(不管是在脚本中还是在命令行)，那么这个时候参数的长度是就要
+受`ARG_MAX`的限制了。
+
+但是下面这种形式也不受限制(因为这里并不是作为参数传递给命令)：
+
+```bash
+wc -l <<<"$tmp_str"
+```
+
+下面这个就受限制了(使用外部的echo,而不是bash内建的)：
+
+```bash
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ /usr/bin/echo "$tmp_str"
+-bash: /usr/bin/echo: 参数列表过长
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ 
+```
+
+如果是使用`bash`内建的`echo`，那么参数的长度也不受限制。
+
+
 

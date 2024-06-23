@@ -11,7 +11,7 @@
 . ./log/log_dbg.sh
 . ./struct/struct_pack.sh
 . ./struct/struct_unpack.sh
-. ./str/str_pack.sh
+# . ./str/str_pack.sh
 . ./date/date_get_date_from_second.sh
 . ./array/array_join.sh
 
@@ -404,6 +404,26 @@ test_array_join ()
     declare -p a_str
 }
 
+test_big_cmd_param ()
+{
+    test_case ()
+    {
+        local my_big_str="${1}"
+        echo "success, str lenth:${#my_big_str}"
+    }
+
+    local i tmp_str
+
+    # 生成一个10.5M的超大字符串
+    date
+    for((i=0;i<100000;i++)) ; do
+        tmp_str+="i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str."
+    done
+    date
+
+    test_case "$tmp_str"
+}
+
 # yy=$(test_cmd)
 
 # test_key_v
@@ -418,7 +438,7 @@ test_array_join ()
 # test_str_pack
 # test_ifs
 # test_date_get_date_from_second
-test_array_join
-
+# test_array_join
+test_big_cmd_param
 
 

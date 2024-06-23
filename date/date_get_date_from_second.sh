@@ -11,14 +11,15 @@ date_get_date_from_second ()
     local -i cur_year="${1}"
     # 经过的秒数
     local -i get_second="${2}"
-    local -a mon_to_day_noleap_year=(0 31 59 90 120 151 181 212 243 273 304 334 365)
-    local -a mon_to_day_leap_year=(0 31 60 91 121 152 182 213 244 274 305 335 366)
+    # 这个数组只读
+    local -ar mon_to_day_noleap_year=(0 31 59 90 120 151 181 212 243 273 304 334 365)
+    local -ar mon_to_day_leap_year=(0 31 60 91 121 152 182 213 244 274 305 335 366)
     # 一天的秒数
-    local -i second_day=86400
+    local -ir second_day=86400
     # 一个小时的秒数
-    local -i second_hour=3600
+    local -ir second_hour=3600
     # 一分钟的秒数
-    local -i second_min=60
+    local -ir second_min=60
 
     local -i left_days=$((get_second/second_day))
     local -i days_cur_year
