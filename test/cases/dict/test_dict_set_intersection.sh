@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-old_dir="$(pwd)"
-root_dir="${old_dir%%/pure_bash*}/pure_bash"
+_test_dict_set_intersection_old_dir="$(pwd)"
+root_dir="${_test_dict_set_intersection_old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src
 . ./log/log_dbg.sh || return 1
@@ -11,7 +11,7 @@ cd "$root_dir"/src
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
 
-cd "$old_dir"
+cd "$_test_dict_set_intersection_old_dir"
 
 TEST_RESULT=0
 
