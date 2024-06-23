@@ -1,5 +1,56 @@
 #! /usr/bin/bash
 
+exec_all_test_case ()
+{
+    # 保证当前不论在哪里都能正常执行
+    local old_dir="$(pwd)"
+    local root_dir="${old_dir%%/pure_bash*}/pure_bash"
+    cd "${root_dir}"/src
+
+    local -a import_funcs=(
+        ./log/log_dbg.sh
+        ./file/file_traverse.sh
+        ./array/array_grep.sh
+        ./str/str_endswith.sh
+        )
+    local i
+    for i in "${import_funcs[@]}" ; do
+        . "$i" || {
+            printf "\033[31m%s\033[0m\n" "import fatal error!"
+            return 1 
+        }
+    done
+
+    local test_report="$root_dir"/test_report_$(date_log).txt
+    local -a test_case_files_tmp=() test_case_files=() 
+    cd "${root_dir}/test/cases"
+    test_case_files_tmp=($(file_traverse '.'))
+    array_grep test_case_files_tmp test_case_files str_endswith '.sh'
+
+    local test_case
+
+    for test_case in "${test_case_files[@]}" ; do
+        cd "${root_dir}/test/cases"
+        cd "${test_case%/*}"
+        bash "${test_case##*/}" | tee -a "$test_report"
+    done
+
+    cd "$old_dir"
+}
+
+exec_all_test_case
+exit 0
+
+
+
+# :TODO: 这个脚本的意义是跑所有的测试用例
+# 注意: 库和测试用例函数的目录依赖
+
+# :TODO: 递归进入测试用例的所有目录，然后执行所有用例并且上报执行情况，生成日志
+
+
+: :TODO: 后面的代码后面都要删除
+
 
 cd ./src
 . ./struct/struct_dump.sh
@@ -11,7 +62,7 @@ cd ./src
 . ./log/log_dbg.sh
 . ./struct/struct_pack.sh
 . ./struct/struct_unpack.sh
-# . ./str/str_pack.sh
+. ./str/str_pack.sh
 . ./date/date_get_date_from_second.sh
 . ./array/array_join.sh
 cd ..
@@ -425,6 +476,54 @@ test_big_cmd_param ()
     test_case "$tmp_str"
 }
 
+test_big_cmd_param_array ()
+{
+    test_case ()
+    {
+        local my_big_str=("${@}")
+        echo "success, array lenth:${#my_big_str[@]}"
+        echo "each element length:${#my_big_str[0]}"
+    }
+
+    local i
+    local -a tmp_str=()
+
+    # 生成一个10.5M的超大数组
+    date
+    for((i=0;i<100000;i++)) ; do
+        tmp_str+=("i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.")
+    done
+    date
+
+    test_case "${tmp_str[@]}"
+}
+
+test_big_cmd_param_process ()
+{
+    # 内部函数在外部也是可见的，只是每次进test_big_cmd_param_process会被重新定义一次
+    test_case ()
+    {
+        local my_big_str=("${@}")
+        str_pack my_big_str 
+    }
+
+    local i
+    local -a tmp_str=()
+
+    # 生成一个105M的超大数组
+    date
+    for((i=0;i<1000000;i++)) ; do
+        tmp_str+=("i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.")
+    done
+    date
+
+    get_str=$(test_case "${tmp_str[@]}")
+    echo "get_str length:${#get_str}"
+    date
+}
+
+
+
 # yy=$(test_cmd)
 
 # test_key_v
@@ -440,6 +539,9 @@ test_big_cmd_param ()
 # test_ifs
 # test_date_get_date_from_second
 # test_array_join
-test_big_cmd_param
+# test_big_cmd_param
+# test_big_cmd_param_array
+# test_big_cmd_param_process
+
 
 

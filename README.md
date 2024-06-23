@@ -4,6 +4,8 @@ bash是优美的，纯bash更优美，本项目尽量使用bash内置的功能�
 
 不使用递归实现，函数与函数之间不能嵌套调用。比如`A->B->C->A`是不允许的。
 
+测试库脚本可以改变目录，但是在引用`source`后必须还原原始目录。正式函数脚本不允许改变工作目录。
+
 并且引用库的脚本必须是`UTF-8`格式的，不允许非`UTF-8`格式的脚本引用本库的函数。会造成不可预期的问题。
 
 ## 如何使用这些库函数
@@ -695,6 +697,41 @@ test_str_pack ()
 
 目前发现，使用`printf "%q"`和`Q`修饰符的时候，加不加双引号都没关系。
 
+#### 在函数内部定义另外的函数
+
+在函数里面定义另外一个函数是可以的，但是这些内部函数，其实在外部也是可用的。
+
+```bash
+test_big_cmd_param_process ()
+{
+    # 内部函数在外部也是可见的，只是每次进test_big_cmd_param_process会被重新定义一次
+    test_case ()
+    {
+        local my_big_str=("${@}")
+        str_pack my_big_str 
+    }
+
+    local i
+    local -a tmp_str=()
+
+    # 生成一个105M的超大数组
+    date
+    for((i=0;i<1000000;i++)) ; do
+        tmp_str+=("i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.")
+    done
+    date
+
+    get_str=$(test_case "${tmp_str[@]}")
+    echo "get_str length:${#get_str}"
+}
+```
+
+比如上面的`test_case`函数，其实在外部也可以访问，之所有在函数里面执行它是安全的(就算外面有同名的函数)。因为每次进入`test_big_cmd_param_process`，`test_acse`函数都会被重新定义。
+
+但是，如果是内部函数就尽量定义在函数内部，外部的顶层函数的名字不要和它冲突。不然会覆盖外部的
+顶层函数的定义。
+
+
 ### 内置命令
 
 #### eval 
@@ -1118,5 +1155,33 @@ qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$
 
 如果是使用`bash`内建的`echo`，那么参数的长度也不受限制。
 
+命令替换的语法也不受缓冲区大小和这里的`ARG_MAX`的限制：
 
+```bash
+test_big_cmd_param_process ()
+{
+    # 内部函数在外部也是可见的，只是每次进test_big_cmd_param_process会被重新定义一次
+    test_case ()
+    {
+        local my_big_str=("${@}")
+        str_pack my_big_str 
+    }
+
+    local i
+    local -a tmp_str=()
+
+    # 生成一个105M的超大数组
+    date
+    for((i=0;i<1000000;i++)) ; do
+        tmp_str+=("i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.i am a big str.")
+    done
+    date
+
+    get_str=$(test_case "${tmp_str[@]}")
+    echo "get_str length:${#get_str}"
+}
+
+```
+
+它会执行括号中的命令，并将其输出作为字符串赋值给变量。这个过程并不涉及到缓冲区的问题，因为它是直接将命令的输出存储到变量中。
 
