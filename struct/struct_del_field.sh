@@ -18,7 +18,6 @@ struct_del_field ()
 {
     local -n _struct_del_field_struct_ref="${1}"
     shift
-    local -i _struct_del_field_ret=0
 
     # 不是顶级键的情况,从上到下查找
     # 记录每层需要更新的索引(0 1层不处理先占位)
@@ -106,9 +105,6 @@ struct_del_field ()
         ((_struct_del_field_lev_cnt--))
     done
     
-    # 只要有任何错误发生,都不能更新顶级键(防止数据被错误篡改)
-    ((_struct_del_field_ret)) && return $_struct_del_field_ret
-
     # 查看是否需要删除顶级键
     if [[ -z "$_struct_del_field_top_level_str" ]] ; then
         unset '_struct_del_field_struct_ref[$_struct_del_field_index_first]'
@@ -117,7 +113,7 @@ struct_del_field ()
         _struct_del_field_struct_ref["$_struct_del_field_index_first"]="$_struct_del_field_top_level_str"
     fi
 
-    return $_struct_del_field_ret
+    return 0
 }
 
 return 0
