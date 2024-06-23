@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 
 
-
+cd ./src
 . ./struct/struct_dump.sh
 . ./struct/struct_set_field.sh
 . ./struct/struct_get_field.sh
@@ -14,6 +14,7 @@
 # . ./str/str_pack.sh
 . ./date/date_get_date_from_second.sh
 . ./array/array_join.sh
+cd ..
 
 test_case1 ()
 {

@@ -3,6 +3,7 @@
 now_dir=$(pwd)
 
 [[ "/mnt/e/code/pure_bash" == "$now_dir" ]] && {
-    rm -f *.{txt,log}
+    # 后面的\;是必不可少的
+    find . -type f -name "*.txt" -exec rm -f {} \;
 }
 

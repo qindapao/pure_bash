@@ -1,6 +1,8 @@
 #! /usr/bin/bash
-
 . ./copy_modules.cfg
+
+# 首先需要进入源码目录
+cd ./src
 
 DIR_NAME="./copy_modules"
 rm -rf "$DIR_NAME"
