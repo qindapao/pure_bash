@@ -1,7 +1,7 @@
 # 所有操作依赖,比atom.sh更底层
 
 
-((__META++)) && return 
+((__META++)) && return 0
 
 declare -gA DEFENSE_VARIABLES=([meta]=1 )
 # 脚本中启用别名扩展(默认关闭)
