@@ -12,6 +12,7 @@ cd "$_assert_array_old_dir"
 # 返回值:
 #   0: pass
 #   1: fail
+# :TODO: 断言失败是应该直接退出还是返回失败?
 assert_array ()
 {
     if (($#<3)) ; then

@@ -13,8 +13,6 @@ cd "$root_dir"/test/lib
 
 cd "$_test_dict_set_intersection_old_dir"
 
-TEST_RESULT=0
-
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
