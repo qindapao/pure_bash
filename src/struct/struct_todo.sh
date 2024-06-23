@@ -1,6 +1,12 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[struct_todo]++)) && return 0
 
+# :TODO: 如何判断两个结构是否相等?
+# 不能直接判断,需要struct_dump 后判断字符串
+#   因为这个时候内部变量的名字已经去除并且关联数组和索引数组的键也已经排序,字符串判断是可靠的
+
+# :TODO: 所有的函数检查下，是否需要把传入的变量(外部传入名称引用的)清空,以便使用?(不用每次在外面手动清空)
+
 # :TODO: 以下的内容可能是备忘
 # 通过declare -p 可以把一个数据保存到一个文件中,然后在需要使用的地方直接
 # Storage:~/qinqing # struct_dump 'my_dict' >1.txt

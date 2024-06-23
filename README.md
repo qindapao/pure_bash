@@ -8,6 +8,8 @@ bash是优美的，纯bash更优美，本项目尽量使用bash内置的功能�
 
 并且引用库的脚本必须是`UTF-8`格式的，不允许非`UTF-8`格式的脚本引用本库的函数。会造成不可预期的问题。
 
+由于使用了一些高级语法，bash的版本至少是:`4.4`.
+
 ## 如何使用这些库函数
 
 ```bash
@@ -54,6 +56,8 @@ https://dokumen.pub/bash-it-out-strengthen-your-bash-knowledge-with-17-scripting
 https://blog.dario-hamidi.de/a/build-a-bash-builtin
 
 https://github.com/cjungmann/bash_builtin
+
+https://github.com/ayosec/timehistory-bash
 
 ## bash特殊语法记录
 
@@ -1131,7 +1135,6 @@ success, str lenth:10500000
 qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ getconf ARG_MAX
 2097152
 qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash$ 
-
 ```
 
 我生成的字符串长度是`10.5M`，已经超过了最大的参数长度`2M`，但是这里并没有报错，是因为，不管是直接运行
