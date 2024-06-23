@@ -14,6 +14,7 @@ bit_set_value ()
     local i
     for i in "$@" ; do bit_info["${i%:*}"]="${i##*:}" ; done
     
+    # 置1:((value|=(2#10)))    置0:((value&=~(2#10)))
     for i in "${!bit_info[@]}" ; do value=$(( (${bit_info["$i"]} << i) | (value & (~(0x1 << i))) )) ; done
     printf "0x%02x" "$value"
 }

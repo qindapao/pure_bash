@@ -4,6 +4,8 @@ bash是优美的，纯bash更优美，本项目尽量使用bash内置的功能�
 
 不使用递归实现，函数与函数之间不能嵌套调用。比如`A->B->C->A`是不允许的。
 
+并且引用库的脚本必须是`UTF-8`格式的，不允许非`UTF-8`格式的脚本引用本库的函数。会造成不可预期的问题。
+
 ## 如何使用这些库函数
 
 ```bash
@@ -33,6 +35,22 @@ for i in "${IMPORT_FUNCS[@]}" ; do . "$i" || exit 1 ; done
 
 https://linuxstory.gitbook.io/advanced-bash-scripting-guide-in-chinese/zheng-wen/part1/01_shell_programming
 
+https://github.com/gdbtek/linux-cookbooks/blob/main/libraries/aws.bash
+
+https://github.com/NobodyXu/bash-loadables/tree/master
+
+https://git.savannah.gnu.org/cgit/bash.git/
+
+https://github.com/cjungmann/ate
+
+https://github.com/644/ldnsbash/blob/main/ldnsbash.c
+
+https://link.springer.com/book/10.1007/978-1-4842-9588-5
+
+https://dokumen.pub/bash-it-out-strengthen-your-bash-knowledge-with-17-scripting-challenges-of-varied-difficulties-1521773262-9781521773260.html
+
+
+
 ## bash特殊语法记录
 
 ### 语句
@@ -48,6 +66,99 @@ esac
 
 在`case`语句中，使用`半括号`或者`全括号`都是可以的。
 
+
+在 Bash 编程中，case 语句的结束符确实有三种：`;;`、`;&` 和 `;;&`。它们的用法和用途如下：
+
+`;;`：这是最常用的结束符，它用于结束当前的 case 分支，不再测试后续的模式。例如：
+
+```bash
+case $variable in
+pattern1)
+# 如果 $variable 匹配 pattern1，执行这里的命令
+;;
+pattern2)
+# 如果 $variable 匹配 pattern2，执行这里的命令
+;;
+esac
+```
+
+`;&`：这个结束符在 `Bash 4.0` 中引入，它允许当前的 `case` 分支执行完毕后，不进行新的模式匹配，直接执行下一个 `case` 分支的命令。例如：
+
+```bash
+case $variable in
+pattern1)
+# 如果 $variable 匹配 pattern1，执行这里的命令
+;&
+pattern2)
+# 不管 $variable 是否匹配 pattern2，都会执行这里的命令
+;;
+esac
+```
+
+`;;&`：这个结束符也是在 `Bash 4.0` 中引入的，它允许在当前 `case` 分支执行完毕后，继续对后续的模式进行匹配测试。如果后续的模式匹配成功，那么相应的命令也会被执行。例如：
+
+```bash
+case $variable in
+pattern1)
+# 如果 $variable 匹配 pattern1，执行这里的命令
+;;&
+pattern2)
+# 接着测试 $variable 是否匹配 pattern2，如果匹配，执行这里的命令
+;;
+esac
+```
+
+#### for循环
+
+在`C`风格的`for循环`的双圆括号中是可以连续使用两个整形变量的。用逗号分隔语句即可。
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# for((i=0,j=1;i<4;i++,j++)) ; do
+> echo $i $j
+> done
+0 1
+1 2
+2 3
+3 4
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+#### if条件判断
+
+##### 可以把赋值语句写到条件判断中
+
+由于赋值语句没有返回值，所以我们可以这样写：
+
+```bash
+root@DESKTOP-0KALMAH:~# if a=$(cat xx.txt) ; then
+> echo success
+> fi
+cat: xx.txt: No such file or directory
+root@DESKTOP-0KALMAH:~# touch xx.txt
+root@DESKTOP-0KALMAH:~# if a=$(cat xx.txt) ; then echo success; fi
+success
+root@DESKTOP-0KALMAH:~# 
+```
+
+注意：上面这种写法是有限制的，一定要确定`$()`里面的命令执行失败返回非0，有管道符的情况下要特别小心。
+
+```bash
+q00546874@DESKTOP-0KALMAH ~
+$ grep xxyy xx.txt | sed -n '1p'
+grep: xx.txt: No such file or directory
+
+q00546874@DESKTOP-0KALMAH ~
+$ echo $?
+0
+
+q00546874@DESKTOP-0KALMAH ~
+$ 
+```
+
+
+
+
+
 ### 参数
 
 `bash`的命令行参数是有最大值的，一般由系统的`ARG_MAX`参数决定。一般是`2M`。所以在有大数据的场景下执行`bash`代码要特别小心，使用`xargs`之类的工具来处理。
@@ -55,6 +166,43 @@ esac
 但是`bash`内部的一些操作，比如数组`a=("${b[@]}")`类似的语法是在内存中处理的，并不受命令行参数的影响。要搞清楚哪些是在操作命令行参数，哪些是语言内置的功能(这些都是在内存中处理)。
 
 ### 变量
+
+#### 检查变量是否设置的另外一种方法
+
+```bash
+$ echo ${x1y1+set}
+
+
+q00546874@DESKTOP-0KALMAH ~
+$ x1y1=''
+
+q00546874@DESKTOP-0KALMAH ~
+$ echo ${x1y1+set}
+set
+
+q00546874@DESKTOP-0KALMAH ~
+$ 
+```
+
+最简单的方法是使用`-v`操作符，还有一种方法是上面那样，如果变量设置，返回set字符串，否则为空。注意这里判断变量是否设置，并不是判断变量为空。
+
+数组的索引也可以这么判断：
+
+```bash
+q00546874@DESKTOP-0KALMAH ~
+$ a=(1 2 3 '' '')
+
+q00546874@DESKTOP-0KALMAH ~
+$ echo ${a[4]+set}
+set
+
+q00546874@DESKTOP-0KALMAH ~
+$ 
+```
+
+
+
+
 
 #### 在函数中定义一个和全局变量同名的局部变量
 
@@ -68,7 +216,237 @@ func1 ()
 }
 ```
 
-上面的代码中，函数内部的`IFS`替换了全局变量`IFS`(字段分隔符)，这使得在函数内部，字段分隔符用局部变量定义的，但是出了函数，分隔符会恢复到全局，我们不用手动恢复。
+**注意：**： 这种用法还是有一定的危险性，因为我们当前的函数可能还会调用下级函数，那么
+这样修改后，下级函数的`IFS`也会继承这个局部变量，那么可能会造成问题，慎用。除非
+经常`unset IFS`，或者控制变量的作用区域。
+
+#### 变量的前缀展开
+
+在 Bash 编程中，可以使用 ${!prefix@} 或 ${!prefix*} 来展开所有以特定前缀开头的变
+量名。这可以用来模拟多维数据结构，尤其是在 Bash 中没有真正的多维数组的情况下。这
+两种展开方式的区别在于：
+
+- `${!prefix@}` 展开为一个由空格分隔的列表，每个元素都是一个独立的单词。
+- `${!prefix*}` 展开为一个单一的长字符串，其中所有的变量名都由第一个 `IFS` 变量的第一个字符连接起来（默认是空格）。
+
+
+上面的代码中，函数内部的`IFS`替换了全局变量`IFS`(字段分隔符)，这使得在函数内部，字
+段分隔符用局部变量定义的，但是出了函数，分隔符会恢复到全局，我们不用手动恢复。
+
+模拟多维数组，可以定义很多以数字结尾的变量，作为数组的第一级，然后每个变量本身是
+一个数组。当然大部分的情况下，使用关联数组来模拟更加自然：
+
+```bash
+declare -A data
+data["1,1"]="value11"
+data["1,2"]="value12"
+data["2,1"]="value21"
+data["2,2"]="value22"
+```
+#### 内置变量
+
+##### PIPESTATUS
+
+`PIPESTATUS`是一个数组，它包含了最近执行的管道（pipeline）中每个命令的退出状态码。
+这个数组的每个元素对应于管道中相应命令的返回值。
+
+例如，如果有一个由多个命令组成的管道：
+
+`
+command1 | command2 | command3
+`
+
+执行完毕后，`PIPESTATUS`数组将会包含三个元素，分别是`command1`、`command2`和`command3`的
+退出状态码。可以通过`echo ${PIPESTATUS[@]}`来查看所有的返回值。
+
+这是一个非常有用的特性，因为它允许你检查管道中每个命令的成功与否，而不仅仅是最后
+一个命令的返回值。这在调试复杂的管道命令时特别有帮助。
+
+##### BASH_XTRACEFD
+
+`BASH_XTRACEFD`变量允许你将`shell`的跟踪输出（由`set -x`命令启用）重定向到一个指
+定的文件描述符。默认情况下，跟踪输出是发送到标准错误（STDERR），即文件描述符2。
+
+当你设置了`BASH_XTRACEFD`变量为一个有效的文件描述符后，所有的跟踪信息将会被写入
+到这个文件描述符对应的文件或设备中，而不是标准错误。这使得你可以将调试信息发送到
+一个日志文件或其他处理流程，而不会干扰脚本的正常输出。
+
+例如，如果你想将跟踪输出重定向到文件描述符`3`，你可以这样做：
+
+```bash
+exec 3>trace.log
+BASH_XTRACEFD=3
+set -x
+你的脚本命令
+```
+
+这段代码会将所有跟踪输出重定向到`trace.log`文件中。当你不再需要跟踪输出时，可以
+通过取消设置`BASH_XTRACEFD`变量或将其设置为空字符串来恢复默认行为，即将跟踪输出
+发送到标准错误。
+
+注意：如果你设置了`BASH_XTRACEFD`为一个文件描述符，然后取消设置它或将其关闭，那
+么对应的文件描述符也会被关闭。因此，在使用BASH_XTRACEFD时需要小心，以避免意外关
+闭重要的文件描述符
+
+
+##### BASH_SUBSHELL
+
+在Bash中，`BASH_SUBSHELL`变量用来表示当前shell环境的嵌套级别。每当`Bash`创建一个
+子`shell`环境时，`BASH_SUBSHELL`的值就会增加。这通常发生在执行脚本、命令替换、后
+台命令、以及子shell（使用括号()创建）时。
+
+例如，当你在一个Bash脚本中使用括号创建一个子shell来执行一些命令时，BASH_SUBSHELL
+的值会在子shell中增加。这个变量在父shell中的值不会改变，因为每个子shell都是独立的。
+
+这里有一个简单的例子来演示BASH_SUBSHELL的用法：
+
+```bash
+echo "在父shell中 BASH_SUBSHELL = $BASH_SUBSHELL"
+( # 开始一个子shell
+echo "在子shell中 BASH_SUBSHELL = $BASH_SUBSHELL"
+)
+```
+
+在这个例子中，父shell中的BASH_SUBSHELL值通常是0，而在子shell中，它会增加1。如果
+你在子shell中再创建一个子shell，那么BASH_SUBSHELL会继续增加。
+
+BASH_SUBSHELL变量对于理解和调试涉及多层嵌套的复杂脚本非常有用。它可以帮助你跟踪
+当前代码执行的上下文，特别是当你需要确定某些操作是在主shell环境中执行还是在子
+shell环境中执行时。
+
+
+##### BASH_LOADABLES_PATH
+
+**重要!**: 因为这可以通过C扩展`bash`的功能。
+
+在Bash中，BASH_LOADABLES_PATH变量定义了一个冒号分隔的目录路径列表。这些路径是Bash
+内置命令enable用来搜索可加载内置命令（loadable builtins）的位置。当你使用enable命
+令来启用或禁用内置命令时，Bash会在BASH_LOADABLES_PATH指定的目录中查找相应的可加载
+内置命令。
+
+可加载内置命令是一种特殊的内置命令，它们不是Bash默认提供的，而是作为共享对象文件
+存在，可以在运行时加载到Bash中。这允许你扩展Bash的功能，而无需修改和重新编译Bash本身。
+
+例如，如果你有一个自定义的内置命令实现在~/.bash_builtins目录中，你可以这样设置BASH_LOADABLES_PATH：
+
+export BASH_LOADABLES_PATH=~/.bash_builtins
+
+然后，你可以使用enable命令来启用或禁用该目录中的可加载内置命令。
+
+注意：BASH_LOADABLES_PATH变量通常在Bash的高级用法中使用
+
+当然可以。在Bash中，可加载内置命令（loadable builtins）是一种可以在运行时动态加
+载到Bash环境中的命令。这些命令不是Bash默认提供的，而是作为共享库（通常是.so文件）
+存在。这样做的好处是可以扩展Bash的功能，而无需修改Bash的源代码或重新编译整个shell。
+
+BASH_LOADABLES_PATH环境变量就是用来指定这些共享库所在的目录。当你使用enable命令
+尝试启用一个可加载内置命令时，Bash会在BASH_LOADABLES_PATH指定的目录列表中搜索对应
+的共享库文件。
+
+这里是一个如何使用BASH_LOADABLES_PATH和可加载内置命令的例子：
+
+设置BASH_LOADABLES_PATH: 首先，你需要设置BASH_LOADABLES_PATH环境变量，让它包含你
+的可加载内置命令的目录。例如：
+export BASH_LOADABLES_PATH=/usr/local/lib/bash
+
+启用可加载内置命令: 使用enable命令来启用一个特定的可加载内置命令。例如，如果你有
+一个名为mycmd的可加载命令：
+enable -f mycmd.so mycmd
+
+使用命令: 一旦启用，你就可以像使用其他任何Bash内置命令一样使用你的可加载命令了。
+创建可加载内置命令: 要创建一个可加载内置命令，你需要编写C语言代码，然后将其编译
+为共享库。Bash源代码提供了一些示例和必要的基础设施来帮助你开始。这里是一个非常简单的示例：
+
+```bash
+#include <stdio.h>
+#include <bash/builtins.h>
+
+int example_builtin(WORD_LIST *list) {
+    printf("Hello from a loadable builtin!\n");
+    return EXECUTION_SUCCESS;
+}
+
+char *example_doc[] = {
+    "A simple example of a loadable builtin.",
+    (char *)NULL
+};
+
+struct builtin example_struct = {
+    "example",       // Builtin name
+    example_builtin, // Function implementing the builtin
+    BUILTIN_ENABLED, // Initial flags for this builtin
+    example_doc,     // Array of strings documenting the builtin
+    0                // Reserved for internal use
+};
+
+int example_builtin_load(char *name) {
+    return add_builtin(&example_struct);
+}
+
+int example_builtin_unload(char *name) {
+    return remove_builtin(&example_struct);
+}
+```
+
+这段代码定义了一个名为example的新内置命令，当你在Bash中调用它时，它会打印一条消
+息。你需要将这段代码编译为.so文件，并确保它位于BASH_LOADABLES_PATH指定的目录中。
+
+注意：创建可加载内置命令需要对Bash内部结构和C语言有一定的了解。如果你是Bash的高级
+用户或者有兴趣深入了解Bash的扩展机制，这将是一个有趣的项目。如果你需要更多的帮助
+或有其他问题，请随时告诉我！
+
+
+#### BASH_COMMAND
+
+BASH_COMMAND 是一个特殊的 Bash 变量，它保存了当前正在执行的 shell 命令或者 shell
+脚本中的命令。这个变量通常在调试时非常有用，因为它可以帮助你了解在执行时发生了什么。
+
+例如，你可以在一个 trap 调试语句中使用 BASH_COMMAND 来打印出在脚本执行过程中每个
+命令之前和之后的实际命令：
+
+```bash
+trap 'echo "Executing: $BASH_COMMAND"' DEBUG
+```
+
+每当脚本执行一个命令时，上面的 trap 语句都会输出那个命令。这对于跟踪脚本的执行流
+程非常有帮助。
+
+此外，BASH_COMMAND 变量在错误处理中也很有用。你可以在一个错误 trap 中使用它来确定
+脚本失败的位置：
+
+```bash
+trap 'echo "Last command executed: $BASH_COMMAND"' ERR
+```
+
+如果脚本中的任何命令失败，上面的 trap 语句会输出导致错误的命令。这可以帮助你快速
+定位问题所在。
+
+总的来说，BASH_COMMAND 是一个用于调试和错误处理的强大工具，可以帮助你更好地理解
+和控制你的 Bash 脚本。
+
+##### BASH_CMDS
+
+BASH_CMDS 是 Bash 中的一个关联数组变量，它包含了由 hash 内建命令创建的命令列表。
+这个变量通常用于存储和查找命令的路径，以便加快命令的执行速度。
+
+当你使用 hash 命令时，Bash 会记住每个命令的路径，并将这些信息存储在 BASH_CMDS 
+关联数组中。这样，当你再次执行相同的命令时，Bash 可以直接从 BASH_CMDS 中查找命令
+的路径，而不需要再次搜索文件系统。
+
+例如，如果你执行了 ls 命令，Bash 会在 BASH_CMDS 中存储 ls 命令的路径。下次当你再
+次执行 ls 时，Bash 就可以快速地从 BASH_CMDS 中找到 ls 的路径。
+
+你可以通过直接向 BASH_CMDS 添加元素来更新哈希表。但是，如果你使用 unset 命令取消
+设置 BASH_CMDS，它将失去其特殊属性1。
+
+这里有一个简单的例子，展示了如何查看 BASH_CMDS 中的内容：
+
+```bash
+ # 查看BASH_CMDS中的内容
+declare -p BASH_CMDS
+```
+
+这将输出 `BASH_CMDS` 关联数组中当前存储的所有命令及其对应的路径。
 
 ### 变量修饰
 
@@ -95,6 +473,8 @@ xyz        =>233
 这样打印字典的树状图会比较方便。但是这样打印出来的变量可能定位不是很方便，因为它把所有的转义字符都解释了。
 
 #### E修饰符和Q修饰符
+
+`E`变量修饰符目前我没看出来有什么实际的作用，`Q`变量修饰符的的作用挺大。
 
 ```bash
 [root@localhost ~]# printf "%s" ${yy1@E}
@@ -154,6 +534,8 @@ $'\n1233'[root@localhost ~]#
 
 实际上使用`printf`可能更好!
 
+bash5.2的printf增加了`%Q`的格式化选项，具体的用法还没有研究清楚。
+
 ### 算数扩展
 
 #### 双圆括号
@@ -169,6 +551,21 @@ $'\n1233'[root@localhost ~]#
 ```
 
 逗号表达式的含义是一次执行多条命令。
+
+双圆括号中的变量名可以带变量：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# a1=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# a2=3
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# i=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# j=2
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# ((a${i}=4))
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# echo $a1
+4
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+
 
 #### 三目运算符
 
@@ -239,9 +636,68 @@ func1 ()
 
 上面范例的含义是：如果数组为空，返回假，否则返回真。具体返回的数值，可以实际测试下。
 
+#### 设计返回多个值的函数
+
+##### 思路一 利用Q字符串不换行的能力
+
+可以利用`@Q`的变量修饰符，或者是`printf "%q"`的功能，会对变量进行转义，输出中就不会有换行符。我们就可以
+人为添加换行符，从而实现打印返回多个函数值的目的。然后我们对返回的多个值，通过换行符作为分隔符取出来，
+保存到数组中或者其它方式。然后再使用`eval`对字符串进行还原就得到了原始字符串。
+
+请看下面的例子演示了这种思想，可以通过这种方式让函数打印多个值，每个值用换行安全分隔。
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# a="geg
+geg
+111"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# b=$(printf "%q" "$a")
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p b
+declare -- b="\$'geg\\ngeg\\n111'"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# eval "c=$b"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p c
+declare -- c="geg
+geg
+111"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# b=${a@Q}
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p b
+declare -- b="\$'geg\\ngeg\\n111'"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# b="${a@Q}"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p b
+declare -- b="\$'geg\\ngeg\\n111'"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+##### 思路二 直接通过字符串重构数组或者关联数组
+
+```bash
+my_func ()
+{
+    local -a xx=("1223 " "dggeg" "
+    ggeg
+    gege
+    " 5 6 "8 9")
+    str_pack xx
+}
+
+test_str_pack ()
+{
+    eval local -a yy="$(my_func)"
+
+    declare -p yy
+}
+```
+
+参考上面的例子，通过库里面的`str_pack`函数可以通过进程替换得到数组，相当于通过函数打印了数组。比使用间接引用的可读性更好。
+
+
+目前发现，使用`printf "%q"`和`Q`修饰符的时候，加不加双引号都没关系。
+
 ### 内置命令
 
 #### eval 
+
+##### 使用eval执行一个命令
 
 使用`eval`执行一个命令的安全的方式
 
@@ -258,4 +714,331 @@ eval -- "$value"
 
 所以，`eval -- "$value"` 的含义是：执行 `"$value"` 中的命令，即使 `"$value"` 
 以短杠 `-` 开头。
+
+##### eval和for循环的配套使用
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ x=1
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ y=4
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ eval "for i in {$x..$y} ; do echo \$i ; done"
+1
+2
+3
+4
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+```
+
+上面是eval和参数扩展还有for循环的结合，但是还是比较危险，谨慎使用。
+
+
+#### unset
+
+先看一个例子
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -A k=(["(xx:yy)"]="6" ["xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="2" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# cnt=0
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# tmp_key=("xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)")
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# if [[ -v 'k[${tmp_key[cnt]}]' ]] ; then echo xx; fi
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# if [[ -v 'k["${tmp_key[cnt]}"]' ]] ; then echo xx; fi
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# unset 'k["${tmp_key[cnt]}"]'
+-bash: bad substitution: no closing `}' in "${tmp_key[cnt
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# unset 'k[${tmp_key[cnt]}]'
+-bash: ${tmp_key[cnt: bad substitution
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# tmp_key="${tmp_key[cnt]}"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# unset 'k["$tmp_key"]'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p k
+declare -A k=(["xxx xxx->xxx->xxx->xx:xx.x-/dev/f
+```
+
+可以看到，`unset`命令合`-v`操作符，对双引号的敏感度是不同的，要特别小心。并且判断数组的某个索引是否存在，一定要注意，要判断索引不能是空字符串。
+
+```
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# cnt=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# if [[ -v 'k["${tmp_key[cnt]}"]' ]] ; then echo xx; fi
+-bash: k: bad array subscript
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+`unset`的帮助文档：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# help unset
+unset: unset [-f] [-v] [-n] [name ...]
+    Unset values and attributes of shell variables and functions.
+
+    For each NAME, remove the corresponding variable or function.
+
+    Options:
+      -f        treat each NAME as a shell function
+      -v        treat each NAME as a shell variable
+      -n        treat each NAME as a name reference and unset the variable itself
+                rather than the variable it references
+
+    Without options, unset first tries to unset a variable, and if that fails,
+    tries to unset a function.
+
+    Some variables cannot be unset; also see `readonly'.
+
+    Exit Status:
+    Returns success unless an invalid option is given or a NAME is read-only.
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+#### 如何自己定义内置命令
+
+如果有需要，可以参考下面的链接：
+
+https://www.cnblogs.com/xkfz007/articles/2566441.html
+
+
+参考官方的文档更好，其中除了`内置命令`和`可加载模块`的开发方法，还定义了一些实用函数：
+
+https://github.com/bminor/bash/tree/master/examples
+
+
+内置命令是内嵌在`bash`的解释器中的，而`可加载模块`可以动态加载，一般都是`.so`文件。
+
+
+#### 关于bash5.1发布提到的新的内置命令
+
+在`bash5.1`的发布说明中，提到了几个新的可以加载的内置命令：
+
+```txt
+新的内置功能和其他功能
+
+有新的可加载内置程序mktemp，accept，mkfifo，csv和cut/lcut。
+
+```
+但是在我的环境下并没有找到，也不能启用。
+```bash
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ enable -f accept accept
+bash: enable: 无法打开共享目标 accept：No such file or directory
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$
+```
+
+目前不知道原因是什么。
+
+#### printf
+
+##### 打印到一个变量
+
+利用这个特性，可以在函数内部打印一个变量到一个外部作用域的变量，类似间接引用效果。
+
+```bash
+func1 ()
+{
+    printf -v "$1" "%s" xxxx
+}
+func1 yy
+echo $yy
+xxxx
+```
+
+
+
+
+### 数据结构
+
+#### 索引数组
+
+虽然`bash`的索引数组只有一维，但是在大多数情况下已经够用了，如果我们需要保存`二维`的数据，其实可以换一个思路，
+比如，把每两个元素分成一组，保存的时候一起保存，取用的时候也一起取出即可。
+
+简单的数据结构是比较好控制的，如果问题不是那么复杂，尽量不要引入复杂的数据结构。
+
+这个时候需要访问数组的时候可以使用类似下面的结构：
+
+```bash
+for((reg_i=0;reg_i<${#led_regs[@]};)) ; do
+    ... ...
+    x=led_regs[reg_i]
+    y=led_regs[reg_i+1]
+    ((reg_i+=2))
+done
+```
+### 进程管理
+
+#### 关于bash5.2的重大变化
+
+```txt
+其他变化包括：
+扩展了额外进程不分叉的情况，例如使用 “$(” 构造时不再使用分叉。
+```
+
+在`bash5.2`的发布说明中，有这样一句话，`AI`给出的解释是，当使用`$(comand)`的语法执行命令的时候，`bash`不会再启用新的子进程来执行了。
+
+但是关于这一点，我还不知道如何验证，并且这里针对的命令是所有的命令还是部分的也还未知。
+
+通过`$(xx)`这样的语法，如果`xx`是一个函数，那么在函数中修改了全局变量会影响当前环境吗？以前由于是在`子shell`中执行的，所以不会影响。
+
+但是现在这样更改了，是否情况发生了变更？
+
+可以尝试使用`strace`工具来跟踪系统调用
+
+```bash
+strace -f -e trace=process bash -c 'echo $(echo $$)'
+```
+
+
+在 `Bash 5.2` 中，确实有一些改进和优化，其中包括对进程替换的处理。在以前的版本
+中，`$()` 进程替换会创建一个新的子进程。但在 Bash 5.2 中，这种情况已经得到了改善。
+
+具体来说，`Bash 5.2` 的发布说明中提到，现在 Bash 在一些额外的情况下会抑制 fork，
+包括大多数使用 `$(<file)` 的情况。这意味着在这些情况下，Bash 不再创建新的进程，
+而是在当前进程中执行操作。这可以提高效率，因为创建新的进程通常会消耗更多的系统资源。
+
+这种改变的一个重要影响是，现在你可以在脚本中更高效地使用进程替换，而不必担心每次
+都会创建新的进程。这对于需要频繁使用进程替换的脚本来说，可能会带来显著的性能提升。
+
+
+
+### HEAR DOCS
+
+#### HEAR STR
+
+在 `Bash` 中使用 `<<<` 来提供一个 `here string` 时，Bash 会自动在字符串的末尾添加一个换行符。
+这是因为 `<<<` 语法实际上是 `here document (here doc)` 的一个特殊情况，它用于将字符串作为标准输入传递给命令。
+在 `Unix-like` 系统中，文本文件通常以换行符结束，因此 `Bash` 在 `here string` 的末尾添加换行符，以模拟文件结束的行为。
+
+这个行为可能会导致一些问题，特别是在处理那些对输入格式敏感的命令时。例如，如果您的脚本依赖于精确的字符计数或者需
+要消除任何额外的空白字符，那么自动添加的换行符可能会造成问题。
+
+### 引号
+
+#### 双引号
+
+在Bash中，双引号内的字符大多数会保持其字面值，但有一些特殊字符除外。双引号会处理以下特殊字符：
+
+- `$`：用于参数扩展、命令替换和算术扩展
+- ```：用于命令替换
+- `\`：当其后跟随$、`、\"、\或换行符时，保留其特殊含义
+- `"`：可以通过在其前面加上反斜杠来在双引号内引用双引号
+- `!`：当历史扩展功能启用时，!用于历史扩展，除非它被反斜杠转义
+
+### 变量替换
+
+#### 进程替换
+
+在赋值语句 `xx=$(yy)` 中，通常不需要为 `$(yy)` 加上双引号。因为在赋值操作中，Bash
+会自动将命令替换的输出作为一个整体赋给变量，即使输出中包含有空格或特殊字符。看下面的
+例子：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# cat  1.txt 
+$x!`"!
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# mm=$(cat 1.txt)
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p mm
+declare -- mm="\$x!\`\"!"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+### 循环
+
+#### for
+
+另外一种按行遍历的方法:
+
+```bash
+test_ifs ()
+{
+    local IFS=$'\n'
+    echo "1 2 3" >1.txt
+    echo "4 5 6" >>1.txt
+    echo "7 8 9" >>1.txt
+
+    for i in $(<1.txt) ; do
+        eval "i=$i"
+        echo $i
+    done
+}
+```
+
+**注意：**上面的for循环中的`$(<1.txt)`这个变量一定不能加双引号，加了就不对。要保证
+这个循环是安全的，最好是使用安全的`Q字符串`。这样在没有引号保护的情况下也是安全的
+拿到`Q字符串`后要使用前解码即可。
+
+解码如上面的`eval "i=$i"`所示。
+
+
+再看另外一个例子：
+
+```bash
+test_ifs ()
+{
+    local IFS=$'\n'
+    echo "" >1.txt
+    echo "" >>1.txt
+
+    a=''
+
+    for i in $(<1.txt) ; do
+        echo xx
+    done
+}
+```
+
+上面的例子中，当`1.txt`中只有两个换行符的时候，for循环也没有进去，没有发生迭代，这在
+编程的时候要特别小心。不过如果用来迭代数组的索引是安全的，因为数组的索引一定是有值的。
+不可能出现空值。
+
+使用`Q字符串有一个最大的好处`是，就算是空值，也能进循环迭代：
+
+请看这个例子：
+
+```bash
+test_ifs ()
+{
+    local IFS=$'\n'
+    m=""
+    printf "%q\n" "" >1.txt
+    printf "%q\n" "$m" >>1.txt
+    printf "%q\n" "" >>1.txt
+
+    for i in $(<1.txt) ; do
+        eval "i=$i"
+        echo xx
+        echo "$i"
+    done
+}
+```
+
+函数执行完成后`1.txt`中的值是：
+
+```bash
+$ cat 1.txt 
+''
+''
+''
+```
+
+除了`printf "%q"`，还可以用下面的方法得到Q字符串：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ declare -p a
+declare -a a=([0]="1 2 3" [1]="4 5 6")
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ echo ${a[@]@Q}
+'1 2 3' '4 5 6'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+```
 

@@ -1,9 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[struct_copy]++)) && return 0
 
-# 树状打印一个结构体变量
-# 第一级要么是一个数组要么是一个关联数组
-# 依次遍历,使用栈的思想
+# 结构体拷贝,其实就是数组的拷贝或者关联数组的拷贝
 struct_copy ()
 {
     local -n _struct_copy_old="${1}" _struct_copy_new="${2}"

@@ -7,7 +7,7 @@ str_is_black_or_empty ()
     : "${1#"${1%%[![:space:]]*}"}"
     local deal_str="${_%"${_##*[![:space:]]}"}"
     
-    [[ -z "$deal_str" ]] && return 0 || return 1
+    [[ -z "$deal_str" ]]
 }
 
 return 0

@@ -33,7 +33,7 @@ dict_set_intersection ()
             # 换一种更笨的方法,首尾加空格为了防止非全匹配和首尾缺失空格的问题(性能降低但是所有环境可用)
             if array_none _dict_set_intersection_indexs str_is_equa "$_dict_set_intersection_key" ; then
                 # unset中的最外层的单引号是必要的,防止索引被意外解析,索引中的双引号可有可无
-                unset '_dict_set_intersection_ref_result_hash["$_dict_set_intersection_key"]'
+                unset '_dict_set_intersection_ref_result_hash[$_dict_set_intersection_key]'
             fi
         done
         (($#)) && shift
