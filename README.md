@@ -162,7 +162,49 @@ $ echo $?
 q00546874@DESKTOP-0KALMAH ~
 $ 
 ```
+#### 逻辑判断链
 
+逻辑判断链的表现行为和`if else`块并不一样，看一个例子：
+
+```bash
+local a=1
+((a)) && {
+    echo 'this not happan'
+    echo '2' | grep 2
+    echo '3' | grep 2
+    echo '' | grep 2
+} || {
+    echo "this happan"
+}
+```
+
+最终的打印结果如下：
+
+```bash
+this not happan
+2
+this happan
+```
+
+这里为什么`&&`里面的分支和`||`里面的分支都走到了呢？
+
+是因为这是按照链条顺序执行的，和`if...else`是不同的。
+
+1. `((a))`为真，然后执行第一个大括号中的语句，大括号的总返回值是它执行的最后一个语句的返回值。这里是`echo '' | grep 2`
+2. 由于这个语句的返回值是假的，所以当前整个大括号的返回值为假，所以执行了后面的`||`中的语句。
+3. 很明显这和`if...else`的控制逻辑并不相同。也就是说和下面的语句 **不等价**。
+
+```bash
+a=1
+if ((a)) ; then
+    echo 'this not happan'
+    echo '2' | grep 2
+    echo '3' | grep 2
+    echo '' | grep 2
+else
+    echo "this happan"
+fi
+```
 
 
 
@@ -893,8 +935,11 @@ func1 yy
 echo $yy
 xxxx
 ```
+#### alias
 
-
+由于`bash`扩展别名的特别的方式，一般而言，别名应该放置到脚本或者配置脚本`.bashrc`
+最前面的位置，且最好不要放置到函数中，因为可能导致`bash`还未扩展别名就开始执行。
+从而产生错误。
 
 
 ### 数据结构

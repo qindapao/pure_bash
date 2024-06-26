@@ -16,8 +16,22 @@ cd "$_test_array_sort_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
+alias xx="date +'%Y_%m_%d_%H_%M_%S'"
+
 test_case1 ()
 {
+    local a=1
+    ((a)) && {
+        echo 'this not happan'
+        echo '2' | grep 2
+        echo '3' | grep 2
+        echo '' | grep 2
+    } || {
+        echo "this happan"
+    }
+
+    xx
+
     local -a a1=("10:7:5" "8:9:4" "11:2:6" "4:1:7")
 
     array_sort a1 '-gt' ':' 1
@@ -39,7 +53,7 @@ test_case1 ()
     #     echo "${FUNCNAME[0]} test fail"
     # fi
 }
-
+xx
 test_case1
 
 
