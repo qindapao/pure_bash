@@ -32,6 +32,7 @@ log_prt_var ()
     fi
     prt_var_info+="$separator"
     printf "%s" "$prt_var_info"
+    return 0
 }
 
 return 0

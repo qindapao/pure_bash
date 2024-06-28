@@ -24,7 +24,7 @@ exec_all_test_case ()
     local test_report="$root_dir"/test_report_$(date_log).txt
     local -a test_case_files_tmp=() test_case_files=() 
     cd "${root_dir}/test/cases"
-    test_case_files_tmp=($(file_traverse '.'))
+    local IFS=$'\n' ; test_case_files_tmp=($(file_traverse '.')) ; unset IFS
     array_grep test_case_files_tmp test_case_files str_endswith '.sh'
 
     local test_case
@@ -429,10 +429,8 @@ test_ifs ()
 test_key_v ()
 {
     cnt="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
-    declare -A tmp_key=(["xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)" [0]="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxx
-    x:xxxx)" )
-    declare -A k=(["xxx xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="2" ["xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60
-    "]="1" ["(xx:yy)"]="6" [5]="4" )
+    declare -A tmp_key=(["xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)" [0]="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)" )
+    declare -A k=(["xxx xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="2" ["xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["(xx:yy)"]="6" [5]="4" )
     # 验证发现只有bash5.2下面可以用双引号包裹,其它版本都不行
     if [[ -v 'k[${tmp_key[$cnt]}]' ]] ; then echo xx; fi
     # 验证发现只有bash5.2可以处理unset中的多级嵌套,其它版本都最好用一个中间变量
@@ -542,6 +540,4 @@ test_big_cmd_param_process ()
 # test_big_cmd_param
 # test_big_cmd_param_array
 # test_big_cmd_param_process
-
-
 

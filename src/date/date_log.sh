@@ -6,12 +6,20 @@
 if ((__date_vars_bash_major_version>=4)) && ((__date_vars_bash_minor_version>=2)) ; then
     date_log ()
     {
-        printf '%(%Y_%m_%d_%H_%M_%S)T' -1
+        [[ -n "${1}" ]] && {
+            printf -v "${1}" '%(%Y_%m_%d_%H_%M_%S)T' -1
+        } || {
+            printf '%(%Y_%m_%d_%H_%M_%S)T' -1
+        }
     }
 else
     date_log ()
     {
-        date +'%Y_%m_%d_%H_%M_%S'
+        [[ -n "${1}" ]] && {
+            printf -v "${1}" $(date +'%Y_%m_%d_%H_%M_%S')
+        } || {
+            date +'%Y_%m_%d_%H_%M_%S'
+        }
     }
 fi
 

@@ -132,6 +132,7 @@ fi
 #---------------------------------------------------------------------------------------------------
 log_debug ()
 {
+    local - ; set +xv
     local __logtype=${1##*-}
     local __break_flag=${1%-*}
     case "$__loglevel" in
@@ -157,17 +158,6 @@ log_debug ()
             return 1
             ;;
     esac
-    
-    local __set_x=0
-    local __set_v=0
-    if echo "$-" | grep "x" ; then
-        __set_x="1"
-        set +x
-    fi
-    if echo "$-" | grep "v" ; then
-        __set_v="1"
-        set +v
-    fi
     
     local __messages_flag=$2
     local __msg=$3
@@ -336,8 +326,6 @@ log_debug ()
         sed -i '/declare -a BASH_ARGC=/d' ${__var_cur_file_tmp}
         sed -i '/declare -a BASH_ARGV=/d' ${__var_cur_file_tmp}
         sed -i '/declare -- _=/d' ${__var_cur_file_tmp}
-        sed -i '/declare -- __set_x=/d' ${__var_cur_file_tmp}
-        sed -i '/declare -- __set_v=/d' ${__var_cur_file_tmp}
         sed -i '/declare -- __var_cur_file_deal_again=/d' ${__var_cur_file_tmp}
         sed -i '/declare -- __var_cur_file_deal_out_put_temp=/d' ${__var_cur_file_tmp}
         sed -i '/declare -- __color_debug_print_info=/d' ${__var_cur_file_tmp}
@@ -589,8 +577,6 @@ log_debug ()
         if [ 'v' = "$__messages_flag" -o 'f' = "$__messages_flag" -o "vf" = "$__messages_flag" ] \
             && ! [ "1" = "$__breakpointflag" -a "b" = "$__break_flag" ] \
             && ! [ "1" = "$__breakpointflag" -a "b-x" = "$__break_flag" ] ; then
-            [ "1" = "$__set_x" ] && set -x
-            [ "1" = "$__set_v" ] && set -v
             return
         fi
         
@@ -611,8 +597,6 @@ log_debug ()
         # :TODO: eval -- $@ 更安全?
         eval $@
     fi
-    [ "1" = "$__set_x" ] && set -x
-    [ "1" = "$__set_v" ] && set -v
 }
 
 #---------------------------------------------------------------------------------------------------
@@ -646,6 +630,7 @@ log_debug ()
 #---------------------------------------------------------------------------------------------------
 lg_dbug ()
 {
+    local - ; set +xv
     local __logtype=${1##*-}
     local __log_type_print=""
     case "$__loglevel" in
@@ -671,17 +656,6 @@ lg_dbug ()
             return 1
             ;;
     esac
-    
-    local __set_x=0
-    local __set_v=0
-    if echo "$-" | grep "x" ; then
-        __set_x="1"
-        set +x
-    fi
-    if echo "$-" | grep "v" ; then
-        __set_v="1"
-        set +v
-    fi
     
     local __messages_flag=$2
     local __var_flag=$3
@@ -799,8 +773,6 @@ lg_dbug ()
             ;;
     esac
     
-    [ "1" = "$__set_x" ] && set -x
-    [ "1" = "$__set_v" ] && set -v
 }
 
 #---------------------------------------------------------------------------------------------------
@@ -821,6 +793,7 @@ lg_dbug ()
 #---------------------------------------------------------------------------------------------------
 dbg_no_var ()
 {
+    local - ; set +xv
     local __logtype=${1##*-}
     local __log_type_print=""
     case "$__loglevel" in
@@ -846,17 +819,6 @@ dbg_no_var ()
             return 1
             ;;
     esac
-    
-    local __set_x=0
-    local __set_v=0
-    if echo "$-" | grep "x" ; then
-        __set_x="1"
-        set +x
-    fi
-    if echo "$-" | grep "v" ; then
-        __set_v="1"
-        set +v
-    fi
     
     local __msg=$2
     
@@ -927,9 +889,6 @@ dbg_no_var ()
     local __log_str=`sed 's/\x1b\[[0-9;]*m//g' ${__tmp_file}`
     
     echo "$__log_str" >>${__logdir}/${__logfile}
-    
-    [ "1" = "$__set_x" ] && set -x
-    [ "1" = "$__set_v" ] && set -v
 }
 
 #---------------------------------------------------------------------------------------------------
@@ -952,6 +911,7 @@ dbg_no_var ()
 #---------------------------------------------------------------------------------------------------
 dbg ()
 {
+    local - ; set +xv
     local __logtype=${1##*-}
     local __log_type_print=""
     case "$__loglevel" in
@@ -977,17 +937,6 @@ dbg ()
             return 1
             ;;
     esac
-    
-    local __set_x=0
-    local __set_v=0
-    if echo "$-" | grep "x" ; then
-        __set_x="1"
-        set +x
-    fi
-    if echo "$-" | grep "v" ; then
-        __set_v="1"
-        set +v
-    fi
     
     local __msg_ori=$2
     local __msg=""
@@ -1082,7 +1031,5 @@ dbg ()
     
     echo "$__log_str" >>${__logdir}/${__logfile}
     
-    [ "1" = "$__set_x" ] && set -x
-    [ "1" = "$__set_v" ] && set -v
 }
 

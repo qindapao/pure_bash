@@ -32,7 +32,9 @@ dict_set_intersection ()
         local -n _dict_set_intersection_tmp_hash="${1}"
         local -a _dict_set_intersection_indexs=("${!_dict_set_intersection_tmp_hash[@]}")
         for _dict_set_intersection_key in "${!_dict_set_intersection_ref_result_hash[@]}" ; do
-            [[ -v '_dict_set_intersection_tmp_hash[$_dict_set_intersection_key]' ]] || {
+            # 判断键或者变量是否设置,这种方法比-v操作符可能更安全
+            [[ "${_dict_set_intersection_tmp_hash[$_dict_set_intersection_key]+set}" == 'set' ]] || {
+            # [[ -v '_dict_set_intersection_tmp_hash[$_dict_set_intersection_key]' ]] || {
                 # unset中的最外层的单引号是必要的,防止索引被意外解析,索引中的双引号可有可无
                 unset '_dict_set_intersection_ref_result_hash[$_dict_set_intersection_key]'
             }

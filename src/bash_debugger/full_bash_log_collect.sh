@@ -11,6 +11,7 @@ print_help_info ()
     echo 'export ITESTINSIDE_TU_DEBUG_FLAG=TRUE'
 }
 
+# :TODO: 后面调试变量可以考虑设置为set -vx 更强大
 add_full_log ()
 {
 cat <<EOF >full_bash_log_collect_tmp_file.txt

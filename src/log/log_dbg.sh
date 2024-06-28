@@ -36,9 +36,7 @@ LOG_FILE_NAME="test_log_$(date_log).log"
 #    需要打印的变量
 log_dbg ()
 {
-    local -i _log_dbg_is_set_x=0
-    [[ $- == *x* ]] && ((_log_dbg_is_set_x++)) && set +x
-
+    disable_xv
     if [[ "${#1}" == '1' ]] ; then
         local _log_dbg_log_type=${1}
         local -i _log_dbg_is_need_break=0
@@ -108,15 +106,10 @@ log_dbg ()
 
     local _log_dbg_log_info
     _log_dbg_log_info="[${_log_dbg_log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)] ${_log_dbg_msg}"
-    case "$_log_dbg_log_type" in
-        d) : 35 ;;
-        i) : 32 ;;
-        w) : 33 ;;
-        e) : 31 ;;
-    esac
+    local -A _log_dbg_color=([d]=35 [i]=32 [w]=33 [e]=31)
     
     if ((_log_dbg_is_need_print_to_std_out)) ; then
-        printf "\033[${_}m%s\033[0m\n" "$_log_dbg_log_info"
+        printf "\033[${_log_dbg_color[$_log_dbg_log_type]}m%s\033[0m\n" "$_log_dbg_log_info"
     fi
     printf "%s\n" "$_log_dbg_log_info" >>"$LOG_FILE_NAME"
 
@@ -134,7 +127,7 @@ log_dbg ()
         # mapfile -t _log_dbg_all_vars_name_list < <(compgen -A variable)
         # array_del_elements_dense _log_dbg_all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" '_log_dbg_log_type' '_log_dbg_is_need_break' '_log_dbg_msg' \
         #     '_log_dbg_i' '_log_dbg_declare_str' '_log_dbg_prt_str' '_log_dbg_log_info' '_log_dbg_func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \
-        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__date_vars_bash_major_version' '__date_vars_bash_minor_version' 'DEFENSE_VARIABLES' '__META'
+        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__date_vars_bash_major_version' '__date_vars_bash_minor_version' 'DEFENSE_VARIABLES' '__META' '_log_dbg_color'
         
         # echo "==============ALL VARIABLE===================" >>"$LOG_FILE_NAME"
         # for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do
@@ -162,7 +155,7 @@ log_dbg ()
         stty $_log_dbg_savedstty 2>/dev/null
     fi
 
-    ((_log_dbg_is_set_x)) && set -x
+    return 0
 }
 
 return 0

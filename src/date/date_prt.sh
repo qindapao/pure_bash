@@ -6,12 +6,20 @@
 if ((__date_vars_bash_major_version>=4)) && ((__date_vars_bash_minor_version>=2)) ; then
     date_prt ()
     {
-        printf '%(%Y-%m-%d %H:%M:%S)T' -1
+        [[ -n "${1}" ]] && {
+            printf -v "${1}" '%(%Y-%m-%d %H:%M:%S)T' -1
+        } || {
+            printf '%(%Y-%m-%d %H:%M:%S)T' -1
+        }
     }
 else
     date_prt ()
     {
-        date +"%y-%m-%d %H:%M:%S"
+        [[ -n "${1}" ]] && {
+            printf -v "${1}" "$(date +"%y-%m-%d %H:%M:%S")"
+        } || {
+            date +"%y-%m-%d %H:%M:%S"
+        }
     }
 fi
 

@@ -5,9 +5,7 @@
 
 com_result_check ()
 {
-    local -i is_set_x=0
-    [[ $- == *x* ]] && ((is_set_x++)) && set +x
-
+    disable_xv
     local -i slot_num=0 exit_code=0
     local -a test_result=() com_logs_contents=()
     local line_str valid_chars=''
@@ -85,7 +83,6 @@ com_result_check ()
         echo ""
         echo "[40;32m ****$TU_NAME $(date_prt)....TEST PASS****[0m"
     fi
-    ((is_set_x)) && set -x
     exit ${exit_code}
 }
 

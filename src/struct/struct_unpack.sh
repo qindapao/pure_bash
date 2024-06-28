@@ -1,8 +1,6 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[struct_unpack]++)) && return 0
 
-# . ./log/log_dbg.sh || return 1
-
 # :TODO: 整个结构体是否需要重构?传参统一使用Q字符串？安全？或者没有必要，暂时不实现
 # :TODO: 或者这么说，是否需要传参的地方都用@Q安全字符串来处理？
 # 但是@Q和printf "%q" 提供了额外的保护层
