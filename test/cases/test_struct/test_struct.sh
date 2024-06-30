@@ -73,9 +73,7 @@ struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
 struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
 struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
 struct_dump my_dict
-struct_shift my_dict 4 [hahahah] 1
-struct_shift my_dict 4 [hahahah] 1
-struct_shift my_dict 4 [hahahah] 1
+struct_shift my_dict 4 [hahahah]
 struct_dump my_dict
 
 }

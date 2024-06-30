@@ -37,6 +37,8 @@ struct_pop ()
     fi
     _struct_pop_return_code=0
 
+    # :TODO: 是直接返回还是打包后返回(如果不是叶子数组)实际使用中再看
+    # str_pack 打包后可以直接在外部拿到数组
     # 数组删除最后一个元素
     printf "%s" "${_struct_pop_get_array[-1]}"
     unset _struct_pop_get_array[-1]
