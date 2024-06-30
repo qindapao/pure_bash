@@ -90,13 +90,38 @@ test_params_2 ()
     echo "${@:1:$#-2}"
     echo "${@:$#-1:1}"
     echo "${@:$#:1}"
+
+    ((1)) && {
+        ((0)) || echo 1
+    } || echo 0
+
 }
+
+test_big_array ()
+{
+    local i
+    local -a big_arr=()
+    local big_str=''
+    echo 1
+    for ((i=0;i<1000000;i++)) ; do
+        # big_arr+=("bigarr bigarr bigarr bigarr bigarr")
+        big_str+="bigarr bigarr bigarr bigarr bigarr"
+        echo ing
+    done
+    echo 2
+    declare -p big_str
+}
+
+test_big_array
+exit 0
+
 
 test_params_2 1 2 3 4 5 6
 exit 0
 
 
 while a=$(cat 1.txt) ; do
+    echo "$a"
     echo "success"
     sleep 1
 done
