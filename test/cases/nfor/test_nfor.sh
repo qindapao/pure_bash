@@ -85,6 +85,17 @@ test_param_num ()
     echo "${@:$#-1}"
 }
 
+test_params_2 ()
+{
+    echo "${@:1:$#-2}"
+    echo "${@:$#-1:1}"
+    echo "${@:$#:1}"
+}
+
+test_params_2 1 2 3 4 5 6
+exit 0
+
+
 while a=$(cat 1.txt) ; do
     echo "success"
     sleep 1

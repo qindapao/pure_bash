@@ -9,6 +9,9 @@ cd "$root_dir"/src
 . ./struct/struct_load.sh || return 1
 . ./struct/struct_push.sh || return 1
 . ./struct/struct_dump.sh || return 1
+. ./struct/struct_pop.sh || return 1
+. ./struct/struct_unshift.sh || return 1
+. ./struct/struct_shift.sh || return 1
 
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
@@ -41,11 +44,38 @@ local -a my_dict=()
 struct_load my_dict 'test1.txt'
 struct_dump my_dict
 
-struct_push my_dict 4 [hahahah] 1 '' 'qq'
-struct_push my_dict 4 [hahahah] 1 '' 'qq'
-struct_push my_dict 4 [hahahah] 1 '' 'qq'
-struct_push my_dict 4 [hahahah] 1 '' 'qq'
-struct_push my_dict 4 [hahahah] 1 '' 'qq'
+struct_push my_dict 4 [hahahah] 1 '' 'qq1'
+struct_push my_dict 4 [hahahah] 1 '' 'qq2'
+struct_push my_dict 4 [hahahah] 1 '' 'qq3'
+struct_push my_dict 4 [hahahah] 1 '' 'qq4'
+struct_push my_dict 4 [hahahah] 1 '' 'qq5'
+struct_dump my_dict
+
+struct_pop my_dict 4 [hahahah] 1
+struct_pop my_dict 4 [hahahah] 1
+struct_pop my_dict 4 [hahahah] 1
+struct_pop my_dict 4 [hahahah] 1
+struct_pop my_dict 4 [hahahah] 1
+struct_pop my_dict 4 [hahahah] 1
+struct_push my_dict 4 [hahahah] 1 '' 'qq5'
+struct_push my_dict 4 [hahahah] 1 '' 'qq4'
+struct_pop my_dict 4 [hahahah] 1
+struct_pop my_dict 4 [hahahah] 1
+struct_dump my_dict
+struct_unshift my_dict 4 [hahahah] 1 '' 123
+struct_unshift my_dict 4 [hahahah] 1 'u' abc
+struct_set_field my_dict 4 [hahahah] 1 50 '' abc
+struct_unshift my_dict 4 [hahahah] 1 'l' ABC
+struct_dump my_dict
+echo $?
+struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
+struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
+struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
+struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
+struct_dump my_dict
+struct_shift my_dict 4 [hahahah] 1
+struct_shift my_dict 4 [hahahah] 1
+struct_shift my_dict 4 [hahahah] 1
 struct_dump my_dict
 
 }
