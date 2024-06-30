@@ -7,7 +7,7 @@ root_dir="${_test_trap_try_old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src
 # . ./log/log_dbg.sh || return 1
-# . ./date/date_log.sh || return 1
+. ./date/date_log.sh || return 1
 . ./nfor/nfor.sh || return 1
 
 cd "$root_dir"/test/lib
@@ -72,6 +72,30 @@ test_param_list ()
 
     echo "a:$a"
 }
+
+test_param_num ()
+{
+    echo "${@}"
+    local param="${1}"
+    shift
+    param_arr=("${@}")
+    echo "${param_arr[@]}"
+    echo "${@:1:$#-2}"
+    echo "${param_arr[@]::$#-2}"
+    echo "${@:$#-1}"
+}
+
+while a=$(cat 1.txt) ; do
+    echo "success"
+    sleep 1
+done
+exit 0
+
+
+
+
+test_param_num '1 x' 2 '3 y' 4 5 6
+exit 0
 
 # test_1
 test_param_list

@@ -7,7 +7,7 @@ str_ltrim_zeros ()
     local out_str=$(printf "%s" "${1#"${1%%[!0]*}"}" )
 
     if [[ -z "$out_str" ]] ; then
-        printf "%s" "${1}"
+        printf "%s" "${1:0:1}"
     else
         printf "%s" "$out_str"
     fi
