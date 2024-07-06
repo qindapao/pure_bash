@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-_test_array_sort_old_dir="$(pwd)"
+_test_array_sort_old_dir="$PWD"
 root_dir="${_test_array_sort_old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src

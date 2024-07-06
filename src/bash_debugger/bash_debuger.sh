@@ -3,7 +3,7 @@
 # 作者:
 # 使用方法:
 #     # 删除所有的日志文件只保留最后一份
-#     export __logdir=$(pwd)
+#     export __logdir="$PWD"
 #     rm -f $(ls -l | grep -E "*_xx_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}.debug" | awk '{print $NF}')
 #     export __logfile=xx_$(date +"%y_%m_%d_%H_%M_%S").debug
 #     
@@ -245,7 +245,7 @@ log_debug ()
         }
         ' <<<"$__msg"`
     
-    local __now_dir=$(pwd)    
+    local __now_dir="$PWD"    
     local __logformat="%-7s ${__datetime} dir:${__now_dir//[^\_\-0-9a-zA-Z\/\.]/@} file:${BASH_SOURCE[1]//[^\_\-0-9a-zA-Z\/\.]/@} func:${__new_func[@]} [line:${__actul_num[@]}]\n${__new_msg}"
     {   
         case ${__logtype} in  
@@ -594,8 +594,7 @@ log_debug ()
     if [ "1" = "$__xlogdebugflag" -a "x" = "$__break_flag" ] \
         || [ "1" = "$__xlogdebugflag" -a "b-x" = "$__break_flag" ] ; then
         shift 3
-        # :TODO: eval -- $@ 更安全?
-        eval $@
+        eval -- "$@"
     fi
 }
 
@@ -736,7 +735,7 @@ lg_dbug ()
         
     local __actul_num=(${BASH_LINENO[@]})
     unset __actul_num[${#__actul_num[@]}-1]
-    local __now_dir=$(pwd)    
+    local __now_dir="$PWD"    
     local __logformat="[${__actul_num[0]}:${__new_func[1]} ${__datetime} %-1s]${__msg}"
     {   
         case ${__logtype} in  
@@ -870,7 +869,7 @@ dbg_no_var ()
         
     local __actul_num=(${BASH_LINENO[@]})
     unset __actul_num[${#__actul_num[@]}-1]
-    local __now_dir=$(pwd)    
+    local __now_dir="$PWD"    
     local __logformat="[${__actul_num[0]}:${__new_func[1]} ${__datetime} %-1s]${__msg}"
     {   
         case ${__logtype} in  
@@ -1011,7 +1010,7 @@ dbg ()
         
     local __actul_num=(${BASH_LINENO[@]})
     unset __actul_num[${#__actul_num[@]}-1]
-    local __now_dir=$(pwd)    
+    local __now_dir="$PWD"    
     local __logformat="[${__actul_num[0]}:${__new_func[1]} ${__datetime} %-1s]${__msg}"
     {   
         case ${__logtype} in  

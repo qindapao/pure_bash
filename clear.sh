@@ -1,6 +1,6 @@
 #! /usr/bin/bash
 
-now_dir=$(pwd)
+now_dir=$PWD
 
 [[ "/mnt/e/code/pure_bash" == "$now_dir" ]] && {
     # 后面的\;是必不可少的(文件不是很多的版本)

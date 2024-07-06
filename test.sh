@@ -3,7 +3,7 @@
 exec_all_test_case ()
 {
     # 保证当前不论在哪里都能正常执行
-    local old_dir="$(pwd)"
+    local old_dir="$PWD"
     local root_dir="${old_dir%%/pure_bash*}/pure_bash"
     cd "${root_dir}"/src
 

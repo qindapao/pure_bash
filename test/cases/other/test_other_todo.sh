@@ -2,7 +2,7 @@
 
 # :TODO: 其它的非测试库函数的用例,当前的内容是打桩的 
 
-old_dir="$(pwd)"
+old_dir="$PWD"
 root_dir="${old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src

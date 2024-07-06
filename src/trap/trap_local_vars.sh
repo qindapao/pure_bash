@@ -29,7 +29,7 @@ trap_local_vars ()
         if ((trap_local_vars_set_or_unset)) ; then
             TRAP_LOCAL_VARS["$trap_local_vars_var"]=1
         else
-            [[ "${TRAP_LOCAL_VARS["$trap_local_vars_var"]+set}" == 'set' ]] && {
+            [[ "${TRAP_LOCAL_VARS["$trap_local_vars_var"]+set}" ]] && {
                 # 如果发现hash表中有对应键取消掉
                 unset 'TRAP_LOCAL_VARS[$trap_local_vars_var]'
             }

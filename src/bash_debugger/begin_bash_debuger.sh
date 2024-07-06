@@ -20,7 +20,7 @@ print_help_info ()
 add_head_date ()
 {
 cat <<EOF >begin_bash_debuger_tmp_file.txt
-export __logdir=\$(pwd)
+export __logdir="\$PWD"
 # 如果是多线程或者重入,这两组文件不能删
 rm -f \$(ls -l \${__logdir} | grep -E "*_${debug_file_name_prefix}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}.${debug_file_name_sufix}" | awk '{print \$NF}')
 rm -f \$(ls -l \${__logdir} | grep -E "${debug_file_name_prefix}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}.${debug_file_name_sufix}" | awk '{print \$NF}')
@@ -37,7 +37,7 @@ EOF
 add_head_no_date ()
 {
 cat <<EOF >begin_bash_debuger_tmp_file.txt
-export __logdir=\$(pwd)
+export __logdir="\$PWD"
 rm -rf *_${debug_file_name}
 export __logfile=${debug_file_name}
 rm -rf \${__logfile}

@@ -1,5 +1,5 @@
 # 这里变量的名字不能随便取,不然容易和外部的变量混淆
-_assert_str_equal_old_dir="$(pwd)" ; root_dir="${_assert_str_equal_old_dir%%/pure_bash*}/pure_bash"
+_assert_str_equal_old_dir="$PWD" ; root_dir="${_assert_str_equal_old_dir%%/pure_bash*}/pure_bash"
 cd "$root_dir"/test ; . ./lib/test_meta.sh ; cd "$_assert_str_equal_old_dir"
 
 ((TEST_DEFENSE_VARIABLES[assert_str_equal]++)) && return 0

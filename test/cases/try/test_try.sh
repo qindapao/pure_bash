@@ -2,7 +2,7 @@
 
 set +E
 
-_test_trap_try_old_dir="$(pwd)"
+_test_trap_try_old_dir="$PWD"
 root_dir="${_test_trap_try_old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src

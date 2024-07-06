@@ -34,5 +34,22 @@ alias disable_xv='local - ; set +xv'
 #
 # 一般情况下也不需要显示的取消一个变量。除非在数组中的子元素用得比较多。
 
+# 在bash4.2中引入了BASH_VERSINFO环境变量,是一个只读的关联数组,但是由于在低版本中无法使用,所以不用它
+# declare -ar BASH_VERSINFO=([0]="5" [1]="0" [2]="17" [3]="1" [4]="release" [5]="x86_64-pc-linux-gnu")
+meta_get_bash_version ()
+{
+    # 1: 主版本号
+    # 2: 次版本号
+    local part1= part2= part3=
+    if [[ "$BASH_VERSION" =~ ([0-9]+)\.([0-9]+).([0-9]+) ]]; then
+        # 这和使用引用变量是一个效果
+        # 5000017
+        part1="${BASH_REMATCH[1]}" ; part2="${BASH_REMATCH[2]}" ; part3="${BASH_REMATCH[3]}"
+        printf -v "$1" "%s%03d%03d" "${part1}" "$((10#$part2))" "$((10#$part3))"
+    fi
+}
+
+meta_get_bash_version __META_BASH_VERSION
+
 return 0
 

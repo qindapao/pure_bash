@@ -12,6 +12,7 @@
 # xx=$(struct_shift 'struct_name' '4' '0' '[key1]')
 # 参数:
 #   1: 需要shift的数组的引用
+#   2: shift的元素保存的变量
 #   @: 数组的每级索引
 #
 # 返回值:
@@ -24,7 +25,8 @@
 struct_shift ()
 {
     local -n _struct_shift_struct_ref="${1}"
-    shift
+    local -n _struct_shift_struct_ret="${2}"
+    shift 2
 
     local -a _struct_shift_get_params=("${@}")
     struct_set_params_del_bracket _struct_shift_get_params
@@ -39,7 +41,7 @@ struct_shift ()
     _struct_shift_return_code=0
 
     # 删除数组的第一个元素
-    array_shift _struct_shift_get_array
+    array_shift _struct_shift_get_array _struct_shift_struct_ret
 
     if ! ((${#_struct_shift_get_array[@]})) ; then
         # 如果已经是空数组,那么原始数组删除键

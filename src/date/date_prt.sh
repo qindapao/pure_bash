@@ -1,9 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[date_prt]++)) && return 0
 
-. ./date/date_vars.sh || return 1
-
-if ((__date_vars_bash_major_version>=4)) && ((__date_vars_bash_minor_version>=2)) ; then
+if ((__META_BASH_VERSION>=4002000)) ; then
     date_prt ()
     {
         [[ -n "${1}" ]] && {

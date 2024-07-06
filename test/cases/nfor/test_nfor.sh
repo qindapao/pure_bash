@@ -2,7 +2,7 @@
 
 set +E
 
-_test_trap_try_old_dir="$(pwd)"
+_test_trap_try_old_dir="$PWD"
 root_dir="${_test_trap_try_old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src
@@ -103,14 +103,51 @@ test_big_array ()
     local -a big_arr=()
     local big_str=''
     echo 1
-    for ((i=0;i<1000000;i++)) ; do
-        # big_arr+=("bigarr bigarr bigarr bigarr bigarr")
-        big_str+="bigarr bigarr bigarr bigarr bigarr"
-        echo ing
+    for ((i=0;i<100000;i++)) ; do
+        big_arr+=("bigarr bigarr bigarr bigarr bigarr")
+        echo "$i"
     done
     echo 2
-    declare -p big_str
+    printf "%s" "${big_arr[@]@A}"
 }
+
+test__ ()
+{
+    local -
+    set +h
+    test2
+    echo $-
+}
+
+test2 ()
+{
+    local -
+    set -h
+    test3
+    echo $-
+}
+
+test3 ()
+{
+    local -
+    echo $-
+}
+
+test_bool ()
+{
+    i=0
+    ((i<=0))
+}
+
+test_bool
+echo "?:$?"
+exit 0
+
+
+test__
+echo $-
+exit 0
+
 
 test_big_array
 exit 0

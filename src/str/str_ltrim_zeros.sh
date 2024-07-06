@@ -4,7 +4,8 @@
 # 去掉前导0(如果单纯只有一个0需要保留)
 str_ltrim_zeros ()
 {
-    local out_str=$(printf "%s" "${1#"${1%%[!0]*}"}" )
+    local out_str=''
+    printf -v out_str "%s" "${1#"${1%%[!0]*}"}" 
 
     if [[ -z "$out_str" ]] ; then
         printf "%s" "${1:0:1}"

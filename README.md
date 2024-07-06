@@ -131,6 +131,34 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# for((i=0,j=1;i<4;i++,j++)) ; do
 root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
 ```
 
+`for in words`循环中可以省略`in words`，这个时候作用于每个位置参数。
+
+```bash
+test_case1 ()
+{
+    local a
+    for a ; do
+        echo "a:$a"
+    done
+}
+
+
+test_case1 1 2 3 4
+```
+
+
+上面的`for`循环和
+
+```bash
+for a in "${@}" ; do
+    echo "a:$a"
+done
+```
+
+是等价的。
+
+
+
 #### if条件判断
 
 ##### 可以把赋值语句写到条件判断中
@@ -313,6 +341,26 @@ a="$(cat 1.txt)" && echo xx
 但是`bash`内部的一些操作，比如数组`a=("${b[@]}")`类似的语法是在内存中处理的，并不受命令行参数的影响。要搞清楚哪些是在操作命令行参数，哪些是语言内置的功能(这些都是在内存中处理)。
 
 ### 变量
+
+#### 间接引用
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# unset -n a b c
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# a=b
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# declare -n b=c
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# c=xxoo
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# echo ${!a}
+xxoo
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# declare -p a b c
+declare -- a="b"
+declare -n b="c"
+declare -- c="xxoo"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor# 
+```
+
+
+上面的例子是间接引用和`${!var}`取值嵌套的情况，会找到真正的变量。
+
 
 #### 检查变量是否设置的另外一种方法
 
@@ -546,7 +594,7 @@ int example_builtin_unload(char *name) {
 或有其他问题，请随时告诉我！
 
 
-#### BASH_COMMAND
+##### BASH_COMMAND
 
 BASH_COMMAND 是一个特殊的 Bash 变量，它保存了当前正在执行的 shell 命令或者 shell
 脚本中的命令。这个变量通常在调试时非常有用，因为它可以帮助你了解在执行时发生了什么。
@@ -597,6 +645,11 @@ declare -p BASH_CMDS
 ```
 
 这将输出 `BASH_CMDS` 关联数组中当前存储的所有命令及其对应的路径。
+
+##### BASH_ALIASES
+
+一个关联数组，保存当前`shell`环境中的别名和对应的值。
+
 
 ### 变量修饰
 
@@ -770,6 +823,35 @@ fi
 
 ### 函数
 
+#### 设计命令的封装函数
+
+大部分的`linux`文本处理命令，都可以同时处理标准输入和具体的文件，可以把这些命令
+封装，然后设计和命令相同工作模式的函数
+
+```bash
+file_del_end_blank_lines () 
+{ 
+    sed '{
+        :start
+        /^[[:space:]]*$/{$d ; N ; b start }
+    }'
+} < "${1:-/dev/fd/0}"
+```
+
+这个函数的使用方法有两种:
+
+```bash
+cat other.txt  | file_del_end_blank_lines
+file_del_end_blank_lines other.txt
+```
+
+唯一的缺点是无法直接修改文件，我们可以重新封装函数，直接处理传入的文件名，而不是
+重定向它的内容。
+
+当然，上面的命令封装函数可以使用别名(alias)来实现，这里只是提供函数实现的一种思路。
+
+
+
 #### 函数的返回值
 
 如果函数执行到最后没有`return`语句，那么默认使用最后执行的一条语句的命令的返回值。
@@ -904,6 +986,10 @@ eval -- "$value"
 
 所以，`eval -- "$value"` 的含义是：执行 `"$value"` 中的命令，即使 `"$value"` 
 以短杠 `-` 开头。
+
+这在不确定要执行的字符串以什么开头时特别重要，如果确定字符串不可能以`-`开头，那么
+不加也是可以的。
+
 
 ##### eval和for循环的配套使用
 
@@ -1040,6 +1126,36 @@ func1 yy
 echo $yy
 xxxx
 ```
+
+##### 关于安全的打印
+
+在使用命令行工具的使用，如果参数中包含短杠，要特别小心。看下面的例子：
+
+```bash
+# echo 后面打印的内容如果为选项,会打印不出来
+a='-e'
+echo "$a"
+# 上面打印出来是空
+# 加了--也不行,会把 -- -e一起打印出来
+echo -- "$a"
+# -- -e
+
+# printf 如果直接打印，遇到选项也打印不出来
+a='-v'
+printf "$a"
+# 这会导致下面的错误打印
+# -bash: printf: -v: option requires an argument
+# printf: usage: printf [-v var] format [arguments]
+
+# 但是如果加了--就可以正常打印
+printf -- "$a"
+# 这样任何情况都能打印
+printf "%s" "$a"
+```
+
+所以，打印字符串推荐使用`printf`而不是`echo`，并且使用`printf`千万不要直接打印字符串，
+而是要使用`%s`或者`%q`这种格式化的选项来打印才安全。
+
 
 #### trap
 
@@ -1205,6 +1321,125 @@ for((reg_i=0;reg_i<${#led_regs[@]};)) ; do
     ((reg_i+=2))
 done
 ```
+
+#### 关联数组
+
+##### 关联数组的初始化构造赋值
+
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -A a
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ a=(xx yy zz 1)
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
+declare -A a=([xx]="yy" [zz]="1" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ a=([xx]=yy [zz]=1)
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
+declare -A a=([xx]="yy" [zz]="1" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ 
+```
+
+请看上面是关联数组的两种赋值方式。
+
+
+##### 关联数组追加元素的三种语法
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ a+=("xx2" 2 "xx1" 1)
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
+declare -A a=([xx2]="2" [xx1]="1" [xx]="yy" [zz]="1" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ a+=([xx3]=3 [xx4]=5)
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
+declare -A a=([xx4]="5" [xx3]="3" [xx2]="2" [xx1]="1" [xx]="yy" [zz]="1" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ a[xx7]=8
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
+declare -A a=([xx7]="8" [xx4]="5" [xx3]="3" [xx2]="2" [xx1]="1" [xx]="yy" [zz]="1" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ 
+$ 
+```
+
+
+#### 打印一个数组或者关联数组
+
+在`bash5.1`(:TODO:确认下具体版本)中提供了变量的`@K`操作符，在`bash5.2`中提供了`@k`
+操作符，可以通过简单的方式来打印键值对。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ declare -p b
+declare -A b=([def]="2" ["xx yy"]="4" [abc]="1" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ eval xm=(${b[@]@K})
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ printf "%s => %s\n" "${xm[@]}"
+def => 2
+xx yy => 4
+abc => 1
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ 
+```
+
+上面还利用了`printf`的配对打印。
+
+上面的打印还可以有下面的更方便的形式，利用`@k`操作符。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ printf "%s => %s\n" "${b[@]@k}"
+def => 2
+xx yy => 4
+abc => 1
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ 
+```
+
+注意：`"${b[@]@k}"`这里的双引号是必须的。
+
+可惜`bash`的for循环无法一次迭代两个变量，不然数组和关联数组的遍历就会方便很多。
+所以这里的意义最大还是打印一个数组或者关联数组。
+
+不过也可以使用下面的代码来遍历数组或者关联数组，可以把
+`((i^=1)) ; ((i)) || { k="$e" ; continue ; } ; v="$e"`这个语句封装成一个函数，函数
+中使用`eval`处理传入的参数`k v e i`。
+
+```bash
+declare k v e
+declare -i i=1
+for e in "${b[@]@k}" ; do
+    ((i^=1)) ; ((i)) || { k="$e" ; continue ; } ; v="$e"
+    printf "%s => %s\n" "$k" "$v"
+done
+```
+
+
+
 ### 进程管理
 
 #### 关于bash5.2的重大变化
@@ -1417,7 +1652,135 @@ done
 ```
 while 循环可以用上面的语句迭代一个变量。
 
+### 选项
 
+#### localvar_unset
+
+这个选项是`bash5.2`增加的。举个例子说明下：
+
+```bash
+test_case1 ()
+{
+    local a=test_case1
+    test_case2
+    declare -p a
+}
+
+test_case2 ()
+{
+    local a=test_case2
+    test_case3
+    declare -p a
+}
+
+test_case3 ()
+{
+    unset a
+    declare -p a
+}
+
+shopt -s localvar_unset
+a=out
+test_case1
+declare -p a
+
+shopt -u localvar_unset
+echo '--------------------------'
+
+a=out
+test_case1
+declare -p a
+
+```
+
+上面例子的执行结果是：
+
+```bash
+declare -- a
+declare -- a
+declare -- a="test_case1"
+declare -- a="out"
+--------------------------
+declare -- a="test_case1"
+declare -- a="test_case1"
+declare -- a="test_case1"
+declare -- a="out"
+```
+
+这个选项主要的作用是，在函数中取消上一个作用域的变量，是让上一个作用域的变量恢复到上
+一个作用域还是只取消局部作用域。如果开启，那么只取消局部作用域，如果没有开启，那么
+恢复到上一个作用域。解释得有点绕，结合例子理解。
+
+但是在函数中取消上一个作用域的变量的属性的用法并不常见，如果在当前的函数作用域中先定义
+一个同名的局部变量，然后再使用unset取消它，那么不论开不开这个选项，结果都一样，比如：
+
+```bash
+test_case4 ()
+{
+    local -a a=(test_case4)
+    test_case5
+    declare -p a
+}
+
+test_case5 ()
+{
+    local -a a=(test_case5)
+    test_case6
+    declare -p a
+}
+
+test_case6 ()
+{
+    local -a a=(test_case6)
+    unset a
+    declare -p a
+}
+
+a=(out)
+test_case4
+```
+
+上面的代码的执行结果是：
+
+```bash
+declare -- a
+declare -a a=([0]="test_case5")
+declare -a a=([0]="test_case4")
+```
+
+只会取消当前作用域中的变量，但是由于有外部同名变量，所以`declare`中还保留了变量的
+残影(属性和值都丢失了，类似于变量被定义但是未被赋值的状态，默认为空字符串)。所以
+在一般的使用场景下，`localvar_unset`这个选项的作用并不大。我们不应该在函数中去取消
+一个上一个作用域中的变量的定义。
+
+### 字符串切片
+
+对于包含`unicode`字符的切片操作也是能符合预期：
+
+```bash
+a="我是谁"
+
+echo "${a:0:1}"
+echo "${a:1:1}"
+echo "${a:2:1}"
+echo "${a#?}"
+echo "${a#??}"
+echo "${a#???}"
+
+```
+
+得到的结果是：
+
+```bash
+我
+是
+谁
+是谁
+谁
+
+```
+
+`${a#?}`这个是前缀删除的语法，表示删除字符串的开头一个字符.
 
 
 ## git

@@ -57,7 +57,7 @@ log_dbg ()
         _log_dbg_msg+=$'\n-  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -'
 
         # 如果传入的变量不是合法标识符,直接忽略
-        [[ "${!_log_dbg_i}" =~  ^[a-zA-Z_]+[a-zA-Z0-9_]*$ ]] || {
+        [[ "${!_log_dbg_i}" =~ ^[a-zA-Z_]+[a-zA-Z0-9_]*$ ]] || {
             _log_dbg_msg+=$'\n'
             _log_dbg_msg+="${!_log_dbg_i} is not a valid variable name!"
             continue
@@ -127,7 +127,7 @@ log_dbg ()
         # mapfile -t _log_dbg_all_vars_name_list < <(compgen -A variable)
         # array_del_elements_dense _log_dbg_all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" '_log_dbg_log_type' '_log_dbg_is_need_break' '_log_dbg_msg' \
         #     '_log_dbg_i' '_log_dbg_declare_str' '_log_dbg_prt_str' '_log_dbg_log_info' '_log_dbg_func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \
-        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__date_vars_bash_major_version' '__date_vars_bash_minor_version' 'DEFENSE_VARIABLES' '__META' '_log_dbg_color'
+        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__META_BASH_VERSION' 'DEFENSE_VARIABLES' '__META' '_log_dbg_color'
         
         # echo "==============ALL VARIABLE===================" >>"$LOG_FILE_NAME"
         # for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do

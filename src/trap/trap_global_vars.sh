@@ -23,7 +23,7 @@ trap_global_vars ()
         if ((trap_global_vars_set_or_unset)) ; then
             TRAP_GLOBAL_VARS["$trap_global_vars_var"]=1
         else
-            [[ "${TRAP_GLOBAL_VARS["$trap_global_vars_var"]+set}" == 'set' ]] && {
+            [[ "${TRAP_GLOBAL_VARS["$trap_global_vars_var"]+set}" ]] && {
                 # 如果发现hash表中有对应键取消掉
                 unset 'TRAP_GLOBAL_VARS[$trap_global_vars_var]'
             }
