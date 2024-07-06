@@ -1381,6 +1381,66 @@ $
 $ 
 ```
 
+上面的:
+
+```bash
+a+=("xx2" 2 "xx1" 1)
+a=("xx2" 2 "xx1" 1)
+```
+
+给关联数组赋值的特殊语法只有`bash5.2`才支持的。如果元素的个数是奇数个，那么是下面
+这种情况：
+
+```bash
+pc@DESKTOP-0MVRMOU ~                                                                                                                                         
+$ declare -A m=(x y z)
+
+pc@DESKTOP-0MVRMOU ~
+$ declare -p m
+declare -A m=([z]="" [x]="y" )
+
+pc@DESKTOP-0MVRMOU ~
+$ 
+```
+
+但是使用这种语法把一个数组追加到一个关联数组，目前验证确发现不行。
+
+```bash
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ ay=('zy
+> 22' '12
+> kk')
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ declare -A ax=()
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+# 这样是不行的
+$ ax+=("${ay[@]}")
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ declare -p ax
+declare -A ax=([$'zy\n22 12\nkk']="" )
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ declare -A ax=()
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+# 这样也不行
+$ eval ax+=("${ay[@]}")
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ declare -p ax
+declare -A ax=([zy]="22" [12]="kk" )
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ declare -p ay
+declare -a ay=([0]=$'zy\n22' [1]=$'12\nkk')
+# 但是直接相加的语法又是可以的
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ ax+=('zy
+> 22' '12
+> kk')
+pc@DESKTOP-0MVRMOU /cygdrive/e/code/pure_bash/test/cases/other                                                                                               
+$ declare -p ax
+declare -A ax=([$'zy\n22']=$'12\nkk' )
+```
+
+使用的时候要特别小心。
+
 
 #### 打印一个数组或者关联数组
 
