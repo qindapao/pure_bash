@@ -22,7 +22,7 @@ trap_return ()
 {
     disable_xv
     local _trap_return_last_command_ext_code=$?
-    local _trap_return_pipestatus="${1}"
+    local _trap_return_pipestatus=$1
 
     # :TODO: 删除局部变量? 可能并不好,这样会把所有局部作用域变量全部清零,暂时还是手动清理
     # 返回函数的值?(会被错误函数捕捉,所以这里也不用处理)

@@ -6,7 +6,7 @@
 # 这个函数好像意义也不大,直接${arr[@]:0:1}更简洁直接
 array_peek ()
 {
-    local -n _array_peek_ref_arr="${1}"
+    local -n _array_peek_ref_arr=$1
     printf "%s" "${_array_peek_ref_arr[@]:0:1}"
 }
 

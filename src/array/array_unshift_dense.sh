@@ -7,7 +7,7 @@
 # 不能处理稀疏数组，效率高，这个函数也是没什么用，直接操作即可
 array_unshift_dense ()
 {
-    local -n _array_unshift_dense_ref_arr="${1}"
+    local -n _array_unshift_dense_ref_arr=$1
     shift
     _array_unshift_dense_ref_arr=("${@}" "${_array_unshift_dense_ref_arr[@]}")
 }

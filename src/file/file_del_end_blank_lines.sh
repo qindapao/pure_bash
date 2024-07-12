@@ -5,7 +5,7 @@
 # sed实现
 # cat other.txt  | file_del_end_blank_lines
 # file_del_end_blank_lines other.txt
-# /dev/fd/0 文件是标准输入
+# /dev/stdin 文件是标准输入
 # 只是 file_del_end_pattern 的一个特例而已
 file_del_end_blank_lines () 
 { 
@@ -13,7 +13,7 @@ file_del_end_blank_lines ()
         :start
         /^[[:space:]]*$/{$d ; N ; b start }
     }'
-} < "${1:-/dev/fd/0}"
+} < "${1:-/dev/stdin}"
 
 return 0
 

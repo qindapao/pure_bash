@@ -7,19 +7,19 @@
 . ./bit/bit_set_value.sh || return 1
 
 # 设置连续位的值
-# 1: 需要改变bit位的原始值(转换成16进制)
-# 2: 高阶函数数组索引(参数留空)
+# 1: 高阶函数数组索引(参数留空)
+# 2: 需要改变bit位的原始值(转换成16进制)
 # 3: 域段(支持正向和负向)(取出最小和最大),默认10进制,包括上下两个边界
 # 4: 域段需要设置的值(支持2进制 10进制 16进制),统一转换成16进制
-# xx=$(bit_set_conti_bits_value "0x34a" '' '7~0' '0b10101010')
-# xx=$(bit_set_conti_bits_value "0x34a" '' '0~7' '0b10101010')
-# xx=$(bit_set_conti_bits_value "0x34a" '' '0-7' 0x45)
-# xx=$(bit_set_conti_bits_value "0x34a" '' '0-7' 0X45)
-# xx=$(bit_set_conti_bits_value "0x34a" '' '0-7' 45)
+# xx=$(bit_set_conti_bits_value_s "0x34a" '7~0' '0b10101010')
+# xx=$(bit_set_conti_bits_value_s "0x34a" '0~7' '0b10101010')
+# xx=$(bit_set_conti_bits_value_s "0x34a" '0-7' 0x45)
+# xx=$(bit_set_conti_bits_value_s "0x34a" '0-7' 0X45)
+# xx=$(bit_set_conti_bits_value_s "0x34a" '0-7' 45)
 bit_set_conti_bits_value ()
 {
-    local value="${1,,}"
-    local filed="${3}"
+    local value=${2,,}
+    local filed=${3}
     local upper_limit='' lower_limit=''
     local filed_set_value="${4,,}"
 
@@ -42,8 +42,10 @@ bit_set_conti_bits_value ()
         params_arr+=("${i}:$(( (filed_set_value>>(i-lower_limit))&1 ))")
     done
 
-    bit_set_value "$value" '' "${params_arr[@]}"
+    bit_set_value_s "$value" "${params_arr[@]}"
 }
+
+alias bit_set_conti_bits_value_s='bit_set_conti_bits_value ""'
 
 return 0
 

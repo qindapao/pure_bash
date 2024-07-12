@@ -15,9 +15,7 @@ trap_exit ()
 {
     disable_xv
     local _trap_exit_last_command_ext_code=$?
-    local _trap_exit_pipestatus="${1}"
-    local _trap_exit_lineno="${2}"
-    local _trap_exit_bash_command="${3}"
+    local _trap_exit_pipestatus=$1 _trap_exit_lineno=$2 _trap_exit_bash_command=$3
 
     local _trap_exit_func_index
     local _trap_exit_now_time=''

@@ -7,7 +7,7 @@
 # 可以处理稀疏数组，但是效率不高
 array_unshift ()
 {
-    local -n _array_unshift_ref_arr="${1}"
+    local -n _array_unshift_ref_arr=$1
     shift
     local -a _array_unshift_new_arr=("${@}")
     local -i _array_unshift_i

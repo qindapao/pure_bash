@@ -8,9 +8,9 @@
 date_get_date_from_second ()
 (
     # 开始的年份
-    local -i cur_year="${1}"
+    local -i cur_year=$1
     # 经过的秒数
-    local -i get_second="${2}"
+    local -i get_second=$2
     # 这个数组只读
     local -ar mon_to_day_noleap_year=(0 31 59 90 120 151 181 212 243 273 304 334 365)
     local -ar mon_to_day_leap_year=(0 31 60 91 121 152 182 213 244 274 305 335 366)

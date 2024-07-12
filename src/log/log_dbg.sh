@@ -85,7 +85,7 @@ log_dbg ()
                         _log_dbg_declare_str="$_log_dbg_prt_str"
                         # 横向打印原始字符串,更方便阅读(但是换行的时候就比较难看)
                         # :TODO: 如何打印最合适啊?
-                        _log_dbg_declare_str+=$(struct_dump "${!_log_dbg_i}" 1)
+                        _log_dbg_declare_str+=$(struct_dump_ho "${!_log_dbg_i}")
                     else
                         [[ "$_log_dbg_prt_str" == "${!_log_dbg_i}" ]] && _log_dbg_prt_str='' || _log_dbg_prt_str+=' '
                         _log_dbg_declare_str="${_log_dbg_prt_str}${_log_dbg_declare_str:8}"
@@ -106,10 +106,11 @@ log_dbg ()
 
     local _log_dbg_log_info
     _log_dbg_log_info="[${_log_dbg_log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)] ${_log_dbg_msg}"
-    local -A _log_dbg_color=([d]=35 [i]=32 [w]=33 [e]=31)
+    local -A _log_dbg_color=([d]='36' [i]=32 [w]=33 [e]=35)
+    local -A _log_dbg_other_effect=([d]='' [i]='' [w]='' [e]='')
     
     if ((_log_dbg_is_need_print_to_std_out)) ; then
-        printf "\033[${_log_dbg_color[$_log_dbg_log_type]}m%s\033[0m\n" "$_log_dbg_log_info"
+        printf "\033[${_log_dbg_color[$_log_dbg_log_type]}m${_log_dbg_other_effect[$_log_dbg_log_type]}%s\033[0m\n" "$_log_dbg_log_info"
     fi
     printf "%s\n" "$_log_dbg_log_info" >>"$LOG_FILE_NAME"
 
@@ -117,9 +118,9 @@ log_dbg ()
         local -i _log_dbg_func_index=1
         for((_log_dbg_func_index=1;_log_dbg_func_index<${#FUNCNAME[@]};_log_dbg_func_index++)) ; do
             if ((_log_dbg_is_need_print_to_std_out)) ; then
-                printf "%s\n" $'\t'"at ${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})"
+                printf "%s\n" $'\t'"${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})"
             fi
-            printf "%s\n" $'\t'"at ${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})" >>"$LOG_FILE_NAME"
+            printf "%s\n" $'\t'"${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})" >>"$LOG_FILE_NAME"
         done
 
         # # 把当前环境中所有变量的值记录到日志文件中(不打印)
@@ -127,12 +128,12 @@ log_dbg ()
         # mapfile -t _log_dbg_all_vars_name_list < <(compgen -A variable)
         # array_del_elements_dense _log_dbg_all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" '_log_dbg_log_type' '_log_dbg_is_need_break' '_log_dbg_msg' \
         #     '_log_dbg_i' '_log_dbg_declare_str' '_log_dbg_prt_str' '_log_dbg_log_info' '_log_dbg_func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \
-        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__META_BASH_VERSION' 'DEFENSE_VARIABLES' '__META' '_log_dbg_color'
+        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__META_BASH_VERSION' 'DEFENSE_VARIABLES' '__META' '_log_dbg_color' '_log_dbg_other_effect'
         
         # echo "==============ALL VARIABLE===================" >>"$LOG_FILE_NAME"
         # for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do
         #     if [[ "${!_log_dbg_i@a}" == *[aA]* ]] ; then
-        #         struct_dump "${_log_dbg_i}" >> "$LOG_FILE_NAME" 
+        #         struct_dump_hq "${_log_dbg_i}" >> "$LOG_FILE_NAME" 
         #     else
         #         declare -p "$_log_dbg_i" >> "$LOG_FILE_NAME"
         #     fi
@@ -157,6 +158,30 @@ log_dbg ()
 
     return 0
 }
+
+# 标准函数(打印到日志和标准输出,禁用断点)
+alias ldebug_p='log_dbg d'
+alias linfo_p='log_dbg i'
+alias lwarn_p='log_dbg w'
+alias lerror_p='log_dbg e'
+
+# 启用断点(打印日志到标准输出)
+alias ldebug_bp='log_dbg 1d1'
+alias linfo_bp='log_dbg 1i1'
+alias lwarn_bp='log_dbg 1w1'
+alias lerror_bp='log_dbg 1e1'
+
+# 不启用断点(日志不打印到标准输出)
+alias ldebug='log_dbg 0d0'
+alias linfo='log_dbg 0i0'
+alias lwarn='log_dbg 0w0'
+alias lerror='log_dbg 0e0'
+
+# 启用断点(并且不打印到标准输出)
+alias ldebug_b='log_dbg 1d0'
+alias linfo_b='log_dbg 1i0'
+alias lwarn_b='log_dbg 1w0'
+alias lerror_b='log_dbg 1e0'
 
 return 0
 

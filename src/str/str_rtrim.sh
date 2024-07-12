@@ -4,8 +4,10 @@
 # 去掉行尾空白字符
 str_rtrim ()
 {
-    printf "%s" "${1%"${1##*[![:space:]]}"}"
+    printf "%s" "${2%"${2##*[![:space:]]}"}"
 }
+
+alias str_rtrim_s='str_rtrim ""'
 
 return 0
 

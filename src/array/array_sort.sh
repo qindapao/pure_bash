@@ -4,6 +4,7 @@
 . ./array/array_map_block.sh || return 1
 . ./str/str_split.sh || return 1
 
+# :TODO: 当前的素值排序只支持整形并不支持浮点数,如果要支持浮点数函数的性能会大幅降低
 # :TODO: 为了支持稳定排序(多域段优先级排序),当前的函数和后面需要实现的qsort函数需要支持
 # 只排序指定的索引功能(前一个域段索引相同的部分,由稳定排序函数输出,当前函数和qsort函数支持参数传递)
 
@@ -55,8 +56,8 @@
 # 1: 需要排序数组引用名
 _array_sort ()
 {
-    local -n __array_sort_ref_arr="${1}"
-    local __array_sort_mark="${2}" __array_sort_delimiter="${3}" __array_sort_field="${4}"
+    local -n __array_sort_ref_arr=$1
+    local __array_sort_mark=$2 __array_sort_delimiter=$3 __array_sort_field=$4
     declare -a __array_sort_arr_indexs=("${!__array_sort_ref_arr[@]}")
     ((${#__array_sort_arr_indexs[@]})) || return 
 
@@ -66,7 +67,7 @@ _array_sort ()
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
         # str_split_pure "<" "2" < <(printf "%s" "$1") 也可以
-        array_map_block __array_sort_tmp_arr_filed "str_split \""$__array_sort_delimiter"\" \""$__array_sort_field"\" < <(printf \"%s\" \"\$1\")"
+        array_map_block __array_sort_tmp_arr_filed "str_split_pipe \""$__array_sort_delimiter"\" \""$__array_sort_field"\" < <(printf \"%s\" \"\$2\")"
     fi
 
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}
@@ -107,7 +108,7 @@ _array_sort ()
 # ... 一直往下循环组成,每组三个元素(可以看成三个元素的元组)
 array_sort ()
 {
-    local -n _array_sort_ref_arr="${1}"
+    local -n _array_sort_ref_arr=$1
     shift
     
     (($#)) || {

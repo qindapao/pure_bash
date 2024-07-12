@@ -6,9 +6,11 @@
 # 用于带文件名的字符串
 str_dirname ()
 {
-    local in_str="${1%/*}"
+    local in_str=${2%/*}
     printf "%s" "${in_str##*/}"
 }
+
+alias str_dirname_s='str_dirname ""'
 
 return 0
 

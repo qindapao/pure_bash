@@ -1,3 +1,4 @@
+. ./meta/meta.sh
 ((DEFENSE_VARIABLES[date_prt_t]++)) && return 0
 
 if ((__META_BASH_VERSION>=4002000)) ; then

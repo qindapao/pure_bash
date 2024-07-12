@@ -6,7 +6,7 @@
 # 1: 文件名
 file_find ()
 {
-    local find_root_dir="${1}"  find_exclude_dir="${2}" find_file_name="${3}"
+    local find_root_dir=$1  find_exclude_dir=$2 find_file_name=$3
     find "${find_root_dir}" -path "$find_exclude_dir" -prune -o -type f -name "$find_file_name" -print
 }
 

@@ -7,7 +7,7 @@
 # 最后得到的值是0x335b
 bit_set_value ()
 {
-    local value="${1}"
+    local value=${2}
     # 这里shift 2是因为给高阶函数预留的索引号
     shift 2
     local -A bit_info
@@ -18,6 +18,8 @@ bit_set_value ()
     for i in "${!bit_info[@]}" ; do value=$(( (${bit_info["$i"]} << i) | (value & (~(0x1 << i))) )) ; done
     printf "0x%02x" "$value"
 }
+
+alias bit_set_value_s='bit_set_value ""'
 
 return 0
 

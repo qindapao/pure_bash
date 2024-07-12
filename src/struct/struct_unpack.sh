@@ -18,9 +18,8 @@
 
 struct_unpack ()
 {
-    local -i _struct_unpack_str_type="${1}"
-    local _struct_unpack_str="${2}"
-    local _struct_unpack_struct_name="${3}"
+    local -i _struct_unpack_str_type=$1
+    local _struct_unpack_str=$2
 
     # 如果本身是一个Q字符串,先转换成普通字符串
     if ((_struct_unpack_str_type)) ; then
@@ -30,9 +29,12 @@ struct_unpack ()
     # 普通字符串拿到申明后的数据部分
     if [[ "$_struct_unpack_str" =~ ^(declare)\ ([^\ ]+)\ _struct_set_field_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
         # 这里不能重新声明,因为重新声明就变成局部变量了,所以变量的类型和解压的类型必须一致
-        eval "$_struct_unpack_struct_name=${BASH_REMATCH[3]}"
+        eval "$3=${BASH_REMATCH[3]}"
     fi
 }
+
+alias struct_unpack_o='struct_unpack 0'
+alias struct_unpack_q='struct_unpack 1'
 
 return 0
 

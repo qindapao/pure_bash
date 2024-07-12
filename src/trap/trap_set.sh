@@ -31,8 +31,7 @@ trap_set ()
     }
 
     # 1: enable 0: disable
-    local _trap_set_is_enable="${1}"
-    local _trap_set_type="${2}"
+    local _trap_set_is_enable=$1 _trap_set_type=$2
     local -A _trap_set_funcs=([ERR]=trap_err [RETURN]=trap_return [EXIT]=trap_exit)
 
     case "$_trap_set_is_enable" in

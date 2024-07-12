@@ -4,9 +4,12 @@
 # 从文件路径字符串中解析文件名(不带后缀)
 str_basename ()
 {
-    local out_str="${1##*/}"
+    local out_str=${2##*/}
     printf "%s" "${out_str%%.*}"
 }
+
+# 带s的是直接使用的,上面的是在高阶函数中的
+alias str_basename_s='str_basename ""'
 
 return 0
 

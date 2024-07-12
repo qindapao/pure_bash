@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[str_split_pure]++)) && return 0
 
+# :TODO: 是否需要整改用于高阶函数中?
 # 字符串拆分函数,下面是纯bash实现
 # 效率极高
 # str_split_pure ' ' 1 "**" 2 ":" 2 ";" 3 < (printf "%s" "   *dge**ge:g;;e;ge:gege*x   dge")

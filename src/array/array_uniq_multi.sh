@@ -7,7 +7,7 @@
 array_uniq_multi ()
 {
     while(($#)) ; do
-        local -n _array_uniq_multi_ref_arr="${1}"
+        local -n _array_uniq_multi_ref_arr=$1
         array_uniq _array_uniq_multi_ref_arr
         shift
     done

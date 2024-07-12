@@ -74,10 +74,10 @@ test_case1 ()
     struct_set_field my_dict 'key2' 0 '' 'value0'
     struct_set_field my_dict 'key2' 1 '' 'value1'
     struct_set_field my_dict 'key3' 0 '' 'k3value0'
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'key2' 0
     struct_del_field my_dict 'key3'
-    struct_dump my_dict
+    struct_dump_hq my_dict
 }
 
 test_case2 ()
@@ -89,24 +89,24 @@ test_case2 ()
     struct_set_field my_dict 'key2' 0 3 '' 'value0'
     struct_set_field my_dict 'key2' 1 '' 'value1'
     struct_set_field my_dict 'key3' '' 'k3value0'
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'key2' 1
     struct_del_field my_dict 'key2' 0 3
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'key2' 0 2
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'key2' 0 1
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'key3'
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'key1'
-    struct_dump my_dict
+    struct_dump_hq my_dict
 }
 
 test_case3 ()
 {
     local a='gege'
-    # struct_dump a
+    # struct_dump_hq a
     local -A my_dict=()
     struct_set_field my_dict '[key1]' '' 'valuex1'
     struct_set_field my_dict '[key2]' 0 1 '' 'value0'
@@ -165,40 +165,40 @@ geg"
     struct_set_field my_dict "[$x-5]" "[$x-6]" "[$x-7]" "[$x-8]" [other1] '' "xx1"
     struct_set_field my_dict "[$x-5]" "[$x-6]" "[$x-7]" "[$x-8]" [other2] '' "xx2"
     declare -A xx2
-    struct_get_field my_dict xx2 "$x-5" "$x-6" 0
+    struct_get_field xx2 my_dict "$x-5" "$x-6" 0
 
-    # struct_dump xx2
+    # struct_dump_hq xx2
 
     declare -A xx2=()
-    struct_get_field my_dict xx2 "$x-5" "$x-6"
+    struct_get_field xx2 my_dict "$x-5" "$x-6"
     struct_set_field xx2 "$x-2" '' 2
     struct_set_field xx2 "$x-3" '' 3
     struct_set_field xx2 "$x-3" 0 '' 3
     struct_set_field xx2 "$x-3" 1 '' 3
     struct_set_field xx2 "$x-4" '' 4
     struct_set_field xx2 "$x-5" '' 5
-    # struct_dump xx2
+    # struct_dump_hq xx2
 
     
 
 
     struct_del_field xx2 "$x-7"
-    # struct_dump xx2
+    # struct_dump_hq xx2
 
     struct_set_field my_dict '[xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)]' 2 [a] '' 'k3value0'
     struct_set_field my_dict '[xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)--]' 2 [a] 'i' "    "
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict 'xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)' 2 a
     struct_set_field my_dict "key3" 0 1 2 3 4 5 7 7 8 9 25 "[$x]" '' 'value2'
     struct_set_field my_dict [key4] [x] [y] '' 'value2'
     struct_set_field my_dict [key4] [x] [z] '' 'value2'
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict "key4"
     unset my_dict
     local -A my_dict=([xx]=1000 [yy]=2000)
     struct_del_field my_dict xx
     echo $?
-    struct_dump my_dict
+    struct_dump_hq my_dict
     # declare -p qinqing
 }
 
@@ -207,9 +207,9 @@ test_case4 ()
     local -A my_dict=()
     struct_set_field my_dict "[xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)]" 0 '' "xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
     struct_set_field my_dict "[xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)]" 1 '' "xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
-    struct_dump my_dict
+    struct_dump_hq my_dict
     struct_del_field my_dict "xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)" 0
-    struct_dump my_dict
+    struct_dump_hq my_dict
 }
 
 test_case_struct_overlay_subtree ()
@@ -221,7 +221,7 @@ test_case_struct_overlay_subtree ()
     struct_set_field my_dict 3 3 '' "mm"
     struct_set_field my_dict 4 4 '' "kk"
     
-    struct_dump my_dict
+    struct_dump_hq my_dict
     local -A son_dict=()
     # struct_set_field son_dict '[qin1]' '' 'va1'
     # struct_set_field son_dict '[qin2]' 0 1 '' 'va1'
@@ -232,7 +232,7 @@ test_case_struct_overlay_subtree ()
     
     struct_set_field son_dict '[xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)]' '[xxxian]' 2 3 '' "xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
     struct_set_field son_dict '[xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)]' '[xxxian]' 2 4 '' "xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
-    struct_dump son_dict
+    struct_dump_hq son_dict
 
     # struct_overlay_subtree my_dict son_dict 0 0
     
@@ -240,7 +240,7 @@ test_case_struct_overlay_subtree ()
     # 所以在使用过程中要明确每层的数据结构类型,不能乱用
     # struct_overlay_subtree my_dict son_dict 0 0 1 2 3
     # struct_overlay_subtree my_dict son_dict 0 0 [1] [2] [3]
-    # struct_dump my_dict
+    # struct_dump_hq my_dict
 
 }
 
@@ -295,11 +295,11 @@ done
 echo $big_lenth
 
 
-struct_dump my_dict 1
-# struct_dump my_dict 0
-# struct_dump my_dict 1
-# struct_dump my_dict 2
-# struct_dump my_dict 3
+struct_dump_ho my_dict
+# struct_dump_hq my_dict
+# struct_dump_ho my_dict
+# struct_dump_vq my_dict
+# struct_dump_vo my_dict
 }
 
 
@@ -325,9 +325,9 @@ EOF
 
 local -A my_dict=()
 struct_load my_dict 'test1.txt'
-struct_dump my_dict
-struct_dump my_dict 1
-struct_dump my_dict 2
+struct_dump_hq my_dict
+struct_dump_ho my_dict
+struct_dump_vq my_dict
 # declare -p my_dict
 }
 
@@ -356,7 +356,7 @@ EOF
 
 local -a my_dict=()
 struct_load my_dict test1.txt
-struct_dump my_dict
+struct_dump_hq my_dict
 
 
 cat <<EOF >test2.txt
@@ -376,22 +376,22 @@ EOF
 
 local -a my_dict1=()
 struct_load my_dict1 test2.txt
-struct_dump my_dict1
+struct_dump_hq my_dict1
 local -A my_dict2=()
-struct_get_field my_dict1 my_dict2 3 qinqing
-struct_dump my_dict2
+struct_get_field my_dict2 my_dict1 3 qinqing
+struct_dump_hq my_dict2
 
-ori_str="$(struct_pack my_dict1)"
-orq_str=$(struct_pack my_dict1 1)
+ori_str="$(struct_pack_o my_dict1)"
+orq_str=$(struct_pack_q my_dict1)
 
 local -a unpack=()
 struct_unpack 0 "$ori_str" unpack
-struct_dump unpack
+struct_dump_hq unpack
 
 
 local -a unpack=()
 struct_unpack 1 "$orq_str" unpack
-struct_dump unpack
+struct_dump_hq unpack
 
 }
 

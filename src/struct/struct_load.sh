@@ -38,11 +38,11 @@
 struct_load ()
 {
     # 变量的数据类型必须外面定义
-    local -n _struct_load_struct_out_ref="${1}"
+    local -n _struct_load_struct_out_ref=$1
     
     _struct_load_struct_out_ref=()
 
-    local _struct_load_struct_input_file_path="${2}"
+    local _struct_load_struct_input_file_path=$2
     local -a _struct_load_struct_file_contents=()
     local -a _struct_load_struct_file_contents_tmp=()
     local -a _struct_load_key_stack=()

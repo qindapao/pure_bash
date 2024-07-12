@@ -15,7 +15,7 @@ trap_global_vars ()
 {
     ((IS_ALLOW_TRAP_SET)) || return 0
     # 1: set 0: unset
-    local trap_global_vars_set_or_unset="${1}"
+    local trap_global_vars_set_or_unset=$1
     shift
     local trap_global_vars_vars_name=("${@}")
     local trap_global_vars_var

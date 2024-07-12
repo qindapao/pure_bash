@@ -9,8 +9,8 @@
 #       负数: 向右旋转一个给定步长(顺时针,最后元素变成最前元素)
 array_rotate ()
 {
-    local -n _array_rotate_ref_arr="${1}"
-    local -i _array_rotate_step="${2}"
+    local -n _array_rotate_ref_arr=$1
+    local -i _array_rotate_step=$2
     local -i _array_rotate_arr_size=${#_array_rotate_ref_arr[@]}
     
     ((_array_rotate_arr_size)) || return

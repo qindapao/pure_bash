@@ -4,7 +4,7 @@
 # 这个函数并没有用,直接操作更简单
 array_push ()
 {
-    local -n _array_push_ref_arr="$1"
+    local -n _array_push_ref_arr=$1
     shift
     _array_push_ref_arr+=("${@}")
 }

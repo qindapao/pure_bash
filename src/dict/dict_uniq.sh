@@ -4,9 +4,7 @@
 # 保持hash的值不重复(这个好像意义不大)
 dict_uniq ()
 {
-    local -n _dict_uniq_ref_arr="${1}"
-    local -n _dict_uniq_ref_out_arr="${2}"
-
+    local -n _dict_uniq_ref_arr=$1 _dict_uniq_ref_out_arr=$2
     local -A _dict_uniq_element_hash=()
     local _dict_uniq_i
 

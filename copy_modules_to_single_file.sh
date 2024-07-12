@@ -17,17 +17,14 @@ SINGLE_FILE_NAME="$DIR_NAME"/single_modules.sh
 copy_modules ()
 {
     local all_modules=("${@}")
-    local cur_file=''
-    local des_dir=''
-    local des_file=''
-    local i
+    local cur_file='' des_dir='' des_file='' i
     # 关联数组记录处理过的文件
     local -A file_have_deal=()
 
     # meta是一定要拷贝的,先处理
     cat ./meta/meta.sh | grep -v "__META" |\
-                         file_del_end_pattern '' '^\s*$' |\
-                         file_del_end_pattern '' '^\s*return\s*0\s*$' >>"$SINGLE_FILE_NAME"
+                         file_del_end_pattern_pipe '^\s*$' |\
+                         file_del_end_pattern_pipe '^\s*return\s*0\s*$' >>"$SINGLE_FILE_NAME"
     echo "#-----------------" >>"$SINGLE_FILE_NAME"
 
     while ((${#all_modules[@]})) ; do
@@ -36,14 +33,13 @@ copy_modules ()
         unset 'all_modules[-1]'
         
         # 检查是否已经处理过
-        [[ "${file_have_deal["$cur_file"]:set}" ]] && continue
-        file_have_deal["$cur_file"]=1
+        [[ "${file_have_deal[$cur_file]:+set}" ]] && continue || file_have_deal["$cur_file"]=1
 
         cat "$cur_file" | grep -v '. ./meta/meta.sh' |\
                           grep -v '((DEFENSE_VARIABLES' |\
-                          file_del_end_pattern '' '^\s*$' |\
-                          file_del_end_pattern '' '^\s*return\s*0\s*$' |\
-                          file_del_pattern '' '^\.\ +([^| ]+)\ +\|\|\ +return\ +1\s*$' >>"$SINGLE_FILE_NAME"
+                          file_del_end_pattern_pipe '^\s*$' |\
+                          file_del_end_pattern_pipe '^\s*return\s*0\s*$' |\
+                          file_del_pattern_pipe '^\.\ +([^| ]+)\ +\|\|\ +return\ +1\s*$' >>"$SINGLE_FILE_NAME"
         echo "#-----------------" >>"$SINGLE_FILE_NAME"
 
         # 进入栈顶文件内部，查看其引用的文件

@@ -3,7 +3,7 @@
 
 date_is_leep_year ()
 {
-    local -i year="${1}"
+    local -i year=$1
     (((year%4==0&&year%100!=0)||year%400==0))
 }
 

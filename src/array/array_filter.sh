@@ -7,16 +7,17 @@
 # :TODO: index还有没有意义?这里数组的index可能已经改变
 array_filter ()
 {
-    local -n _array_filter_ref_arr="${1}"
+    local -n _array_filter_ref_arr=$1
     local _array_filter_copy_arr=("${_array_filter_ref_arr[@]}")
     _array_filter_ref_arr=()
-    local _array_filter_function="${2}"
+    # local _array_filter_function=${BASH_ALIASES[$2]-$2}
+    local _array_filter_function=$2
     shift 2
 
     local _array_filter_i
 
     for _array_filter_i in "${!_array_filter_copy_arr[@]}" ; do
-        if ! "$_array_filter_function" "${_array_filter_copy_arr["$_array_filter_i"]}" "$_array_filter_i" "${@}" ; then
+        if ! eval ${_array_filter_function} '"$_array_filter_i"' '"${_array_filter_copy_arr[$_array_filter_i]}"' '"${@}"' ; then
             _array_filter_ref_arr+=("${_array_filter_copy_arr["$_array_filter_i"]}")
         fi
     done

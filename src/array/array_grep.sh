@@ -10,16 +10,17 @@
 # 假: 无元素捕捉到
 array_grep ()
 {
-    local -n _array_grep_ref_arr="${1}" _array_grep_ref_out_arr="${2}"
+    local -n _array_grep_ref_arr=$1 _array_grep_ref_out_arr=$2
     _array_grep_ref_out_arr=()
-    local _array_grep_function="${3}"
+    # local _array_grep_function=${BASH_ALIASES[$3]-$3}
+    local _array_grep_function=$3
     shift 3
     local -a _array_grep_params=("${@}")
     local _array_grep_i
     
     for _array_grep_i in "${!_array_grep_ref_arr[@]}" ; do
-        if "$_array_grep_function" "${_array_grep_ref_arr["$_array_grep_i"]}" "$_array_grep_i" "${_array_grep_params[@]}"  ; then
-            _array_grep_ref_out_arr["$_array_grep_i"]="${_array_grep_ref_arr["$_array_grep_i"]}"
+        if eval ${_array_grep_function} '"$_array_grep_i"' '"${_array_grep_ref_arr[$_array_grep_i]}"' '"${_array_grep_params[@]}"'  ; then
+            _array_grep_ref_out_arr[$_array_grep_i]=${_array_grep_ref_arr[$_array_grep_i]}
         fi
     done
 

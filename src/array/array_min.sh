@@ -7,7 +7,7 @@
 # @: 整个数组的参数
 array_min ()
 {
-    local min_var="${1}"
+    local min_var=$1
     shift
     local i
     for i in "${@}" ; do

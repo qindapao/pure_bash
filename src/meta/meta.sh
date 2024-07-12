@@ -1,7 +1,10 @@
 # 所有操作依赖,比atom.sh更底层
-
-
 ((__META++)) && return 0
+
+# 别名的使用要注意,如果作为参数传给高阶函数,要么需要在高阶函数中手动展开,常规使用会自动展开
+# 并且高阶函数调用常规函数的时候不能加引号,不然如果别名带参数,会被当作整体处理
+
+
 
 declare -gA DEFENSE_VARIABLES=([meta]=1 )
 # 脚本中启用别名扩展(默认关闭)
@@ -14,6 +17,11 @@ unalias -a
 # local -=hB这种写法是错误的
 # 目前验证了这种语法在bash4.4.23(1)上是支持的
 alias disable_xv='local - ; set +xv'
+
+# :TODO: 给函数传递多个数组的方法
+# -a1 xx -a1 yy -a1 zz -a2 kk -a2 uu ... ...
+# :TODO: 使用这种方式甚至可以传递关联数组,其实最简单的还是直接传递名字
+# 在函数中使用引用或者eval即可
 
 # :TODO: 其它库的粒度可以进一步缩小,节省业务脚本的内存消耗
 # 比如数组操作就可以分成几个库
@@ -50,6 +58,8 @@ meta_get_bash_version ()
 }
 
 meta_get_bash_version __META_BASH_VERSION
+
+
 
 return 0
 

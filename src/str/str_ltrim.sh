@@ -4,8 +4,10 @@
 # 去掉行首空白字符
 str_ltrim ()
 {
-    printf "%s" "${1#"${1%%[![:space:]]*}"}"
+    printf "%s" "${2#"${2%%[![:space:]]*}"}"
 }
+
+alias str_ltrim_s='str_ltrim ""'
 
 return 0
 

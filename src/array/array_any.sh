@@ -14,13 +14,15 @@
 # 特别是在处理空集合时的全称量化和存在量化的原则。)
 array_any ()
 {
-    local -n _array_any_ref_arr="${1}"
-    local _array_any_function="${2}"
+    local -n _array_any_ref_arr=$1
+    # 如果别名未定义就是第二个参数(:- 表示未定义或者为空 -表示为定义)
+    # local _array_any_function=${BASH_ALIASES[$2]-$2}
+    local _array_any_function=$2
     shift 2
 
     local _array_any_index
     for _array_any_index in "${!_array_any_ref_arr[@]}" ; do
-        if "$_array_any_function" "${_array_any_ref_arr["$_array_any_index"]}" "$_array_any_index" "${@}" ; then
+        if eval ${_array_any_function} '"$_array_any_index"' '"${_array_any_ref_arr[$_array_any_index]}"' '"${@}"' ; then
             return 0
         fi
     done

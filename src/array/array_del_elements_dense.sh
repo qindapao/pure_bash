@@ -7,7 +7,7 @@
 # 2~@: 需要删除的元素的值
 array_del_elements_dense ()
 {
-    local -n _array_del_elements_dense_ref_arr="${1}"
+    local -n _array_del_elements_dense_ref_arr=$1
     local -a _array_del_elements_dense_copy_arr=()
     shift
     local _array_del_elements_delete_value _array_del_elements_delete_arr_value

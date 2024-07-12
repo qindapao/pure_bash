@@ -5,7 +5,7 @@
 # 保持数组的索引不变
 array_revert ()
 {
-    local -n _array_revert_ref_arr="${1}"
+    local -n _array_revert_ref_arr=$1
     
     local _array_revert_arr_size="${#_array_revert_ref_arr[@]}"
     ((_array_revert_arr_size)) || return

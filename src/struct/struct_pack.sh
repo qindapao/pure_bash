@@ -3,23 +3,22 @@
 
 # :TODO: 是使用进程替换的方式获取安全字符串还是引用的方式？
 # 使用进程替换的方式更直观好用
-# safe_q_str=$(struct_pack 'struct_name' 1)
+# safe_q_str=$(struct_pack_q 'struct_name')
 # 把结构体(数组或者关联数组也认为是结构体的特殊形式)打包成安全的Q字符串，可以用着另外的结构体的直接节点
 # 要求传入的数据结构必须显示声明数据类型
 # 参数:
-#   1: 外部是结构体的引用
-#   2: 返回的字符串类型
+#   1: 返回的字符串类型
 #       0: 默认字符串(可以用于直接挂接节点)
 #       1: q字符串(可以用于命令行安全传参,千万不要用Q字符串直接挂接节点!)
+#   2: 外部是结构体的引用
 # 返回值:
 #   bit0: 传入的数据结构不是数组或者关联数组
 #   bit1: 传入的是空数组
 #   bit2: 未知错误
 struct_pack ()
 {
-    local -n _struct_pack_struct_ref="${1}"
-
-    local -i _struct_pack_is_need_q_str="${2:-0}"
+    local -i _struct_pack_is_need_q_str=${1:-0}
+    local -n _struct_pack_struct_ref=$2
     local _struct_pack_ori_str=''
     local _struct_pack_safe_q_str=''
     
@@ -44,6 +43,9 @@ struct_pack ()
         return 4
     fi
 }
+
+alias struct_pack_o='struct_pack 0'
+alias struct_pack_q='struct_pack 1'
 
 return 0
 

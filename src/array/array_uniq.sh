@@ -9,13 +9,13 @@
 # 注意:linux下的uniq和其它语言的都是针对相邻重复行的去重,但是这里不是
 array_uniq ()
 {
-    local -n _array_uniq_ref_arr="${1}"
+    local -n _array_uniq_ref_arr=$1
     if [[ -n "$2" ]] ; then
-        local -n _array_uniq_ref_out_arr="${2}"
+        local -n _array_uniq_ref_out_arr=$2
     else
         local -a _array_uniq_ref_out_arr=()
     fi
-    local -i _array_uniq_is_not_keep_index="${3:-1}"
+    local -i _array_uniq_is_not_keep_index=${3:-1}
 
     local -A _array_uniq_element_hash=()
     local _array_uniq_i

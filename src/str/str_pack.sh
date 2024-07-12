@@ -14,8 +14,8 @@
 # :TODO: 待验证
 str_pack ()
 {
-    local -n _str_pack_var_ref="${1}"
-    local -i _str_pack_str_type="${2:-0}"
+    local -n _str_pack_var_ref=$1
+    local -i _str_pack_str_type=${2:-0}
     # 完整申明字符串
     # @A的语法是Bash4.4引入的,谨慎使用啊
     local _str_pack_declare_str="${_str_pack_var_ref[@]@A}"

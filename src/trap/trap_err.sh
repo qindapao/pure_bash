@@ -32,8 +32,8 @@ trap_err ()
 {
     disable_xv
     local _trap_err_last_command_ext_code=$?
-    local _trap_err_bash_command="${2}"
-    local _trap_err_pipestatus="${1}"
+    local _trap_err_bash_command=$2
+    local _trap_err_pipestatus=$1
     local _trap_err_now_time=''
     date_prt_t _trap_err_now_time
 

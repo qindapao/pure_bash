@@ -5,14 +5,16 @@
 str_ltrim_zeros ()
 {
     local out_str=''
-    printf -v out_str "%s" "${1#"${1%%[!0]*}"}" 
+    printf -v out_str "%s" "${2#"${2%%[!0]*}"}" 
 
     if [[ -z "$out_str" ]] ; then
-        printf "%s" "${1:0:1}"
+        printf "%s" "${2:0:1}"
     else
         printf "%s" "$out_str"
     fi
 }
+
+alias str_ltrim_zeros_s='str_ltrim_zeros ""'
 
 return 0
 

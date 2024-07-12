@@ -15,7 +15,7 @@
 #   struct_get_field 的返回值
 struct_push ()
 {
-    local -n _struct_push_struct_ref="${1}"
+    local -n _struct_push_struct_ref=$1
     shift
 
     local -a _struct_push_get_params=("${@:1:$#-2}")
@@ -23,7 +23,7 @@ struct_push ()
 
     local -a _struct_push_get_array=() _struct_push_get_array_indexs=()
     local -i _struct_push_get_array_max_index=-1 _struct_push_return_code=0
-    struct_get_field _struct_push_struct_ref _struct_push_get_array "${_struct_push_get_params[@]}"
+    struct_get_field _struct_push_get_array _struct_push_struct_ref "${_struct_push_get_params[@]}"
     _struct_push_return_code=$?
     if ((_struct_push_return_code)) && ! (((_struct_push_return_code>>2)&1)) ; then
         return $_struct_push_return_code

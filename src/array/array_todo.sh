@@ -8,5 +8,8 @@
 
 # :TODO: 数组是否需要实现集合的4种操作?
 
+# :TODO: 这里有个参考库,https://cfajohnson.com/shell/arrays/
+# 并不是所有的函数都有价值实现,可以先保存
+
 return 0
 

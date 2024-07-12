@@ -16,7 +16,7 @@
 #   bit2: 键不存在
 struct_del_field ()
 {
-    local -n _struct_del_field_struct_ref="${1}"
+    local -n _struct_del_field_struct_ref=$1
     shift
 
     # 不是顶级键的情况,从上到下查找
@@ -24,7 +24,7 @@ struct_del_field ()
     local -a _struct_del_field_index_lev=('' '')
     local _struct_del_field_index _struct_del_field_top_level_str=''
     local _struct_del_field_lev_cnt=1
-    local _struct_del_field_index_first="${1}"
+    local _struct_del_field_index_first=$1
 
     [[ -z "$_struct_del_field_index_first" ]] && return 1
     if [[ "${_struct_del_field_struct_ref@a}" != *A* ]] && ! [[ "${_struct_del_field_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then

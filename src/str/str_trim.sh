@@ -5,9 +5,13 @@
 # Usage: trim_s "   example   string    "
 str_trim ()
 {
-    : "${1#"${1%%[![:space:]]*}"}"
-    printf "%s" "${_%"${_##*[![:space:]]}"}"
+    # 陷阱导致$_不准确,所以不使用:这种形式
+    # : "${2#"${2%%[![:space:]]*}"}"
+    local tmp_str="${2#"${2%%[![:space:]]*}"}"
+    printf "%s" "${tmp_str%"${_##*[![:space:]]}"}"
 }
+
+alias str_trim_s='str_trim ""'
 
 return 0
 

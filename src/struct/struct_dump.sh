@@ -30,7 +30,7 @@
 #       4: 节点符号  
 _struct_dump ()
 {
-    local __struct_dump_print_type_bit_map="${1}"
+    local __struct_dump_print_type_bit_map=$1
     shift
     # 1: 节点层级 2: 节点键名 3: 节点值 4: 节点符号(数组或者关联数组)
     local -a __struct_dump_tree_nodes=("${@}")
@@ -135,8 +135,7 @@ _struct_dump ()
 # }
 
 # 参数: 
-#   1: 需要打印的结构体引用
-#   2: 打印的格式(是一个bitmap)
+#   1: 打印的格式(是一个bitmap)
 #       这个bitmap的定义如下:
 #           bit0: 
 #               0: 打印q字符串(默认值)
@@ -144,11 +143,12 @@ _struct_dump ()
 #           bit1:
 #               0: 横向打印(默认值)
 #               1: 纵向打印
+#   2: 需要打印的结构体引用
 struct_dump ()
 {
     # 首先把最外层的数据引用传进来
-    local -n _struct_dump_struct_ref="${1}"
-    local _struct_dump_print_type_map="${2:-0}"
+    local _struct_dump_print_type_map="${1:-0}"
+    local -n _struct_dump_struct_ref="${2}"
     
     # 如果不是数组原样打印
     # root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# a=344xxx
@@ -185,6 +185,14 @@ struct_dump ()
         _struct_dump "$_struct_dump_print_type_map" '1' "$_struct_dump_index" "${_struct_dump_struct_ref["$_struct_dump_index"]}" "$_struct_dump_printf_mark"
     done
 }
+
+# 默认打印类型
+alias struct_dump_hq='struct_dump 0'
+alias struct_dump_ho='struct_dump 1'
+alias struct_dump_vq='struct_dump 2'
+alias struct_dump_vo='struct_dump 3'
+
+
 
 return 0
 

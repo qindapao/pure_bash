@@ -39,21 +39,16 @@ test_case1 ()
     if assert_array 'a' a1 a2 ; then
         echo "${FUNCNAME[0]} case 1 test pass"
     else
-        echo "${FUNCNAME[0]} case 2 test fail"
+        echo "${FUNCNAME[0]} case 1 test fail"
     fi
     array_sort a1 '-gt' ':' 2
-    local -a a2=("4:1:7" "8:9:4" "10:7:5" "11:2:6")
-
-
-    # # 断言判断测试结果
-    # if assert_array 'A' dict_ret dest_dict ; then
-    #     # :TODO: 打印测试用例的函数名字
-    #     echo "${FUNCNAME[0]} test pass"
-    # else
-    #     echo "${FUNCNAME[0]} test fail"
-    # fi
+    local -a a2=("4:1:7" "11:2:6" "10:7:5" "8:9:4")
+    if assert_array 'a' a1 a2 ; then
+        echo "${FUNCNAME[0]} case 2 test pass"
+    else
+        echo "${FUNCNAME[0]} case 2 test fail"
+    fi
 }
 xx
 test_case1
-
 

@@ -5,7 +5,7 @@
 
 date_get_year_days ()
 {
-    local -i year="${1}"
+    local -i year=$1
     date_is_leep_year && printf "366" || printf "365"
 }
 

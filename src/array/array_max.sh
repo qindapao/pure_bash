@@ -6,7 +6,7 @@
 # @: 整个数组的参数
 array_max ()
 {
-    local max_var="${1}"
+    local max_var=$1
     shift
     local i
     for i in "${@}" ; do

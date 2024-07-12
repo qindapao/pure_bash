@@ -2,11 +2,12 @@
 ((DEFENSE_VARIABLES[dict_grep_block]++)) && return 0
 
 # 使用匿名代码块来进行过滤
+# :TODO: 测试代码块中有别名的情况
 dict_grep_block ()
 {
-    local -n _dict_grep_block_ref_dict="${1}" _dict_grep_block_out_dict="${2}"
+    local -n _dict_grep_block_ref_dict=$1 _dict_grep_block_out_dict=$2
     _dict_grep_block_out_dict=()
-    local _dict_grep_block_exec_block="${3}"
+    local _dict_grep_block_exec_block=$3
 
     eval "_dict_grep_block_tmp_function() { "$_dict_grep_block_exec_block" ; }"
     local _dict_grep_block_index

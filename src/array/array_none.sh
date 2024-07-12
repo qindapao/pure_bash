@@ -8,13 +8,15 @@
 # 特别是在处理空集合时的全称量化和存在量化的原则。)
 array_none ()
 {
-    local -n _array_none_ref_arr="${1}"
-    local _array_none_function="${2}"
+    local -n _array_none_ref_arr=$1
+    # local _array_none_function=${BASH_ALIASES[$2]-$2}
+    local _array_none_function=$2
     shift 2
 
     local _array_none_index
     for _array_none_index in "${!_array_none_ref_arr[@]}" ; do
-        if "$_array_none_function" "${_array_none_ref_arr["$_array_none_index"]}" "$_array_none_index" "${@}" ; then
+        # 这里的数组_array_none_function加与不加双引号效果相同
+        if eval ${_array_none_function} '"$_array_none_index"' '"${_array_none_ref_arr[$_array_none_index]}"' '"${@}"' ; then
             return 1
         fi
     done

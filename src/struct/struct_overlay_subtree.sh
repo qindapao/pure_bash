@@ -14,8 +14,8 @@
 #   其它: struct_set_field的返回值
 struct_overlay_subtree ()
 {
-    local -n _struct_overlay_subtree_father_struct_ref="${1}"
-    local -n _struct_overlay_subtree_son_struct_ref="${2}"
+    local -n _struct_overlay_subtree_father_struct_ref=$1
+    local -n _struct_overlay_subtree_son_struct_ref=$2
     # 注意这里,如果要挂接的是关联数组的键[key]形式传入,否则用数字键
     shift 2
     local _struct_overlay_subtree_add_keys=("${@}")

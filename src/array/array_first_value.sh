@@ -7,14 +7,15 @@
 # @: 条件函数带的参数
 array_first_value ()
 {
-    local -n _array_first_value_ref_arr="${1}"
-    local _array_first_value_function="${2}"
+    local -n _array_first_value_ref_arr=$1
+    # local _array_first_value_function=${BASH_ALIASES[$2]-$2}
+    local _array_first_value_function=$2
     shift 2
 
     local _array_first_value_i
 
     for _array_first_value_i in "${!_array_first_value_ref_arr[@]}" ; do
-        if "$_array_first_value_function" "${_array_first_value_ref_arr["$_array_first_value_i"]}" "$_array_first_value_i" "${@}" ; then
+        if eval ${_array_first_value_function} '"$_array_first_value_i"' '"${_array_first_value_ref_arr[$_array_first_value_i]}"' '"${@}"' ; then
             printf "%s" "${_array_first_value_ref_arr["$_array_first_value_i"]}"
             break
         fi

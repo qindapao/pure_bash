@@ -25,7 +25,7 @@
 #   bit4: 不是关联数组但是想访问非数字键
 struct_set_field ()
 {
-    local -n _struct_set_field_struct_ref="${1}"
+    local -n _struct_set_field_struct_ref=$1
     shift
 
     # 不用限制层数(但是不要太深,目前验证20层执行时间是10层的200倍,这里的时间消耗可能是解释器内部都引号或者转义字符的处理,是根据层级指数递增的)

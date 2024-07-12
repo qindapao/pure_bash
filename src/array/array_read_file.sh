@@ -5,7 +5,7 @@
 # 读取文件中的所有行并追加到一个数组中
 array_read_file ()
 {
-    local -n _array_read_file_ref_arr="${1}"
+    local -n _array_read_file_ref_arr=$1
     shift
     
     local _array_read_file_path

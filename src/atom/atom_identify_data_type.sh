@@ -39,8 +39,8 @@
 # A: 关联数组
 atom_identify_data_type ()
 {
-    local -n _atom_identify_data_type_var_name="${1}"
-    local _atom_identify_data_type_verify_type="${2}"
+    local -n _atom_identify_data_type_var_name=$1
+    local _atom_identify_data_type_verify_type=$2
     local up_var_name=
     local real_var_name=
 

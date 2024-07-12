@@ -9,10 +9,10 @@
 . ./struct/struct_overlay_subtree.sh || return 1
 
 # 对某级下挂的数组shift第一个元素到标准输出,并且删除这个元素
-# xx=$(struct_shift 'struct_name' '4' '0' '[key1]')
+# struct_shift 'struct_name' 'ret' '4' '0' '[key1]'
 # 参数:
-#   1: 需要shift的数组的引用
-#   2: shift的元素保存的变量
+#   1: shift的元素保存的变量
+#   2: 需要shift的数组的引用
 #   @: 数组的每级索引
 #
 # 返回值:
@@ -24,8 +24,7 @@
 #   struct_get_field 的返回值
 struct_shift ()
 {
-    local -n _struct_shift_struct_ref="${1}"
-    local -n _struct_shift_struct_ret="${2}"
+    local -n _struct_shift_struct_ret=$1 _struct_shift_struct_ref=$2
     shift 2
 
     local -a _struct_shift_get_params=("${@}")
@@ -33,7 +32,7 @@ struct_shift ()
 
     local -a _struct_shift_get_array=() _struct_shift_get_array_indexs=()
     local -i _struct_shift_get_array_max_index=-1 _struct_shift_return_code=0
-    struct_get_field _struct_shift_struct_ref _struct_shift_get_array "${_struct_shift_get_params[@]}"
+    struct_get_field _struct_shift_get_array _struct_shift_struct_ref "${_struct_shift_get_params[@]}"
     _struct_shift_return_code=$?
     if ((_struct_shift_return_code)) ; then
         return $_struct_shift_return_code

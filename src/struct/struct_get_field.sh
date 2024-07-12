@@ -3,18 +3,18 @@
 
 . ./array/array_sort.sh || return 1
 
-# struct_get_field 'struct_name' 'field_name' '4' '0'
+# struct_get_field 'field_name' 'struct_name' '4' '0'
 # 下面可以用于获取索引或者判断字段是否存在
 # struct_get_field 'struct_name' '' '4' '0'
 # 获取结构体中某个层级每个字段的值(最终的结果可能是字符串也可能是数组或者关联数组,取决于层级所在数据类型)
 # 第一级要么是一个数组要么是一个关联数组
-# 1: 顶级数据结构引用
-# 2: 获取到的字段保存数据结构引用
+# 1: 获取到的字段保存数据结构引用
 #   空: 获取索引,并不是获取字段值
 #       获取某一级的索引,通过Q字符串返回，每个索引一行
 #       外部通过IFS=$'\n'来拿迭代索引,使用的时候解码(使用的使用eval "xx=$xx"的方式解码键)
 #       这同样可以用于判断字段是否存在,只需要调用的时候判断返回值,并且屏蔽输出即可
 #   有值: 获取具体的字段值
+# 2: 顶级数据结构引用
 # @: 需要获取的字段(不用指定数据类型,只需要指定索引)
 #
 # 返回值:
@@ -26,10 +26,12 @@
 #   bit5: 异常5: 获取到的是字符串,但是外部错误声明为数组或者关联数组
 struct_get_field ()
 {
-    local -n _struct_get_field_struct_ref="${1}"
-    if [[ -n "${2}" ]] ; then
-        local -n _struct_get_field_out_var_name="${2}"
+    local -i _struct_get_filed_is_index=1
+    if [[ -n "${1}" ]] ; then
+        _struct_get_filed_is_index=0
+        local -n _struct_get_field_out_var_name=$1
     fi
+    local -n _struct_get_field_struct_ref=$2
     local _struct_get_field_tmp_var=''
     shift 2
     local _struct_get_field_param=''
@@ -41,9 +43,7 @@ struct_get_field ()
         return 2
     fi
 
-    [[ ! -v '_struct_get_field_struct_ref[${1}]' ]] && {
-        return 4
-    }
+    [[ ! -v '_struct_get_field_struct_ref[${1}]' ]] && return 4
 
     local _struct_get_field_data_lev_ref_last="${_struct_get_field_struct_ref["${1}"]}"
 
@@ -92,7 +92,7 @@ struct_get_field ()
         local _struct_get_field_tmp_var="${_struct_get_field_data_lev_ref_last}"
     fi
 
-    if [[ -z "${2}" ]] ; then
+    ((_struct_get_filed_is_index)) && {
         # 打包安全字符串返回索引,如果是最后一级或者没有找到索引,返回打印空字符串
         if [[ "$_struct_get_field_flags" == *[aA]* ]] ; then
             local -a _struct_get_field_indexs=("${!_struct_get_field_tmp_var[@]}")
@@ -111,7 +111,7 @@ struct_get_field ()
             # 如果什么都不返回,外部不会发生迭代
             return 1
         fi
-    fi
+    }
 
     # 复制当前获取到的变量到外部引用变量中(目前这是最好的方式,因为函数中的变量是动态改变类型的)
     # 并且不能在函数内部改变外部变量的属性,所以如果需要获取关联数组或者别的属性
@@ -139,6 +139,8 @@ struct_get_field ()
 
     return $_struct_get_field_ret_code
 }
+
+alias struct_get_field_index='struct_get_field ""'
 
 return 0
 

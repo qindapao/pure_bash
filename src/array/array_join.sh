@@ -5,7 +5,7 @@
 # :TODO: 和str_join重复?
 array_join ()
 {
-    local separator="${1}"
+    local separator=$1
     local array_e='' out_str=''
     # 要去掉1个参数要从2开始,而不是1
     for array_e in "${@:2}" ; do

@@ -4,7 +4,6 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[dict_set_intersection]++)) && return 0
 
-. ./array/array_none.sh || return 1
 . ./str/str_pack.sh || return 1
 
 # :TODO: 其它的集合函数也按照这个函数逻辑处理
@@ -19,7 +18,7 @@
 dict_set_intersection ()
 {
     local -A _dict_set_intersection_ref_result_hash=()
-    local -n _dict_set_intersection_tmp_hash="${1}"
+    local -n _dict_set_intersection_tmp_hash=$1
     local _dict_set_intersection_key
 
     for _dict_set_intersection_key in "${!_dict_set_intersection_tmp_hash[@]}"; do

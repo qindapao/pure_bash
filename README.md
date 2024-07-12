@@ -342,6 +342,14 @@ a="$(cat 1.txt)" && echo xx
 
 ### 变量
 
+#### 多个变量初始化成一个值
+
+可以利用大括号功能这样写:
+
+```bash
+declare {x,y,z}=''
+```
+
 #### 间接引用
 
 ```bash
@@ -441,6 +449,59 @@ data["1,2"]="value12"
 data["2,1"]="value21"
 data["2,2"]="value22"
 ```
+
+#### 默认值
+
+可以为变量嵌套赋默认值
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx:=${mxb:=${mxc:=5}}}
++ : 5
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p mxx mxb mxc
++ declare -p mxx mxb mxc
+declare -- mxx="5"
+declare -- mxb="5"
+declare -- mxc="5"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# 
+```
+
+一种更有用的可能用法：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx:=ax${mxb:=bx${mxc:=5}}}
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p mxx mxb mxc
+declare -- mxx="axbx5"
+declare -- mxb="bx5"
+declare -- mxc="5"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# 
+```
+
+注意，有`:`和没有`:`的情况是不同的
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# unset mxx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx:=2}
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p mxx
+declare -- mxx="2"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# mxx=''
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx:=2}
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p mxx
+declare -- mxx="2"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# mxx=''
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx=2}
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p mxx
+declare -- mxx=""
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# unset mxx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx=2}
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p mxx
+declare -- mxx="2"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# 
+```
+
+如果有`:`，比如`${mxx:=2}`会检查`mxx`定义并且非空，但是如果没有`:`，就只会检查
+`mxx`是否定义。这个情况同样适用于另外几个扩展，比如`+`、`-`，`?`。
+
+
 #### 内置变量
 
 ##### PIPESTATUS
@@ -835,7 +896,7 @@ file_del_end_blank_lines ()
         :start
         /^[[:space:]]*$/{$d ; N ; b start }
     }'
-} < "${1:-/dev/fd/0}"
+} < "${1:-/dev/stdin}"
 ```
 
 这个函数的使用方法有两种:
@@ -959,15 +1020,102 @@ test_big_cmd_param_process ()
 但是，如果是内部函数就尽量定义在函数内部，外部的顶层函数的名字不要和它冲突。不然会覆盖外部的
 顶层函数的定义。
 
+#### 在函数内部避免命名冲突
+
+在间接引用或者是使用`eval`的情况下，有时候为了避免命名冲突，会用到一些妙招。比如下面这样：
+
+```bash
+array_copy ()
+{
+    local _array_copy_script='
+        '$1'=()
+        local i'$1$2'
+        for i'$1$2' in "${!'$2'[@]}"; do
+          '$1'["${i'$1$2'}"]="${'$2'["${i'$1$2'}"]}"
+        done'
+    eval -- "$_array_copy_script"
+}
+```
+
+
+上面的函数中，局部变量`i$1$2`包含两个数组的名字，就保证了它的名字不可能和数组中的
+任何一个名字冲突。如果是使用`declare -n`或者`local -n`这种方式的话，就只能在函数
+中命名引用变量的时候注意，并且函数内的局部变量的命名也不能和传入的变量名相同。可以
+使用`_函数名_`类似的变量前缀命名法。不过始终还是不能完全完美。所以小函数，使用`eval`
+反而是安全可靠的方法。
 
 ### 内置命令
 
 #### bash命令执行的优先级
 
-别名 -> 关键字 -> 函数 -> 内置命令 -> 外部命令或脚本
+别名 -> 保留关键字 -> 函数 -> 内置命令 -> 外部命令或脚本
 
 
 #### eval 
+
+##### 如何调试一个带eval的代码
+
+可以利用`set -x`让代码展开，就能看到执行过程
+
+```bash
+$ array_copy ()
+> {
+>     local _array_copy_script='
+>         '$1'=()
+>         local i'$1$2'
+>         for i'$1$2' in "${!'$2'[@]}"; do
+>           '$1'["${i'$1$2'}"]="${'$2'["${i'$1$2'}"]}"
+>         done'
+>     eval -- "$_array_copy_script"
+> }
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ a=()
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ b=(1 2 3 4)
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ array_copy a b
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ declare -p a
+declare -a a=([0]="1" [1]="2" [2]="3" [3]="4")
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ set -x
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ array_copy a b
++ array_copy a b
++ local '_array_copy_script=
+        a=()
+        local iab
+        for iab in "${!b[@]}"; do
+          a["${iab}"]="${b["${iab}"]}"
+        done'
++ eval -- '
+        a=()
+        local iab
+        for iab in "${!b[@]}"; do
+          a["${iab}"]="${b["${iab}"]}"
+        done'
+++ a=()
+++ local iab
+++ for iab in "${!b[@]}"
+++ a["${iab}"]=1
+++ for iab in "${!b[@]}"
+++ a["${iab}"]=2
+++ for iab in "${!b[@]}"
+++ a["${iab}"]=3
+++ for iab in "${!b[@]}"
+++ a["${iab}"]=4
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+```
+
+如上面所示，可以完整看到经过`eval`展开后的代码。
 
 ##### 使用eval执行一个命令
 
@@ -1012,6 +1160,26 @@ $
 ```
 
 上面是eval和参数扩展还有for循环的结合，但是还是比较危险，谨慎使用。
+
+更极端的例子：
+
+```bash
+test_case1 ()
+{
+    local x=0 y=4
+    local for_loop='
+    for i in {'$x'..'$y'} ; do
+        echo "$i"
+    done
+    '
+    eval -- "$for_loop"
+}
+
+test_case1
+```
+
+当然一般情况下是不推荐这么写的，除非有明显的好处。只是展示下`eval`命令提供了无限的
+可能，不过这个命令是把双刃剑，有命令注入的风险，具体取舍就看情况而定了。
 
 
 #### unset
@@ -1502,6 +1670,53 @@ done
 可以用一个数组，奇数是键，偶数是值。或者两个数组，一个存键一个存值。
 
 
+#### 字符串处理
+
+##### global匹配
+
+global匹配有些时候虽然没有正则强大，但是它们是完全匹配，某些情况下可能更好用。
+
+```bash
+[[ $net_name == @(*.*|lo|veth) ]] && continue
+```
+
+上面的例子表示，网口名满足列表中的任何一个都认为是真。
+
+##### 正则表达式匹配
+
+###### 中文支持
+
+1. 直接匹配
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# if [[ $x =~ ^(我)(是)$ ]] ; then     m=${BASH_REMATCH[1]};     n=${BASH_REMATCH[2]};
+     declare -p m n; fi
+declare -- m="我"
+declare -- n="是"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# 
+```
+
+2. 如果想用`unicode`编码的范围来表示中文呢？
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# if [[ $x =~ ^($'\u6211')($'\u662f')$ ]] ; then     m=${BASH_REMATCH[1]};     n=${BAS
+H_REMATCH[2]};     declare -p m n; fi
+declare -- m="我"
+declare -- n="是"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# 
+```
+
+你可以已经注意到`$''`这种语法，除了上面的`$'\u'`，还有其它的形式，可以通过这种方式
+表示一些特殊字符或者是一些不可打印的字符，举一些例子(并不是全部)：
+
+- `$'\n'`：表示换行符。
+- `$'\t'`：表示制表符。
+- `$'\xNN'`：其中 NN 是一个两位的十六进制数，表示一个字节的字符。例如，`$'\x41'` 表示大写字母 `A`。
+- `$'\uNNNN'`：其中 NNNN 是一个四位的十六进制数，表示一个 Unicode 字符。例如，`$'\u6211'` 表示汉字 `我`。
+
+
+
+
 ### 进程管理
 
 #### 关于bash5.2的重大变化
@@ -1560,6 +1775,220 @@ strace -f -e trace=process bash -c 'echo $(echo $$)'
 - `\`：当其后跟随$、`、\"、\或换行符时，保留其特殊含义
 - `"`：可以通过在其前面加上反斜杠来在双引号内引用双引号
 - `!`：当历史扩展功能启用时，!用于历史扩展，除非它被反斜杠转义
+
+一些可以** 不使用双引号 **的情况:
+
+1. 一个变量赋值给另外一个变量，不需要加双引号，就算里面有特殊符号也不会被扩展
+
+```bash
+[root@localhost ~]# a='*!@[]'
+[root@localhost ~]# b=$a
+[root@localhost ~]# declare -p b
+declare -- b="*!@[]"
+[root@localhost ~]# 
+
+```
+
+
+同样的情况也用于函数位置参数的赋值，也是不需要加双引号的。如果位置参数超过10个，那么需要用大括号引用起来，要注意。
+
+```bash
+local a=$1 b=$2 c=$3
+m=$b
+k=$a
+l=$c
+declare -p a b c m k l
+```
+
+
+2. 圆括号的命令替换，不用加双引号保护。
+
+```bash
+[root@localhost ~]# echo "*" >1.txt
+[root@localhost ~]# cat 1.txt 
+*
+[root@localhost ~]# xx=$(cat 1.txt)
+[root@localhost ~]# declare -p xx
+declare -- xx="*"
+[root@localhost ~]# func_c () { echo '*'; echo '!' ; echo ' 13 geg'$'\n'' xxd gg' ; }
+[root@localhost ~]# xx=$(func_c)
+[root@localhost ~]# declare -p xx
+declare -- xx="*
+!
+ 13 geg
+ xxd gg"
+[root@localhost ~]# 
+```
+
+3. 双中括号中的变量
+
+```bash
+Storage:~ # a='geg geg 
+> gege
+> gge*'
+Storage:~ # if [[ $a == *g* ]] ; then
+> echo xx
+> fi
+xx
+Storage:~ # a='*'
+Storage:~ # if [[ $a == *g* ]] ; then echo xx; fi
+Storage:~ # if [[ $a == *'*'* ]] ; then echo xx; fi
+xx
+Storage:~ # 
+Storage:~ # x=' *'
+Storage:~ # if [[ $a == *${x}* ]] ; then echo xx; fi
+Storage:~ # a=' *'
+Storage:~ # if [[ $a == *${x}* ]] ; then echo xx; fi
+xx
+Storage:~ # 
+```
+
+如上面的例子所示，左边的变量是不需要用双引号保护的。右边的表达式中带变量的也不需要
+用双引号保护(因为在双中括号中，变量不会被意外扩展)。建议就不要在不必要的时候加引号了，
+但是下面这种情况不行。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if [[ $a ==  xx yy  ]] ; then echo xx; fi
+bash: 条件表达式中有语法错误
+bash: "yy" 附近有语法错误
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+```
+
+要么用引号保护起来，要么在变量中，或者空格用反斜杠转义。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if [[ $a ==  "xx yy"  ]] ; then echo xx; fi
++ [[ xx yy == \x\x\ \y\y ]]
++ echo xx
+xx
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ x='xx yy'
++ x='xx yy'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if [[ $a ==  $x  ]] ; then echo xx; fi
++ [[ xx yy == xx yy ]]
++ echo xx
+xx
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if [[ $a ==  xx\ yy  ]] ; then echo xx; fi
++ [[ xx yy == xx\ yy ]]
++ echo xx
+xx
+```
+
+直接写不行，但是如果空格位于变量中又是可以的：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ x=' '
++ x=' '
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if [[ $a ==  *xx${x}yy*  ]] ; then echo xx; fi
++ [[ xx yy == *xx yy* ]]
++ echo xx
+xx
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+```
+
+备注: 这种情况下如果拿不准，那么该加双引号的时候加上双引号是比较安全的做法。
+
+下面这种情况比较极端，双引号都不行(!的历史命令展开功能在echo和printf中是默认关闭
+的，可以使用，但是在[[]]中没有关闭，只能用转义字符来防止，或者修改历史命令扩展
+选项，但是不推荐):
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ if [[ "${a[*]}" == !\' ]] ; then echo xx; fi
+bash: !\': event not found
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ if [[ "${a[*]}" == \!\' ]] ; then echo xx; fi
++ [[ 1 2 3 4 5 * == \!\' ]]
+
+$ 
+```
+
+安全的做法：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ x='!'\'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ declare -p x
+declare -- x="!'"
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ if [[ \!\' == $x ]] ; then echo xx; fi
+xx
+
+```
+
+4. 数组完全展开成一个字符串
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# a=('1 2' '  4 5')
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# if [[ ${a[*]} == '1 2   4 5' ]] ; then
+> echo xx
+> fi
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
+```
+
+注意这里千万不要用`${a[@]}`，那会展开成多个独立的参数。
+
+
+5. 在case中不需要加双引号保护
+
+请看下面的范例：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# declare -p a b
+declare -- a="gege
+geg\"gg geg
+"
+declare -- b="gege
+geg\"gg geg
+"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# case $a in
+> $b) echo xx ;;
+> esac
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# b=${a}x
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# case $a in $b) echo xx ;; esac
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
+```
+
+6. 关联数组中的键不需要加引号保护，bash会自动处理
+
+```bash
+a='!*()) 
+gge
+!
+*
+()'
+
+declare -A m=(['!*()) 
+gge
+!
+*
+()']='g ge')
+
+echo "${m[$a]}"
+```
+
+上面例子中的关联数组的键`$a`并不需要加双引号保护。
+
 
 ### 变量替换
 
@@ -1875,6 +2304,39 @@ git reset --hard B
 思路：用C编写可动态可加载模块，然后在bash中通过`enable -f /path/xx.so xx`来启用，然后在
 可加载模块中做多线程。
 
+## 外部命令发送
+
+### 组装带参数的外部命令
+
+如果需要发送的命令带参数，那么不能直接把命令+参数一起组装成字符串，而是要把它们放
+到数组中，比如:
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# cmd='ls -l'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# "$cmd"
+-bash: ls -l: command not found
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# cmd=(ls -l)
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# "${cmd[@]}"
+total 32
+-rwxrwxrwx 1 root root 1021 Jul 11 11:44 test_case.sh
+-rwxrwxrwx 1 root root  563 Jul 10 18:02 test_declare.sh
+-rwxrwxrwx 1 root root  657 Jul  6 10:52 test_dict.sh
+-rwxrwxrwx 1 root root  518 Jul 10 08:47 test_eval.sh
+-rwxrwxrwx 1 root root  530 Jul  5 14:08 test_for.sh
+-rwxrwxrwx 1 root root 5523 Jul 11 09:37 test_function_levels.sh
+-rwxrwxrwx 1 root root  932 Jul 11 09:29 test_function_params.sh
+-rwxrwxrwx 1 root root 1022 Jul  8 10:22 test_localvar_unset.sh
+-rwxrwxrwx 1 root root  989 Jul  4 16:55 test_other_todo.sh
+-rwxrwxrwx 1 root root  873 Jul  8 10:22 test_printf.sh
+-rwxrwxrwx 1 root root  751 Jul  8 10:22 test_str_slice.sh
+-rwxrwxrwx 1 root root  592 Jul  4 16:55 test_unset.sh
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
+```
+
+如果确保执行的命令中没有空格或者特殊字符分隔问题，那么直接`${cmd[@]}`运行也是可以的，
+但是为了保险，还是用双引号包裹比较安全。
+
+
 ## 一些疑问
 
 ### 关于bash函数的参数长度
@@ -1947,4 +2409,67 @@ test_big_cmd_param_process ()
 ```
 
 它会执行括号中的命令，并将其输出作为字符串赋值给变量。这个过程并不涉及到缓冲区的问题，因为它是直接将命令的输出存储到变量中。
+
+
+### bash5.2的一些不兼容的情况
+
+#### 双圆括号自加
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ tmp_key=xx2
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if (('k[$tmp_key]'++)) ; then echo xx; fi
+bash: ((: 'k[xx2]'++: 语法错误：需要操作数（错误记号是 "'k[xx2]'++"）
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+
+如果不加单引号，是可以的。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ tmp_key="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if ((k[$tmp_key]++)) ; then echo xx; fi
+xx
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ if ((k[$tmp_key]++)) ; then echo xx; fi
+xx
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
+$ 
+```
+
+但是在别的版本上，必须加单引号，双引号还不行，可能会导致命令被扩展：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# tmp_key="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# if ((k[$tmp_key]++)) ; then echo xx; fi
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# -bash: xxx:xx: command not found
+-bash: xxx:xx: command not found
+-bash: xxxxx:xxxx: command not found
+-bash: xxxxx:xxxx: command not found
+^C
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
+```
+
+所以关联数组的`((k[$tmp_key]++))`语法最好还是不要写，除非能确认键里面没有特殊字符。
+
+:TODO: 社区求助
+
+`-v`和`unset`用单引号包裹都是可以的。
+
+```bash
+unset 'k[$tmp_key]'
+if [[ -v 'k[$tmp_key]' ]] ; then echo xx; fi
+```
+
+但是要注意，单引号要包裹到最外面，而不是中括号里面(`'$tmp_key'` 这样不行)。
+
+#### 关联数组的追加
+
+:TODO: 社区求助
 

@@ -10,16 +10,17 @@
 #
 # 1: 需要迭代操作的数据引用
 # 2: 执行的匿名代码块
+# :TODO: 待测试,如果block函数中包含别名的情况
 array_map_block ()
 {
-    local -n _array_map_block_ref_arr="${1}"
-    local _array_map_block_exec_block="${2}" 
+    local -n _array_map_block_ref_arr=$1
+    local _array_map_block_exec_block=$2 
     
     eval "_array_map_block_tmp_function() { "$_array_map_block_exec_block" ; }"
     local _array_map_block_index
 
     for _array_map_block_index in "${!_array_map_block_ref_arr[@]}" ; do
-        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "${_array_map_block_ref_arr["$_array_map_block_index"]}" "$_array_map_block_index")
+        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "$_array_map_block_index" "${_array_map_block_ref_arr["$_array_map_block_index"]}")
     done
 
     unset -f _array_map_block_tmp_function

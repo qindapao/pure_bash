@@ -9,14 +9,14 @@
 . ./struct/struct_overlay_subtree.sh || return 1
 
 # 对某级下挂的数组unshift一个元素进去(放置在数组的开头)
-# struct_push 'struct_name' '4' '0' '[key1]' '' "value"
+# struct_unshift 'struct_name' '4' '0' '[key1]' '' "value"
 # 返回值:
 #   bit7: 
 #       0:获取结构体的时候出错
 #       1:挂接子树的时候出错
 struct_unshift ()
 {
-    local -n _struct_unshift_struct_ref="${1}"
+    local -n _struct_unshift_struct_ref=$1
     shift
 
     local -a _struct_unshift_get_params=("${@:1:$#-2}")
@@ -24,7 +24,7 @@ struct_unshift ()
 
     local -a _struct_unshift_get_array=() _struct_unshift_get_array_indexs=()
     local -i _struct_unshift_get_array_max_index=-1 _struct_unshift_return_code=0
-    struct_get_field _struct_unshift_struct_ref _struct_unshift_get_array "${_struct_unshift_get_params[@]}"
+    struct_get_field _struct_unshift_get_array _struct_unshift_struct_ref "${_struct_unshift_get_params[@]}"
     _struct_unshift_return_code=$?
     if ((_struct_unshift_return_code)) && ! (((_struct_unshift_return_code>>2)&1)) ; then
         return $_struct_unshift_return_code
