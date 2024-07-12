@@ -17,6 +17,7 @@ str_split ()
     while (($#)) ; do
         local delimiter=$1 field_number=$2
         
+        # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
         output=$(awk -F "$delimiter" "{print \$$field_number}" < <(printf "%s" "$output"))
         (($#)) && shift
         (($#)) && shift

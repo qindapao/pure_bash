@@ -19,6 +19,7 @@
 # :TODO: 某些变量的打印并不准确
 # :TODO: 打印变量的功能暂时屏蔽掉
 # # 第一次进来的时候记录当前环境中的所有变量名
+# :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
 # mapfile -t _LOG_INIT_VARIABLES_NAME < <(compgen -A variable)
 
 # :TODO: 说明如果异步的子进程继承了陷阱,那么最好子脚本(或者子shell)中的TRAP_ERR_FILE变量最好重新命名

@@ -17,6 +17,7 @@ str_split_pure ()
     local input_str
     local -a input_arr
     read -d '' input_str
+    # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
     mapfile -t input_arr < <(printf "%s" "$input_str")
 
     for tmp_str in "${input_arr[@]}" ; do
@@ -30,6 +31,7 @@ str_split_pure ()
             # first trim the string to remove all redundant spaces
             [[ "${!index}" == [[:space:]] ]] && {
                 declare -a tmp_arr
+                # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
                 read -d "" -ra tmp_arr < <(printf "%s" "$tmp_str")
                 tmp_str="${tmp_arr[*]}"
             }

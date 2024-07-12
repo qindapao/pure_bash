@@ -13,6 +13,7 @@
 
 # :TODO: set -xv 这两个选项结合起来调试威力更大
 # # 第一次进来的时候记录当前环境中的所有变量名
+# :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
 # mapfile -t _LOG_INIT_VARIABLES_NAME < <(compgen -A variable)
 
 TRAP_RETURN_FILE="trap_return_$(date_log).log"

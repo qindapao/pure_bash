@@ -1449,6 +1449,67 @@ Storage:~ #
 展开。
 
 
+##### 别名的位置
+
+别名必须出现在使用它们的函数之前，所以下面这样是不行的：
+
+```bash
+func_1 ()
+{
+xxa
+}
+
+alias xxa='ls -l'
+alias yx='func_1 ""'
+
+
+
+mx=yx
+eval $mx
+```
+
+由于别名是在定义的时候展开,或者在使用`eval`的时候强制展开，比如改成下面这样可以：
+
+```bash
+func_1 ()
+{
+eval xxa
+}
+
+alias xxa='ls -l'
+alias yx='func_1 ""'
+
+
+
+mx=yx
+eval $mx
+
+```
+
+
+但是更通用的方式在，在函数中出现别名前就先定义它们。注意，除非使用eval，不然别名
+是在代码预读取的时候展开的，并不是在执行的时候展开的。所以上面的代码改成下面也可以
+按照预期工作
+
+```bash
+alias xxa='ls -l'
+func_1 ()
+{
+xxa
+}
+
+alias yx='func_1 ""'
+
+
+
+mx=yx
+eval $mx
+
+```
+
+
+
+
 
 #### local
 

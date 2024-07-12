@@ -7,6 +7,7 @@ str_trim_all ()
 {
     local deal_str=$2
     declare -a str_arr
+    # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
     read -d "" -ra str_arr < <(printf "%s" "$deal_str")
     deal_str="${str_arr[*]}"
     printf "%s" "$deal_str"
