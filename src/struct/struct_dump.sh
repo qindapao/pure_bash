@@ -176,7 +176,7 @@ struct_dump ()
     [[ "${_struct_dump_struct_ref@a}" == *A* ]] && {
         _struct_dump_sort_method='>' ;  _struct_dump_printf_mark='⇒'
     }
-    printf "%s %s\n" "${1}" "$_struct_dump_printf_mark"
+    printf "%s %s\n" "${2}" "$_struct_dump_printf_mark"
     local _struct_dump_indexs=("${!_struct_dump_struct_ref[@]}")
     # 如果是关联数组按照字典排序,否则按照数字排序(默认按照数字排序)
     array_sort _struct_dump_indexs "$_struct_dump_sort_method"

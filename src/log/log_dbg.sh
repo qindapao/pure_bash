@@ -173,6 +173,11 @@ alias linfo_bp='log_dbg 1i1'
 alias lwarn_bp='log_dbg 1w1'
 alias lerror_bp='log_dbg 1e1'
 
+alias ldebug_pb='log_dbg 1d1'
+alias linfo_pb='log_dbg 1i1'
+alias lwarn_pb='log_dbg 1w1'
+alias lerror_pb='log_dbg 1e1'
+
 # 不启用断点(日志不打印到标准输出)
 alias ldebug='log_dbg 0d0'
 alias linfo='log_dbg 0i0'
