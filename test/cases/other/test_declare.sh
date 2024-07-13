@@ -31,7 +31,16 @@ test_case2 ()
     declare -p b
 }
 
+test_case3 ()
+{
+    declare -n xx=yy
+    declare -p xx
+}
+
 test_case1
 declare -p a
 declare -p b
+test_case3
+declare -p xx
+
 
