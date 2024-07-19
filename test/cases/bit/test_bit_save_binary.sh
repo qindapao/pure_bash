@@ -22,7 +22,30 @@ test_case1 ()
     local binary_str=''
     time bit_save_binary binary_str '/usr/bin/tee' 
     time bit_recover_binary "$binary_str" './my-tee'
+    if diff ./my-tee /usr/bin/tee ; then
+        echo "${FUNCNAME[0]} pass"
+        rm -f ./my-tee
+    else
+        echo "${FUNCNAME[0]} fail"
+    fi
+}
+
+test_case2 ()
+{
+    local -i ret1 ret2
+    bit_save_binary 'geg geg' '/usr/bin/tee'
+    ret1=$?
+    bit_save_binary 'geggeg' ''
+    ret2=$?
+
+    if ((ret1&ret2)) ; then
+        # 两个都应该失败
+        echo "${FUNCNAME[0]} pass"
+    else
+        echo "${FUNCNAME[0]} fail"
+    fi
 }
 
 test_case1
+test_case2
 

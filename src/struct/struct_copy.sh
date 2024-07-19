@@ -10,7 +10,7 @@ struct_copy ()
     _struct_copy_new=()
 
     for _struct_copy_index in "${!_struct_copy_old[@]}" ; do
-        _struct_copy_new["${_struct_copy_index}"]="${_struct_copy_old["$_struct_copy_index"]}"
+        _struct_copy_new[${_struct_copy_index}]="${_struct_copy_old[$_struct_copy_index]}"
     done
 }
 

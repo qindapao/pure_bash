@@ -3,7 +3,7 @@ dict_extend.sh
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[dict_extend]++)) && return 0
 
-. ./log/log_dbg.sh || return 1
+. ./atom/atom_is_varname_valid.sh || return 1
 
 # 一个字典合并到另外一个字典
 # pc@DESKTOP-0MVRMOU ~                                                                                                                                         
@@ -51,12 +51,15 @@ if ((__META_BASH_VERSION>=5002000)) ; then
     {
         # 不能用小写的k操作符,但是在printf中可以用小写的k操作符
         # 注意这里需要两层展开
+        atom_is_varname_valid "$1" "$2" || return 1
         eval "eval $1+=(\"\${$2[@]@K}\")"
+        true
     }
 else
     # :TODO: 待测试
     dict_extend ()
     {
+        atom_is_varname_valid "$1" "$2" || return 1
         local _dict_extend_script_i${1}${2}='
             local i'$1$2'
             # ldebug_p "we are here"
@@ -65,6 +68,7 @@ else
             done'
         # 用eval执行代码的一个问题是会造成日志中打印的行号不准,要自己根据偏移计算下,但是不会影响其它部分的代码的行号计算
         eval -- eval -- \"\$"_dict_extend_script_i${1}${2}"\"
+        true
 
         # lwarn_p "we are ohter line"
         # lerror_p "we are ohter line2"
