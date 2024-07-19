@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[nfor.ndo.ndone]++)) && return 0
 
+# 注意 nfor只能在函数中使用
 
 # 只以空格作为分隔符的for循环变体,并且进入循环后马上还原IFS(防止影响for循环内部的代码),
 # 或者退出循环也还原(循环并没有进入)
@@ -26,9 +27,17 @@
 # 6 9 0"
 # root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/try# 
 
-alias nfor="declare OLD_IFS=\"\$IFS\" ; declare IFS=\$'\n' ; for"
-alias ndo="do IFS=\"\$OLD_IFS\" ;"
-alias ndone="done ; IFS=\"\$OLD_IFS\" ;"
+# [root@localhost ~]# a='*
+# > *'
+# [root@localhost ~]# for i in $a ; do
+# > echo "$i"
+# > done
+# 1.txt
+# ActionByMac.sh
+# board_allfruinfo_get_110
+alias nfor="local - ; set -f ; set +B ; local OLD_IFS=\"\$IFS\" ; local IFS=\$'\n' ; for"
+alias ndo="do IFS=\"\$OLD_IFS\" ; set +f ; set -B ;"
+alias ndone="done ; IFS=\"\$OLD_IFS\" ; set +f ; set -B ;"
 
 return 0
 

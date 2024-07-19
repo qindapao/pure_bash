@@ -12,7 +12,6 @@
 #     declare -a log_file_remain=(*)
 
 #     if((${#log_file_list[@]}>keep_cnt)) ; then
-            # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
 #         IFS=$'\n' read -d "" -r -a log_file_remain < <(printf "%s\n" "${log_file_list[@]}" | sort -u | tail -n "$keep_cnt")
 
 #         # 删除多余文件
@@ -25,5 +24,4 @@
 # )
 
 return 0
-
 

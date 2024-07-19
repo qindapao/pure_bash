@@ -1,3 +1,5 @@
+dict_extend.sh
+
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[dict_extend]++)) && return 0
 
@@ -55,14 +57,14 @@ else
     # :TODO: 待测试
     dict_extend ()
     {
-        local _dict_extend_script='
+        local _dict_extend_script_i${1}${2}='
             local i'$1$2'
             # ldebug_p "we are here"
             for i'$1$2' in "${!'$2'[@]}"; do
                 '$1'["${i'$1$2'}"]="${'$2'["${i'$1$2'}"]}"
             done'
         # 用eval执行代码的一个问题是会造成日志中打印的行号不准,要自己根据偏移计算下,但是不会影响其它部分的代码的行号计算
-        eval -- "$_dict_extend_script"
+        eval -- eval -- \"\$"_dict_extend_script_i${1}${2}"\"
 
         # lwarn_p "we are ohter line"
         # lerror_p "we are ohter line2"

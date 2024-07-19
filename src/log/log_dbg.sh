@@ -10,7 +10,6 @@
 # :TODO: 打印变量的功能暂时屏蔽掉
 # :TODO: BASH_COMMAND 变量和 trap 结合使用?
 # # 第一次进来的时候记录当前环境中的所有变量名
-# :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
 # mapfile -t _LOG_INIT_VARIABLES_NAME < <(compgen -A variable)
 
 # 0 debug 1 info 2 warning 3 error(打印三层记录)
@@ -126,7 +125,6 @@ log_dbg ()
 
         # # 把当前环境中所有变量的值记录到日志文件中(不打印)
         # local -a _log_dbg_all_vars_name_list
-        # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
         # mapfile -t _log_dbg_all_vars_name_list < <(compgen -A variable)
         # array_del_elements_dense _log_dbg_all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" '_log_dbg_log_type' '_log_dbg_is_need_break' '_log_dbg_msg' \
         #     '_log_dbg_i' '_log_dbg_declare_str' '_log_dbg_prt_str' '_log_dbg_log_info' '_log_dbg_func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \

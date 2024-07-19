@@ -35,7 +35,6 @@
 #     local key_tmp
 #     while IFS=$'\n' read -r key_tmp ; do
 #         key_array+=("$key_tmp")
-        # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
 #     done < <(printf "%s\n" "${!slot_to_lines[@]}" | sort -t- -k1,1n -k2,2n)
 
 # 可以指定不同的排序选项来按照特定的规则对文本进行排序。sort -t- -k1,1n -k2,2n 部分是用于排序的选项。
@@ -67,9 +66,9 @@ _array_sort ()
 
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
-        # str_split_pure "<" "2" < <(printf "%s" "$1") 也可以
-        # :TODO: 嵌入式环境中< <()语法可能失效,提示没有相关的文件描述符
-        array_map_block __array_sort_tmp_arr_filed "str_split_pipe \""$__array_sort_delimiter"\" \""$__array_sort_field"\" < <(printf \"%s\" \"\$2\")"
+        # str_split_pure_s "$1" "<" "2" 也可以
+        local _array_sort_block_str='str_split_s "'$2'" "'$__array_sort_delimiter'" "'$__array_sort_field'"'
+        array_map_block __array_sort_tmp_arr_filed "$_array_sort_block_str"
     fi
 
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}

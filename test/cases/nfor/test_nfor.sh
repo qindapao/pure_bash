@@ -18,6 +18,25 @@ cd "$_test_trap_try_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
+
+test_case1 ()
+{
+    a='* 1 2
+* 3 4
+* 5 6'
+    
+    nfor i in $a ; ndo
+        for j in $a ; do
+            echo "$j"
+        done
+        echo "$i"
+    ndone
+}
+
+test_case1
+
+exit 0
+
 nfor_func ()
 {
     local localx="a b c

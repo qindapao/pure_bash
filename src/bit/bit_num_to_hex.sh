@@ -13,7 +13,10 @@ bit_num_to_hex ()
         printf "0x%x" "$((2#${value:2}))"
     elif [[ "$value" =~ ^[0-9]+$ ]]; then
         # 删除前导0
-        value=$((10#$value))
+        # value=$((10#$value))
+        # https://mywiki.wooledge.org/ArithmeticExpression
+        # 下面这个才能处理负号,虽然这里不处理负号
+        value=$(( ${value%%[!+-]*}10#${value#[-+]} ))
         printf "0x%x" "$value"
     fi
 }

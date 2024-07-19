@@ -11,6 +11,13 @@ str_trim ()
     printf "%s" "${tmp_str%"${_##*[![:space:]]}"}"
 }
 
+# 使用shopt -s extglob
+# str_trim ()
+# {
+#     local tmp_str=${2##+([[:space:]])}
+#     printf "%s" "${tmp_str%%+([[:space:]])}"
+# }
+
 alias str_trim_s='str_trim ""'
 
 return 0

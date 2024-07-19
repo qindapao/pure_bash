@@ -20,7 +20,7 @@ array_map_block ()
     local _array_map_block_index
 
     for _array_map_block_index in "${!_array_map_block_ref_arr[@]}" ; do
-        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "$_array_map_block_index" "${_array_map_block_ref_arr["$_array_map_block_index"]}")
+        _array_map_block_ref_arr[$_array_map_block_index]=$(_array_map_block_tmp_function "$_array_map_block_index" "${_array_map_block_ref_arr[$_array_map_block_index]}")
     done
 
     unset -f _array_map_block_tmp_function

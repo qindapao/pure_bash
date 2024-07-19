@@ -24,7 +24,7 @@ for i in "${IMPORT_FUNCS[@]}" ; do . "$i" || exit 1 ; done
 
 **这有什么好处呢？**
 
-可以在使用中只放我们需要的函数，这样就不用降整个库拷贝到TU中，节省了代码的空间和灵活性。同时也能最大化验证库的功能，并且TU中的代码都是需要的。没有无关的代码，代码检视的数据也会准确。
+可以在使用中只放我们需要的函数，这样就不用降整个库拷贝到用户脚本中，节省了代码的空间和灵活性。同时也能最大化验证库的功能。没有无关的代码，代码检视的数据也会准确。
 
 **copy_modules.sh**
 
@@ -59,7 +59,125 @@ https://github.com/cjungmann/bash_builtin
 
 https://github.com/ayosec/timehistory-bash
 
+https://www.programming-books.io/essential/bash/parallel-185b3ea3467c44148f4296480fe0a994#d980c5e6-5fc8-4275-88c1-5f26e2af50b7
+
+https://devtut.github.io/bash/when-to-use-eval.html#using-eval
+
+
+两个比较牛逼的bash库：
+
+https://github.com/hornos/shf3
+https://github.com/javier-lopez/learn
+
+
+
 ## bash特殊语法记录
+
+### 常用操作
+
+https://mywiki.wooledge.org/BashSheet
+
+### bash常见的误用和陷阱
+
+#### bash陷阱合集
+
+https://mywiki.wooledge.org/BashPitfalls#A.5B.5B_-v_hash.5B.24key.5D_.5D.5D
+
+#### 关于关联数组带变量下标做算数运算的坑
+
+https://unix.stackexchange.com/questions/627474/how-to-use-associative-arrays-safely-inside-arithmetic-expressions
+
+目前只有下面4种语法可以用于`bash5.2`和之前的bash版本：
+
+- `let 'assoc[$var]++'`
+- `assoc[$var]=$(( ${assoc[$var]} + 1 ))`
+- `ref='assoc[$var]'; (( $ref++ ))`
+- `@ormaaj bash wiki 中的技巧：(( assoc${-+[}\$var]++ ))`
+
+其中比较魔幻的是最后一种方法，让我们来解释下：
+
+在早期的bash版本中，`((assoc[\$var]++))`这种语法是可以起作用的，但是随着`bash5.2`
+的发布，这种语法不再起作用。而是需要欺骗解释器。
+
+`${-+[}`的含义是如果`-`已经设置，那么把表达式的值扩展为`[`，因为`-`必然是被设置的，
+所以这个表达式被扩展为`[`，然后在和剩下的部分拼接形成：
+
+```bash
+((k[\$tmp_key]++))
+```
+
+所以用这个也可以: `(( assoc${#+[}\$var]++ ))`，只要是一个明确定义的变量都可以，这里
+`${#}`是肯定会存在的变量。
+
+不知道是出于什么原因，这阻止了`bash5.2`的进一步扩展。我想可能是因为`bash`解释器
+第一眼看到这个表达式，并没有找到明显的`[]`边界，于是乎它不知道这是一个带关联数组下标
+的算术表达式，然后扩展`${#+[`，这个时候才出现`[`，和后面的变量表达式一起扩展，
+但是已经晚了，解释器误认为对算术表达式已经扩展完成。
+
+所以，最安全的做法还是用：
+
+`let 'assoc[$var]++'`，记得这里的单引号是一定需要的。只是下面这种一步到位的写法比较
+爽，就是可读性真的是太糟糕了：
+
+```bash
+declare -A assoc
+declare var='gge
+geg()
+xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+'
+
+if (( assoc${#+[}\$var]++ )) ; then
+    echo "xx"
+fi
+
+declare -p assoc
+if (( assoc${#+[}\$var]++ )) ; then
+    echo "xx"
+fi
+declare -p assoc
+```
+
+
+`bash`的作者对于这个问题的回复：
+
+https://lists.gnu.org/archive/html/bug-bash/2021-02/msg00189.html
+
+按照作者的说法，以前使用单引号其实是不正确的，因为算术表达式其实是双引号扩展表达式，
+所以现在不需要使用引号的`bash5.2`看起来是修复。似乎是解释器提前预处理了一些扩展，就不需要
+使用引号了。
+
+`bash5.2`的新解析器的稳定性需要等待时间来检验。另外，等待`bash5.3`正式发布后，这个
+语法需要被 **重点测试**。如果非要用双圆括号来测试关联数组的值，可以用下面的形式：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# tmp_x="${assoc[$var]}"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# if ((tmp_x)) ; then echo xx ; fi
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# let 'assoc[$var]++'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# declare -p assoc
+declare -A assoc=([$'gge\ngeg()\nxxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)\n']="4" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# 
+```
+
+如上所示，使用一个中间变量来办到。
+
+如果申明关联数组是一个整形数组，那么也可以像下面这样：
+
+```bash
+declare -iA assoc
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# assoc[$var]+=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# declare -p assoc
+declare -Ai assoc=([$'gge\ngeg()\nxxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)\n']="6" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# assoc[$var]+=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# declare -p assoc
+declare -Ai assoc=([$'gge\ngeg()\nxxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)\n']="7" )
+
+```
+
+
+### 关于bash的兼容级别
+
+https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html
 
 ### 语句
 
@@ -157,6 +275,18 @@ done
 
 是等价的。
 
+下面的用法比较危险，会受到扩展的影响：
+
+```bash
+Storage:~ # x='*-*'
+Storage:~ # IFS='-'
+Storage:~ # for i in $x ; do echo "$i"; done
+03026KLP_parameter.txt
+03033ECX_parameter.txt
+03033MSB_parameter.txt
+06010397_parameter.txt
+06411241_parameter.txt
+```
 
 
 #### if条件判断
@@ -369,6 +499,7 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor#
 
 上面的例子是间接引用和`${!var}`取值嵌套的情况，会找到真正的变量。
 
+有一个讨论页面讲得比较深入：https://mywiki.wooledge.org/BashFAQ/006
 
 #### 检查变量是否设置的另外一种方法
 
@@ -452,7 +583,22 @@ data["2,2"]="value22"
 
 #### 默认值
 
-可以为变量嵌套赋默认值
+##### 一种方便的求默认值方法
+
+```bash
+    : ${ALL_CTRL_NUM=$(get_ctrl_num)}
+```
+
+表示变量如果没有定义，就使用函数求默认值。如果上面是：
+
+```bash
+    : ${ALL_CTRL_NUM:=$(get_ctrl_num)}
+```
+
+那么表示变量未定义或者为空的情况。
+
+
+##### 可以为变量嵌套赋默认值
 
 ```bash
 root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# : ${mxx:=${mxb:=${mxc:=5}}}
@@ -710,6 +856,16 @@ declare -p BASH_CMDS
 ##### BASH_ALIASES
 
 一个关联数组，保存当前`shell`环境中的别名和对应的值。
+
+#### 变量替换
+
+常用的就不提了，这里有两个不常用的：
+
+${var/#pat/repl} Use value of var, with match of pat replaced with repl.
+Match must occur at the beginning of the value.
+
+${var/%pat/repl} Use value of var, with match of pat replaced with repl.
+Match must occur at the end of the value.
 
 
 ### 变量修饰
@@ -1048,10 +1204,37 @@ array_copy ()
 
 #### bash命令执行的优先级
 
-别名 -> 保留关键字 -> 函数 -> 内置命令 -> 外部命令或脚本
-
+保留关键字 -> 别名 -> 函数 -> 内置命令 -> 外部命令或者脚本 -> command_not_found_handle 函数
 
 #### eval 
+
+##### bash执行命令的步骤和eval的原理
+
+参考链接：https://unix.stackexchange.com/questions/23111/what-is-the-eval-command-in-bash
+
+标准链接：https://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html
+
+安全使用eval的原则：https://mywiki.wooledge.org/BashFAQ/048
+
+##### 使用eval在函数中安全返回一个值
+
+```bash
+   1 # POSIX
+   2 
+   3 f() {
+   4     # Code goes here that eventually sets the variable "x".
+   5     # x=foo
+   6 
+   7     # Check that the referenced variable name is not empty.  Validating
+   8     # it as a valid identifier is left as an exercise for the reader.
+   9     if [ -z "$1" ]; then
+  10         return 1
+  11     fi
+  12 
+  13     eval "${1}=\$x"
+  14 }
+```
+
 
 ##### 如何调试一个带eval的代码
 
@@ -1530,6 +1713,31 @@ local - ; set +xv
 ```bash
 alias disable_xv='local - ; set +xv'
 ```
+#### read 命令
+
+##### read命令不清除前面和后面的空格
+
+```bash
+IFS= read -r -d '' xx <<<"   x y z  "
+```
+
+如上面的例子所示，需要清空`IFS`变量。注意：这里在read命令的同一行设置IFS=只会影响
+read命令的执行，并不会修改全局的`IFS`变量。
+
+##### read命令可以读取数据到数组或者关联数组的子元素中
+
+```bash
+array=(1)
+index=1
+read -r array[index++] <<<"xx"
+read -r array[index++] <<<"yy"
+read -r array[index++] <<<"zz"
+declare -p array
+declare -a array=([0]="1" [1]="xx" [2]="yy" [3]="zz")
+```
+
+其它对于常规字符串的操作，都可以用于数组或者关联数组的子元素，而不仅仅是`read`操作。
+
 
 ### 数据结构
 
@@ -1550,6 +1758,19 @@ for((reg_i=0;reg_i<${#led_regs[@]};)) ; do
     ((reg_i+=2))
 done
 ```
+
+生成索引数组的一些特殊的方式：
+
+```bash
+root@DESKTOP-0KALMAH:~# a=({1..5}{'a b','c d'})
+root@DESKTOP-0KALMAH:~# declare -p a
+declare -a a=([0]="1a b" [1]="1c d" [2]="2a b" [3]="2c d" [4]="3a b" [5]="3c d" [6]="4a b" [7]="4c d" [8]="5a b" [9]="5c d")
+root@DESKTOP-0KALMAH:~# 
+```
+
+通过参数扩展生成的数组正确处理了参数中包含特殊字符的情况。在某些特殊场景下或许会有用。
+
+
 
 #### 关联数组
 
@@ -1669,6 +1890,88 @@ declare -A ax=([$'zy\n22']=$'12\nkk' )
 ```
 
 使用的时候要特别小心。
+
+#### 关联数组的特殊键
+
+下面是在`bash5.2`版本上的验证结果
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ declare -A m
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ m['@']=gge
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ m['*']=gggee
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ declare -p m
+declare -A m=(["*"]="gggee" ["@"]="gge" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ unset m[@]
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ declare -p m
+declare -A m=(["*"]="gggee" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ unset m[*]
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ declare -p m
+declare -A m=()
+
+$ 
+```
+
+下面是`bash5.2`版本前的效果，直接删除了整个关联数组：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# declare -A m
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# m['@']=gg
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# m['*']=gggee
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# declare -p m
+declare -A m=(["*"]="gggee" ["@"]="gg" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# unset m[@]
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# declare -p m
+-bash: declare: m: not found
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# 
+```
+
+
+也就是说`bash5.2`以前是有BUG的，你不能把`@`或者`*`放到键里面删除，而是需要一个中间
+变量。或者是用双引号把`@`或者`*`包裹起来。这在所有的支持关联数组的版本中都能用。
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# declare -A m
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# m['@']=gg
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# m['*']=gggee
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# xx='@'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# unset 'm[$xx]'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# declare -p m
+declare -A m=(["*"]="gggee" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/bit# 
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -A m
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# m['*']=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# m['@']=2
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p m
+declare -A m=([1]="2" ["*"]="1" ["@"]="2" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# unset 'm["@"]'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p m
+declare -A m=([1]="2" ["*"]="1" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# unset 'm[@]'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# declare -p m
+-bash: declare: m: not found
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array# 
+```
+
+要像上面的例子那样才能删除一个名为`@`的成员，而不是删除关联数组本身，这样在`bash5.2`
+和以下的版本都适用。
+
 
 
 #### 打印一个数组或者关联数组
@@ -1816,6 +2119,120 @@ strace -f -e trace=process bash -c 'echo $(echo $$)'
 
 ### HEAR DOCS
 
+#### HEAR DOCS的两种形式
+
+当使用 Here Document（也被称为 heredoc）时，可以选择是否在开始标识和结束标识中
+加引号。这两种方式的区别：
+
+1. 不带引号：
+开始标识和结束标识都不带引号。
+内嵌的变量和转义符号会被解释。
+适用于需要保留变量替换和转义的情况。
+示例：
+
+```bash
+cat <<EOF
+This is a heredoc without quotes.
+Variable value: $a
+EOF
+```
+
+不带引号要保持缩进好看的情况下，只能使用`<<-`这种形式，但是这种形式下，只能剔除
+行首的制表符，无法处理空格。
+
+这可以用来生成eval执行的字符串，但是要注意变量扩展的时候可能生成的复杂字符串。
+
+看一个例子：
+
+```bash
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# m='geg " gge
+# > geg geg'
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# read -d '' -r mxm <<EOF
+# > xxy="$m"
+# > EOF
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# printf "%s" "$mxm"
+# xxy="geg " gge
+# geg geg"root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# 
+# m='geg " gge
+# geg geg'
+# escaped_m=$(printf "%q" "$m")
+# read -d '' -r mxm <<EOF
+# xxy=$escaped_m
+# EOF
+# printf "%s" "$mxm"
+# printf "%s" "$mxm"
+# xxy=$'geg " gge\ngeg geg'
+# 然后我们执行后就会得到原始字符串
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# xxy=$'geg " gge\ngeg geg'
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# declare -p xxy
+# declare -- xxy="geg \" gge
+# geg geg"
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# 
+
+```
+
+如上面所示，如果`here docs`中的字符串替换可能涉及包含空格或者换行的特殊字符串，那么
+在赋值的时候就最好使用安全字符串来赋值。或者是不在`here docs`中扩展它。
+
+
+
+
+2. 带单引号或者双引号：
+开始标识和结束标识带单引号。
+不解释内嵌的变量和转义符号。
+适用于需要保留原样内容的情况。
+示例：
+
+```bash
+cat <<'EOF'
+This is a heredoc with single quotes.
+Variable value: $a
+EOF
+```
+
+引号还有个意义是可以让你的here docs的结束符保持缩进
+
+```bash
+root@DESKTOP-0KALMAH:~# read -d '' -r xx<<"    EOF"
+    a="$1"
+    b="\$2"
+    EOF
+```
+
+上面的例子中如果没有双引号，那么EOF结束符必须在行首。显然不好看。
+
+注意：使用`read`命令的`-d ''`有一个缺陷是，执行完成后命令的返回值是非0的。
+如果使用了ERR陷阱，那么很多误报。
+
+如果想规避`read`命令返回非0的问题，可以使用`mapfile`替代，唯一需要注意的是`mapfile`
+保存到一个数组中。行首的空格`mapfile`也会保留。并且也不用加`-r`参数保留反斜杠。
+
+```bash
+mapfile -d '' xxa <<EOF
+m="$x"
+EOF
+
+declare -p xxa
+declare -a xxa=([0]=$'m="geg\ngeg "\n')
+```
+
+其实还有一种方法让使用`read -d ''`的时候不会触发误报：
+
+```bash
+{
+read -r -d '' mmxx <<EOF
+geg geg
+g  ge
+EOF
+} || true
+```
+
+就是像上面这样，让命令的返回值永远是0。
+
+
+`HEAR STR`可以用来生成命令字符串，其实使用单引号也可以，就看具体使用场景了。
+
+
 #### HEAR STR
 
 在 `Bash` 中使用 `<<<` 来提供一个 `here string` 时，Bash 会自动在字符串的末尾添加一个换行符。
@@ -1827,17 +2244,97 @@ strace -f -e trace=process bash -c 'echo $(echo $$)'
 
 ### 引号
 
+#### 单引号
+
+单引号可以构建多行字符串，和复杂字符串，并且也可以带变量的值，请看两个例子：
+
+
+```bash
+array_epush () { eval "$1+=(\"\${@:2}\")" ; }
+# 还有一种写法
+array_epush () { eval ''$1'+=("${@:2}")' ; }
+```
+
+上面这两种写法几乎是等价的。要调试eval表达式，最简单的方法是打开`set -x`，让bash显示代码的详细展开和执行过程即可。
+
+
+```bash
+root@DESKTOP-0KALMAH:~# a='1 2 3 '
+root@DESKTOP-0KALMAH:~# b='4 5 6'
+root@DESKTOP-0KALMAH:~# c='xx "'$a'" "'$b'"'
+root@DESKTOP-0KALMAH:~# declare -p c
+declare -- c="xx \"1 2 3 \" \"4 5 6\""
+root@DESKTOP-0KALMAH:~# 
+```
+
+如果要在单引号中对某个变量求值，再加一层单引号即可，见上面的例子。但是请不要直接把`'xx "'$a'" "'$b'"'`这个字符串作为函数的
+一个参数传递，会有不符合预期的现象发生：
+
+```bash
+root@DESKTOP-0KALMAH:~# func_a ()
+> {
+> printf "%s" "$1"
+> }
+root@DESKTOP-0KALMAH:~# func_a 'xx "'$a'" "'$b'"'
+xx "1root@DESKTOP-0KALMAH:~# 
+root@DESKTOP-0KALMAH:~# c='xx "'$a'" "'$b'"'
+root@DESKTOP-0KALMAH:~# func_a 'xx "'$a'" "'$b'"'
+xx "1root@DESKTOP-0KALMAH:~# 
+root@DESKTOP-0KALMAH:~# func_a "$c"
+xx "1 2 3 " "4 5 6"root@DESKTOP-0KALMAH:~#
+```
+
+所以请不要把一个复杂字符串作为函数的参数直接传递给它，可以先赋值给一个变量，然后传递这个变量，并且用传递参数的时候用双引号
+保护起来。
+
+
+多行字符串：
+
+```bash
+root@DESKTOP-0KALMAH:~# c='
+> local m=$1
+> local c="4"
+> '
+root@DESKTOP-0KALMAH:~# declare -p c
+declare -- c="
+local m=\$1   
+local c=\"4\" 
+"
+root@DESKTOP-0KALMAH:~# 
+```
+
+这种用法可以用来构造可执行的代码块。也不要把这个参数直接传递给函数，赋值给变量，然后把变量传递给函数，用双引号保护。
+
+
+**注意**: 单引号唯一的缺点是，在单引号中无法再表示别的单引号！
+
+其实单引号中也可以包裹别的单引号！只是比较麻烦，如下：
+
+```bash
+root@DESKTOP-0KALMAH:~# a=''\'''
+root@DESKTOP-0KALMAH:~# declare -p a
+declare -- a="'"
+root@DESKTOP-0KALMAH:~# 
+```
+
+
 #### 双引号
 
 在Bash中，双引号内的字符大多数会保持其字面值，但有一些特殊字符除外。双引号会处理以下特殊字符：
 
-- `$`：用于参数扩展、命令替换和算术扩展
-- ```：用于命令替换
-- `\`：当其后跟随$、`、\"、\或换行符时，保留其特殊含义
-- `"`：可以通过在其前面加上反斜杠来在双引号内引用双引号
-- `!`：当历史扩展功能启用时，!用于历史扩展，除非它被反斜杠转义
+```bash
+- $：用于参数扩展、命令替换和算术扩展
+- `：用于命令替换
+- \：当其后跟随$、`、"、\或换行符时，保留其特殊含义
+- "：可以通过在其前面加上反斜杠来在双引号内引用双引号
+- !：当历史扩展功能启用时，!用于历史扩展，除非它被反斜杠转义
+```
 
-一些可以** 不使用双引号 **的情况:
+关于引号的解释，这里有一篇详细的文档：
+
+https://rg1-teaching.mpi-inf.mpg.de/unixffb-ss98/quoting-guide.html
+
+一些可以 **不使用双引号** 的情况:
 
 1. 一个变量赋值给另外一个变量，不需要加双引号，就算里面有特殊符号也不会被扩展
 
@@ -1880,136 +2377,7 @@ declare -- xx="*
  xxd gg"
 [root@localhost ~]# 
 ```
-
-3. 双中括号中的变量
-
-```bash
-Storage:~ # a='geg geg 
-> gege
-> gge*'
-Storage:~ # if [[ $a == *g* ]] ; then
-> echo xx
-> fi
-xx
-Storage:~ # a='*'
-Storage:~ # if [[ $a == *g* ]] ; then echo xx; fi
-Storage:~ # if [[ $a == *'*'* ]] ; then echo xx; fi
-xx
-Storage:~ # 
-Storage:~ # x=' *'
-Storage:~ # if [[ $a == *${x}* ]] ; then echo xx; fi
-Storage:~ # a=' *'
-Storage:~ # if [[ $a == *${x}* ]] ; then echo xx; fi
-xx
-Storage:~ # 
-```
-
-如上面的例子所示，左边的变量是不需要用双引号保护的。右边的表达式中带变量的也不需要
-用双引号保护(因为在双中括号中，变量不会被意外扩展)。建议就不要在不必要的时候加引号了，
-但是下面这种情况不行。
-
-```bash
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if [[ $a ==  xx yy  ]] ; then echo xx; fi
-bash: 条件表达式中有语法错误
-bash: "yy" 附近有语法错误
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ 
-```
-
-要么用引号保护起来，要么在变量中，或者空格用反斜杠转义。
-
-```bash
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if [[ $a ==  "xx yy"  ]] ; then echo xx; fi
-+ [[ xx yy == \x\x\ \y\y ]]
-+ echo xx
-xx
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ x='xx yy'
-+ x='xx yy'
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if [[ $a ==  $x  ]] ; then echo xx; fi
-+ [[ xx yy == xx yy ]]
-+ echo xx
-xx
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if [[ $a ==  xx\ yy  ]] ; then echo xx; fi
-+ [[ xx yy == xx\ yy ]]
-+ echo xx
-xx
-```
-
-直接写不行，但是如果空格位于变量中又是可以的：
-
-```bash
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ x=' '
-+ x=' '
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if [[ $a ==  *xx${x}yy*  ]] ; then echo xx; fi
-+ [[ xx yy == *xx yy* ]]
-+ echo xx
-xx
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ 
-```
-
-备注: 这种情况下如果拿不准，那么该加双引号的时候加上双引号是比较安全的做法。
-
-下面这种情况比较极端，双引号都不行(!的历史命令展开功能在echo和printf中是默认关闭
-的，可以使用，但是在[[]]中没有关闭，只能用转义字符来防止，或者修改历史命令扩展
-选项，但是不推荐):
-
-```bash
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
-$ if [[ "${a[*]}" == !\' ]] ; then echo xx; fi
-bash: !\': event not found
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
-$ if [[ "${a[*]}" == \!\' ]] ; then echo xx; fi
-+ [[ 1 2 3 4 5 * == \!\' ]]
-
-$ 
-```
-
-安全的做法：
-
-```bash
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
-$ x='!'\'
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
-$ declare -p x
-declare -- x="!'"
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
-$ if [[ \!\' == $x ]] ; then echo xx; fi
-xx
-
-```
-
-4. 数组完全展开成一个字符串
-
-```bash
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# a=('1 2' '  4 5')
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# if [[ ${a[*]} == '1 2   4 5' ]] ; then
-> echo xx
-> fi
-xx
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
-```
-
-注意这里千万不要用`${a[@]}`，那会展开成多个独立的参数。
-
-
-5. 在case中不需要加双引号保护
+3. 在case中不需要加双引号保护
 
 请看下面的范例：
 
@@ -2030,7 +2398,24 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# case $a in $b) e
 root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
 ```
 
-6. 关联数组中的键不需要加引号保护，bash会自动处理
+多个变量组合情况相同：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p b c d
+declare -- b="1 2 3     4"
+declare -- c="!("
+declare -- d="\$"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# case $b$c$d in '1 2 3     4!($') echo xx; ;; esac
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+但其实为了可读性和意义更明确，这里还是 **建议加上双引号**。
+
+可以这么理解，解释器先进行变量扩展，`$b$c$d`被扩展为变量的值，然后后面就不会进行更多的扩展，会用这个字符串
+来对后面的模式进行匹配。
+
+4. 关联数组中的键不需要加引号保护，bash会自动处理，这里有一个[链接](https://stackoverflow.com/questions/69999743/bash-variables-quoted-in-the-index-field-of-an-associative-array-reference)说明。
 
 ```bash
 a='!*()) 
@@ -2049,6 +2434,58 @@ echo "${m[$a]}"
 ```
 
 上面例子中的关联数组的键`$a`并不需要加双引号保护。
+
+多个值组合的情况也相同：
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -A xxaxxb
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# xxaxxb[$b$c$d]=1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p xxaxxb
+declare -A xxaxxb=(["1 2 3     4!(\$"]="1" )
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
+```
+
+
+**需要加双引号**保护的情况：
+
+总体原则是在不确定是否安全的情况下，加上双引号保护或者单引号都是比较可靠的。防止
+未来产生问题。
+
+1. 双中括号，最安全的做法是两边都加双引号保护，除非右边是正则表达式
+
+下面的例子可以看到，没有正常加双引号会导致让解释器认为是扩展。
+
+```bash
+Storage:~ # declare -p  a b
+declare -- a="*"
+declare -- b="gge ggeg 
+gege"
+Storage:~ # 
+Storage:~ # 
+Storage:~ # 
+Storage:~ # 
+Storage:~ # 
+Storage:~ # if [[ $b == $a ]] ; then echo xx; fi
+xx
+Storage:~ # 
+```
+
+其实可以这么理解，解释器首先进行变量扩展，`$a`被扩展为`*`，然后进行匹配。
+
+2. 数组展开成一个字符串
+
+同上面，没有引号可能被解释器当作是扩展。
+
+```bash
+Storage:~ # a=('*')
+Storage:~ # b=ggege
+Storage:~ # if [[ $b == ${a[*]} ]] ; then
+> echo xx
+> fi
+xx
+Storage:~ # 
+```
+
 
 
 ### 变量替换
@@ -2204,6 +2641,50 @@ done
 ```
 while 循环可以用上面的语句迭代一个变量。
 
+#### 关于循环的一个BUG
+
+在 Bash 4.3 及之前的版本中，当执行一个 shell 函数时，循环状态（如 while、until 等）
+不会被重置。这意味着如果在一个函数中使用 break 或 continue，它们将影响调用该函数
+的上下文中的循环。例如：
+
+```bash
+function my_function {
+    while true; do
+        echo "Inside function loop"
+        break
+    done
+    break
+}
+
+while true; do
+    my_function
+    echo "This will not be printed"
+done
+```
+
+在上面的代码中，`my_function` 中的 `break` 将会中断外部的 `while` 循环，因为循环
+状态没有被重置。
+
+从 `Bash 4.4` 开始，这个行为被改变了。`Bash 4.4` 及之后的版本会在执行 shell 函数
+时重置循环状态，以防止 break 或 continue 影响调用上下文中的循环。
+
+在`bash3.2.51`上复现出了这个问题
+
+```bash
+while true; do
+    echo "Inside function loop"
+    break
+done
+```
+
+这个代码并没有问题，而是后面那个独立的`break`导致了函数外面的循环被中断。这在`bash4.4`
+已经更高的版本上，不会出问题，但是会出现告警
+
+`-bash: break: only meaningful in a for, while, or until loop`
+
+
+
+
 ### 选项
 
 #### localvar_unset
@@ -2305,6 +2786,327 @@ declare -a a=([0]="test_case4")
 在一般的使用场景下，`localvar_unset`这个选项的作用并不大。我们不应该在函数中去取消
 一个上一个作用域中的变量的定义。
 
+#### extglob
+
+##### 在双中括号中的使用情况
+
+```bash
+[root@localhost ~]# str=abc
+[root@localhost ~]# if [[ $str == @(abc|dbx) ]] ; then echo xx; fi
+xx
+[root@localhost ~]# if [[ $str == @(ac|dbx) ]] ; then echo xx; fi
+[root@localhost ~]# if [[ $str == !(ac|dbx) ]] ; then echo xx; fi
+xx
+[root@localhost ~]# if [[ $str == !(abc|dbx) ]] ; then echo xx; fi
+[root@localhost ~]# shopt | grep ext
+extdebug        off
+extglob         on
+extquote        on
+[root@localhost ~]# shopt -s extglob
+[root@localhost ~]# shopt | grep ext
+extdebug        off
+extglob         on
+extquote        on
+[root@localhost ~]# shopt -u extglob
+[root@localhost ~]# shopt | grep ext
+extdebug        off
+extglob         off
+extquote        on
+[root@localhost ~]# if [[ $str == !(abc|dbx) ]] ; then echo xx; fi
+-bash: !: event not found
+[root@localhost ~]# 
+```
+
+我发现下面这种语法，选项开关都没有影响：
+
+```bash
+[root@localhost ~]# shopt -u extglob
+[root@localhost ~]# if [[ $str == @(abc|dbx) ]] ; then echo xx; fi
+xx
+[root@localhost ~]# str=abc
+[root@localhost ~]# if [[ $str == @(abc|dbx) ]] ; then echo xx; fi
+xx
+[root@localhost ~]# str=dbx
+[root@localhost ~]# if [[ $str == @(abc|dbx) ]] ; then echo xx; fi
+xx
+[root@localhost ~]# str=xxx
+[root@localhost ~]# 
+```
+
+我发现5种量词语法在双中括号的表达式中，只有`!(pattern-list)`受选项影响，其它的打开和关闭都可以使用。
+:TODO: 为什么？
+
+可能是下面的原因：
+
+```bash
+compat51 (set using BASH_COMPAT)
+Parsing command substitutions will behave as if extended glob (see The Shopt 
+Builtin) is enabled, so that parsing a command substitution containing an 
+extglob pattern (say, as part of a shell function) will not fail. This assumes 
+the intent is to enable extglob before the command is executed and word 
+expansions are performed. It will fail at word expansion time if extglob hasn’t 
+been enabled by the time the command is executed.
+```
+
+命令替换解析：在 Bash 5.1 中，解析命令替换时会表现得好像启用了扩展 glob
+（extglob）。扩展 glob 是一种允许使用更复杂的模式匹配的功能。假设你在一个 shell
+函数中使用了包含 extglob 模式的命令替换，如果在解析命令替换时没有启用 extglob，
+解析将不会失败。
+
+举个例子，假设你有一个包含 extglob 模式的命令替换：
+
+shopt -s extglob
+echo $(echo @(foo|bar))
+
+在 Bash 5.1 中，即使你没有显式启用 extglob，解析命令替换时也会假设你启用了它。
+因此，上面的命令不会在解析时失败。
+
+但是，如果在执行命令时没有启用 extglob，它将在单词扩展时失败。这意味着，
+如果你在执行命令时没有启用 extglob，命令替换中的模式匹配将无法正常工作。
+
+在 Bash 5.1 中，显式启用 extglob 是最安全的做法。这可以确保在解析和执行命令替换
+时，扩展 glob 模式能够正常工作，避免潜在的解析或执行错误。
+
+你可以通过以下命令显式启用 extglob：
+
+shopt -s extglob
+
+这样可以确保在使用包含 extglob 模式的命令替换时，不会遇到解析或执行失败的问题。
+
+
+?(pattern-list)：模式匹配零次或一次。
+*(pattern-list)：模式匹配零次或多次。
++(pattern-list)：模式匹配一次或多次。
+@(pattern-list)：只匹配一次模式。
+!(pattern-list)：匹配给定模式以外的任何内容。(只有这个受shopt -s extglob影响)
+
+##### 在其它地方使用的情况
+
+但是在其它地方，需要打开`extglob`才能使用。
+
+```bash
+str_basename () { printf "%s" "${2//@(*\/|.*)}" ; }
+```
+
+请看上面这个函数，只有在`extglob`打开的情况下才能正常工作。
+
+
+#### patsub_replacement
+
+`patsub_replacement`可以让你在替换字符串中使用`&`引用被替换子串。其实就是让替换输入更
+简洁而已。但是如果开启，你要使用`&`本身，就需要用反斜杠转义它。或者使用引号显式的
+引用它。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ var=abcdef
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ shopt -s patsub_replacement
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ echo ${var/abc/&xyz&}
+abcxyzabcdef
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ echo ${var/abc/&xyz"$a"}
+abcxyz&def
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ shopt -u patsub_replacement
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ echo ${var/abc/&xyz&}
+&xyz&def
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ echo ${var/abc/abcxyzabc}
+abcxyzabcdef
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code
+$ 
+```
+
+但是这个特性比较危险，使用的时候如果包含变量的情况要考虑使用双引号和不适用的区别
+
+看下面的例子就很能说明问题：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ a='&x&'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ b=xxoo
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ echo ${b//oo/&y}
+xxooy
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ echo ${b//oo/$ay}
+xx
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ echo ${b//oo/${a}y}
+xxooxooy
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ echo ${b//oo/"${a}"y}
+xx&x&y
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ 
+```
+
+#### 关闭扩展
+
+这里有一个[链接](https://wangdoc.com/bash/expansion)对`bash`中的扩展讲得比较详细。
+主要有下面几种：
+
+1. 波浪线扩展
+2. `?`字符扩展
+3. `*`字符扩展
+4. `[ab]`方括号或扩展
+5. `[a-b]`方括号范围扩展
+6. `{a,b}`大括号组合扩展
+7. `{a..b}`大括号范围扩展
+8. 变量扩展
+9. 子命令扩展
+10. 算术扩展
+
+关闭选项`set -f`可以抑制这些扩展，见下面的例子：
+
+不要理解错了，`set -f`只针对匹配文件的情况抑制，字符串是不会受影响的。
+
+```bash
+[root@localhost ~]# set -f
+[root@localhost ~]# 
+[root@localhost ~]# str=abc
+[root@localhost ~]# if [[ $str == [ab]bc ]] ; then
+> echo xx
+> fi
+xx
+[root@localhost ~]# 
+```
+
+1. 波浪线扩展不需要抑制，`set -f`不会抑制它。:TODO: 谁抑制它？
+
+```bash
+[root@localhost ~]# echo ~
+/root
+[root@localhost ~]# a='~'
+[root@localhost ~]# set +f
+[root@localhost ~]# a='~'
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="~")
+[root@localhost ~]# 
+```
+
+2. 抑制问号`?`扩展
+
+```bash
+[root@localhost ~]# set +f
+[root@localhost ~]# a='?bc.txt'
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="abc.txt")
+[root@localhost ~]# set -f
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="?bc.txt")
+[root@localhost ~]# 
+```
+
+3. 抑制星号`*`扩展
+
+```bash
+[root@localhost ~]# set +f
+[root@localhost ~]# 
+[root@localhost ~]# a='[a]bc.txt'
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="abc.txt")
+[root@localhost ~]# set -f
+[root@localhost ~]# a='[a]bc.txt'
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="[a]bc.txt")
+[root@localhost ~]# 
+```
+
+4. 抑制方括号扩展
+
+```bash
+[root@localhost ~]# set +f
+[root@localhost ~]# a="[abc]bc.txt"
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="abc.txt")
+[root@localhost ~]# set -f
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="[abc]bc.txt")
+[root@localhost ~]# 
+```
+
+5. 抑制方括号范围扩展
+
+```bash
+[root@localhost ~]# set +f
+[root@localhost ~]# a="[a-c]bc.txt"
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="abc.txt")
+[root@localhost ~]# set -f
+[root@localhost ~]# a="[a-c]bc.txt"
+[root@localhost ~]# b=($a)
+[root@localhost ~]# declare -p b
+declare -a b=([0]="[a-c]bc.txt")
+[root@localhost ~]# 
+```
+
+6. 抑制大括号组合扩展
+
+关于花括号扩展的嵌套使用，这里有一个[说明](https://blog.csdn.net/astrotycoon/article/details/50886676)。
+
+`set +B`
+
+```bash
+[root@localhost ~]# set -B
+[root@localhost ~]# a=({a,b}bc.txt)
+[root@localhost ~]# declare -p a
+declare -a a=([0]="abc.txt" [1]="bbc.txt")
+[root@localhost ~]# set +B
+[root@localhost ~]# a=({a,b}bc.txt)
+[root@localhost ~]# declare -p a
+declare -a a=([0]="{a,b}bc.txt")
+[root@localhost ~]# 
+```
+
+
+
+7. 抑制大括号范围扩展。
+
+`set +B`
+
+```bash
+[root@localhost ~]# set -B
+[root@localhost ~]# a=({a..b}bc.txt)
+[root@localhost ~]# declare -p a
+declare -a a=([0]="abc.txt" [1]="bbc.txt")
+[root@localhost ~]# set +B
+[root@localhost ~]# a=({a..b}bc.txt)
+[root@localhost ~]# declare -p a
+declare -a a=([0]="{a..b}bc.txt")
+[root@localhost ~]# 
+```
+
+8. 变量扩展、子命令扩展、算术扩展在数组赋值中都没有用。
+
+
+
+
+
 ### 字符串切片
 
 对于包含`unicode`字符的切片操作也是能符合预期：
@@ -2367,6 +3169,15 @@ git reset --hard B
 
 ## 外部命令发送
 
+### 具有前导破折号的文件名
+
+正确的做法是下面这样，使用`--`让bash不要把后面的文件名当成参数来处理。其它的相关
+命令可能也有类似的问题。
+
+```bash
+cp -- "$file" "$target"
+```
+
 ### 组装带参数的外部命令
 
 如果需要发送的命令带参数，那么不能直接把命令+参数一起组装成字符串，而是要把它们放
@@ -2396,6 +3207,37 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other#
 
 如果确保执行的命令中没有空格或者特殊字符分隔问题，那么直接`${cmd[@]}`运行也是可以的，
 但是为了保险，还是用双引号包裹比较安全。
+
+### rm
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# ls
+-xx.txt  1.txt  test_fun_process_bar.sh  xx.txt  yy.txt
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# rm -f *.txt
+rm: invalid option -- 'x'
+Try 'rm ./-xx.txt' to remove the file '-xx.txt'.
+Try 'rm --help' for more information.
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# rm -f -- *.txt
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# rm -f ./*.txt
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# touch '-xx.txt'
+touch: invalid option -- 'x'
+Try 'touch --help' for more information.
+xx
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# touch -- '-xx.txt'
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# ls 
+-xx.txt  test_fun_process_bar.sh
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# ls -l
+total 0
+-rwxrwxrwx 1 root root   0 Jul 18 13:38 -xx.txt
+-rwxrwxrwx 1 root root 549 Jul 16 21:53 test_fun_process_bar.sh
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# rm -f ./*.txt
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# 
+```
+
+先看一个例子，不管是`bash`的内置命令还是外部命令，当遇到参数中包含`-`的时候都很
+容易被命令误当成一个选项，而不是参数来执行，规避这种情况的方法是使用`--`明确让命令
+知道后面的都是参数，而不是选项。具体哪些命令受这个规则影响需要具体测试。
 
 
 ## 一些疑问
@@ -2471,66 +3313,67 @@ test_big_cmd_param_process ()
 
 它会执行括号中的命令，并将其输出作为字符串赋值给变量。这个过程并不涉及到缓冲区的问题，因为它是直接将命令的输出存储到变量中。
 
+### bash4.4的一些BUG
+
+#### 子shell中的循环问题
+
+在`bash4.4`的兼容性列表中有这么一句话：
+
+```bash
+a subshell inherits loops from its parent context, so break or continue will 
+cause the subshell to exit. Bash-5.0 and later reset the loop state to prevent 
+the exit
+```
+
+看一个例子，下面的代码中`子shell`被中断，导致后面的`never print!`不会执行。这是
+`bash4.4`的一个BUG。
+
+```bash
+#!/bin/bash
+
+while true ; do
+( break ; echo 'never print!' ; )
+done
+echo "end"
+```
+
+其实这个问题不严重，因为孤立的`break`或者是`continue`没有任何意义。像下面这个代码
+在`bash4.4`中能正常工作。
+
+```bash
+Storage:~ # cat test.sh 
+#!/bin/bash
+
+while true ; do
+    ( 
+    while true ; do
+    break ;
+    done ;
+    echo 'never print!'
+    )
+done
+echo "end"
+
+Storage:~ # 
+```
+
 
 ### bash5.2的一些不兼容的情况
-
-#### 双圆括号自加
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ tmp_key=xx2
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if (('k[$tmp_key]'++)) ; then echo xx; fi
-bash: ((: 'k[xx2]'++: 语法错误：需要操作数（错误记号是 "'k[xx2]'++"）
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ 
-
-如果不加单引号，是可以的。
-
-```bash
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ tmp_key="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if ((k[$tmp_key]++)) ; then echo xx; fi
-xx
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ if ((k[$tmp_key]++)) ; then echo xx; fi
-xx
-
-q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash
-$ 
-```
-
-但是在别的版本上，必须加单引号，双引号还不行，可能会导致命令被扩展：
-
-```bash
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# tmp_key="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# if ((k[$tmp_key]++)) ; then echo xx; fi
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# -bash: xxx:xx: command not found
--bash: xxx:xx: command not found
--bash: xxxxx:xxxx: command not found
--bash: xxxxx:xxxx: command not found
-^C
-root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
-```
-
-所以关联数组的`((k[$tmp_key]++))`语法最好还是不要写，除非能确认键里面没有特殊字符。
-
-:TODO: 社区求助
-
-`-v`和`unset`用单引号包裹都是可以的。
-
-```bash
-unset 'k[$tmp_key]'
-if [[ -v 'k[$tmp_key]' ]] ; then echo xx; fi
-```
-
-但是要注意，单引号要包裹到最外面，而不是中括号里面(`'$tmp_key'` 这样不行)。
 
 #### 关联数组的追加
 
 :TODO: 社区求助
+
+
+#### 进程替换的语法在某些嵌入式系统中无法使用
+
+```bash
+iBMC-1711 /data/dft/TestPlat/v40elabel_standard_load%card_mode_106/log # mapfile -t _LOG_INIT_VARIABLES_NAME < <(compgen -A variable)
+bash_x: /dev/fd/62: No such file or directory
+iBMC-1711 /data/dft/TestPlat/v40elabel_standard_load%card_mode_106/log # 
+```
+
+从上面看到，进程替换的语法出了问题，目前尚不知道原因。所以当前库中所有的这种语法都被替换了。
+
+:TODO: 待研究。
 

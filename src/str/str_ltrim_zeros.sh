@@ -6,6 +6,8 @@ str_ltrim_zeros ()
 {
     local out_str=''
     printf -v out_str "%s" "${2#"${2%%[!0]*}"}" 
+    # extglob实现
+    # shopt -s extglob ; printf -v out_str "%s" "${2##+(0)}"
 
     if [[ -z "$out_str" ]] ; then
         printf "%s" "${2:0:1}"

@@ -13,8 +13,8 @@ array_grep_block ()
     local _array_grep_block_index
 
     for _array_grep_block_index in "${!_array_grep_block_ref_arr[@]}" ; do
-        if _array_grep_block_tmp_function "$_array_grep_block_index" "${_array_grep_block_ref_arr["$_array_grep_block_index"]}" ; then
-            _array_grep_block_out_arr["$_array_grep_block_index"]="${_array_grep_block_ref_arr["$_array_grep_block_index"]}"
+        if _array_grep_block_tmp_function "$_array_grep_block_index" "${_array_grep_block_ref_arr[$_array_grep_block_index]}" ; then
+            _array_grep_block_out_arr[$_array_grep_block_index]="${_array_grep_block_ref_arr[$_array_grep_block_index]}"
         fi
     done
 

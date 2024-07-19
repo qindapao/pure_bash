@@ -4,11 +4,23 @@
 # 别名的使用要注意,如果作为参数传给高阶函数,要么需要在高阶函数中手动展开,常规使用会自动展开
 # 并且高阶函数调用常规函数的时候不能加引号,不然如果别名带参数,会被当作整体处理
 
-
+# 默认关闭调试
+set +vx
+# 关闭历史命令扩展
+set +H
 
 declare -gA DEFENSE_VARIABLES=([meta]=1 )
+
+# 检查当前环境中的bash选项是否正常(正常情况下只需要hB两个选项,交互式shell会更多)
+# h: 命令历史记录功能
+# B: 启用大括号扩展
+# 强制打开防止意外行为
+set -hB
+
 # 脚本中启用别名扩展(默认关闭)
 shopt -s expand_aliases
+# 默认打开量词扩展
+shopt -s extglob
 # 为了安全起见删除所有的已知别名(防止意外行为)
 unalias -a
 
@@ -49,7 +61,7 @@ meta_get_bash_version ()
     # 1: 主版本号
     # 2: 次版本号
     local part1= part2= part3=
-    if [[ "$BASH_VERSION" =~ ([0-9]+)\.([0-9]+).([0-9]+) ]]; then
+    if [[ "$BASH_VERSION" =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
         # 这和使用引用变量是一个效果
         # 5000017
         part1="${BASH_REMATCH[1]}" ; part2="${BASH_REMATCH[2]}" ; part3="${BASH_REMATCH[3]}"
