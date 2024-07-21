@@ -2305,9 +2305,6 @@ root@DESKTOP-0KALMAH:~#
 
 这种用法可以用来构造可执行的代码块。也不要把这个参数直接传递给函数，赋值给变量，然后把变量传递给函数，用双引号保护。
 
-
-**注意**: 单引号唯一的缺点是，在单引号中无法再表示别的单引号！
-
 其实单引号中也可以包裹别的单引号！只是比较麻烦，如下：
 
 ```bash
@@ -2319,6 +2316,8 @@ root@DESKTOP-0KALMAH:~#
 
 
 #### 双引号
+
+:TODO: 排查整个库的代码中单双引号使用问题!
 
 在Bash中，双引号内的字符大多数会保持其字面值，但有一些特殊字符除外。双引号会处理以下特殊字符：
 
@@ -2357,6 +2356,107 @@ k=$a
 l=$c
 declare -p a b c m k l
 ```
+
+类似于下面的语法`-`这种后面的也是被视为参数，如果是一个变量值扩展，可以不加双引号，但是如果
+是裸露字符串，就看情况而定。
+
+```bash
+local IFS=${3-${IFS}}
+```
+
+但是外层的双引号一定要谨慎，请看下面的例子：
+
+```bash```
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk=${baz:-'$(cat 1.txt)'}
++ xyk='$(cat 1.txt)'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk="${baz:-'$(cat 1.txt)'}"
+++ cat 1.txt
++ xyk=''\''*'\'''
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk=${baz:-"$(cat 1.txt)"}
+++ cat 1.txt
++ xyk='*'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ 
+```
+
+上面不符合预期的情况，可以按照下面来理解：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk="${baz:-'$(cat 1.txt)'}"
+++ cat 1.txt
++ xyk=''\''*'\'''
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk="'$(cat 1.txt)'"
+++ cat 1.txt
++ xyk=''\''*'\'''
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ 
+```
+
+也就是说在单引号的外面不要有双引号，因为外面的双引号会让里面的单引号失去了原来的
+作用。然后字符串就按照顺序被展开。
+
+再看一个例子：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ echo "${baz:-'$(cat 1.txt)'}"
+++ cat 1.txt
++ echo ''\''*'\'''
+'*'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ echo ${baz:-'$(cat 1.txt)'}
++ echo '$(cat 1.txt)'
+$(cat 1.txt)
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ 
+```
+
+所以`${}`里面的扩展就最好不要在命令的上下文执行了。会有很多歧义。还是那个原因，单
+引号在双引号中失去特殊作用。特别注意。从整个完整的命令来看你的引号的使用情况，特别
+是涉及到嵌套的情况。
+
+所以从验证结果来看，最外面不加双引号反而是最安全的(因为不知道里面是否会出现单引号
+保护)，里面如果是纯变量扩展也不要加， 裸露字符串依情况而定加单引号(保留原意)或者
+双引号(裸露字符串和变量扩展混合)。请看下面一些正确的范例：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk=${baz:-'$(cat 1.txt)'}
++ xyk='$(cat 1.txt)'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk=${baz:-$(cat 1.txt)}
+++ cat 1.txt
++ xyk='*'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk=${baz:-"$(cat 1.txt) * ' !"}
+++ cat 1.txt
++ xyk='* * '\'' !'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ xyk=${baz:-'$(cat 1.txt) * '\'' !'}
++ xyk='$(cat 1.txt) * '\'' !'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
+$ 
+```
+
+注意上面单引号中如果包含单引号，要用`'\''`这种形式。
+
+
 
 
 2. 圆括号的命令替换，不用加双引号保护。
@@ -2486,6 +2586,7 @@ xx
 Storage:~ # 
 ```
 
+不过，你的本意如果就是为了让变量中的特殊字符被扩展，那么也不应该加引号，看需求而定。
 
 
 ### 变量替换

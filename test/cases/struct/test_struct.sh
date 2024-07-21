@@ -44,7 +44,9 @@ local -a my_dict=()
 struct_load my_dict 'test1.txt'
 struct_dump_hq my_dict
 
-struct_push my_dict 4 [hahahah] 1 '' 'qq1'
+struct_push my_dict 4 '[hahah
+geg
+ah]' 1 '' 'qq1'
 struct_push my_dict 4 [hahahah] 1 '' 'qq2'
 struct_push my_dict 4 [hahahah] 1 '' 'qq3'
 struct_push my_dict 4 [hahahah] 1 '' 'qq4'
@@ -57,7 +59,9 @@ struct_pop xx my_dict 4 [hahahah] 1
 struct_pop xx my_dict 4 [hahahah] 1
 struct_pop xx my_dict 4 [hahahah] 1
 struct_pop xx my_dict 4 [hahahah] 1
-struct_push my_dict 4 [hahahah] 1 '' 'qq5'
+struct_push my_dict 4 [hahahah] 1 '' 'qq
+ge 5 gge  
+geg geg'
 struct_push my_dict 4 [hahahah] 1 '' 'qq4'
 struct_pop xx my_dict 4 [hahahah] 1
 struct_pop xx my_dict 4 [hahahah] 1
@@ -75,9 +79,19 @@ struct_push my_dict 4 [hahahah2] 1 '' 'qq5'
 struct_dump_hq my_dict
 struct_shift xx my_dict 4 [hahahah]
 struct_dump_hq my_dict
-struct_push my_dict 4 [hahahah2] 2 1 3 '' 'qq5'
+
+local a='gge
+geg geg gge
+ggg'
+printf -v a "%q" "$a"
+b+="$a"$'\n'
+b+="$a"$'\n'
+b+="$a"$'\n'
+
+struct_push my_dict 4 [hahahah2] 2 1 3 '' "$b"
 struct_unshift my_dict 4 [hahahah2] 2 2 3 '' 'qq5'
 struct_dump_hq my_dict
+struct_dump_ho my_dict
 
 }
 test_case1

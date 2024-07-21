@@ -13,7 +13,7 @@
 str_to_array ()
 {
     local - ; set -f ; set +B
-    local IFS="${3-${IFS}}"
+    local IFS=${3-${IFS}}
     eval -- ''$1'=($2)'
 }
 

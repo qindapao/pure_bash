@@ -119,6 +119,14 @@ struct_set_field ()
         # 这里要先取消变量的属性
         unset _struct_set_field_tmp_var ; local _struct_set_field_tmp_var=''
         # 嵌套太深,字符数量千万级的时候,这里需要0.6秒(这个语法bash4.4以及以后引入)
+        # declare -p 的字符串在bash5.2返回引用字符串,在以前的版本是原始字符串
+        # 但是这没有关系
+        # declare -- valid_chars=$'abcd\n '
+        # declare -- 'valid_chars=abcd
+        #  '
+        # 上面两种情况变量是相等的，特别注意 declare -- valid_chars="$'abcd\n '"
+        # 如果在已经是引用字符串外面再套一层引号再赋值，就不是原字符串自己了。而是引用字符串本身，切记!
+        # 就像下面这样,所以解包的时候才需要eval展开
         _struct_set_field_tmp_var="${_struct_set_field_data_lev_ref[@]@A}"
     done
     

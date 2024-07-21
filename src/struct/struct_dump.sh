@@ -36,7 +36,8 @@ _struct_dump ()
     local -a __struct_dump_tree_nodes=("${@}")
 
     local -i __struct_dump_tree_node_lev=0
-    local __struct_dump_tree_node_key=""
+    local __struct_dump_tree_node_key="" __struct_dump_tree_node_key_padding=""
+    local __struct_dump_tree_node_value_padding=""
     local __struct_dump_tree_node_value=""
     local __struct_dump_printf_mark=""
 
@@ -56,8 +57,14 @@ _struct_dump ()
         if [[ "$__struct_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ _struct_set_field_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
             # 不是叶子节点,先打印当前数据结构的键,然后把当前键值对压入栈中
             case "$__struct_dump_print_type_bit_map" in
-            1|3)  printf "%*s%s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key" " ${__struct_dump_printf_mark}" ;;
-            0|2)  printf "%*s%q%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key" " ${__struct_dump_printf_mark}" ;;
+            1|3)  
+                printf -v __struct_dump_tree_node_key_padding "%-$((4*__struct_dump_tree_node_lev))s" ' '
+                __struct_dump_tree_node_key_padding=${__struct_dump_tree_node_key//$'\n'/$'\n'$__struct_dump_tree_node_key_padding}
+                
+                printf "%*s%s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key_padding" " ${__struct_dump_printf_mark}" 
+                ;;
+            0|2)
+                printf "%*s%q%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key" " ${__struct_dump_printf_mark}" ;;
             esac
 
             # 变量类型可能改变,这里必须unset,这里和递归不同,递归只用一次
@@ -81,15 +88,22 @@ _struct_dump ()
             done
         else
             case "$__struct_dump_print_type_bit_map" in
-            0) printf "%*s%q%s%q\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key"  " ${__struct_dump_printf_mark} " "$__struct_dump_tree_node_value" ;;
-            1) printf "%*s%s%s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key"  " ${__struct_dump_printf_mark} " "$__struct_dump_tree_node_value" ;;
+            1|3)
+                printf -v __struct_dump_tree_node_key_padding "%-$((4*__struct_dump_tree_node_lev))s" ' '
+                __struct_dump_tree_node_key_padding=${__struct_dump_tree_node_key//$'\n'/$'\n'$__struct_dump_tree_node_key_padding}
+
+                printf -v __struct_dump_tree_node_value_padding "%-$((4*(__struct_dump_tree_node_lev+1)))s" ' '
+                __struct_dump_tree_node_value_padding=${__struct_dump_tree_node_value//$'\n'/$'\n'$__struct_dump_tree_node_value_padding}
+                ;;&
+            0)  printf "%*s%q%s%q\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key"  " ${__struct_dump_printf_mark} " "$__struct_dump_tree_node_value" ;;
+            1)  printf "%*s%s%s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key_padding"  " ${__struct_dump_printf_mark} " "$__struct_dump_tree_node_value_padding" ;;
             2)
                 printf "%*s%q%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key"  " ${__struct_dump_printf_mark} "
                 printf "%*s%q\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_value"
                 ;;
             3)
-                printf "%*s%s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key"  " ${__struct_dump_printf_mark} "
-                printf "%*s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_value"
+                printf "%*s%s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_key_padding"  " ${__struct_dump_printf_mark} "
+                printf "%*s%s\n" "$((4*__struct_dump_tree_node_lev))" ' ' "$__struct_dump_tree_node_value_padding"
                 ;;
             esac
         fi

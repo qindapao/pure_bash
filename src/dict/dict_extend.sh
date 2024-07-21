@@ -1,5 +1,3 @@
-dict_extend.sh
-
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[dict_extend]++)) && return 0
 

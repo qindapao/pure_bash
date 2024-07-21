@@ -40,7 +40,7 @@ com_result_check ()
             local -i is_invalid_char_exist=0 line_num=1
             mapfile -t com_logs_contents < "${COM_LOGS[slot_num]}"
             for line_str in "${com_logs_contents[@]}" ; do
-                tmp_str="${line_str//[^"$valid_chars"]/}"
+                tmp_str=${line_str//[^"$valid_chars"]/}
                 # 如果转换后的字符串[]开头,填补一个null
                 [[ "$tmp_str" =~ ^\[\](.*) ]] && tmp_str+="[null]${BASH_REMATCH[1]}"
                 [[ "$tmp_str" != "$line_str" ]] && ((is_invalid_char_exist++))
