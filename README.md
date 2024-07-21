@@ -1364,6 +1364,25 @@ test_case1
 当然一般情况下是不推荐这么写的，除非有明显的好处。只是展示下`eval`命令提供了无限的
 可能，不过这个命令是把双刃剑，有命令注入的风险，具体取舍就看情况而定了。
 
+使用`--`主要是防止在命令的展开过程中eval把命令的参数当成选项。
+
+```bash
+qinqing@DESKTOP-0MVRMOU:~$ eval "$xa="\$a""
++ eval '- - -=$a'
+-bash: eval: - ：无效选项
+eval：用法： eval [参数 ...]
+qinqing@DESKTOP-0MVRMOU:~$ eval "\$xa="\$a""
++ eval '$xa=$a'
+++ - - -=- - -
+++ '[' -x /usr/lib/command-not-found ']'
+++ /usr/lib/command-not-found -- -
+-：未找到命令
+++ return 127
+qinqing@DESKTOP-0MVRMOU:~$ 
+```
+
+看上面的例子，`eval '- - -=$a'`，如果是展开过程中`eval`发现了`-`，就会当成选项，但是
+在展开已经完成后，出现的`-`是没有副作用的，比如例子中的`- - -=- - -`。
 
 #### unset
 
