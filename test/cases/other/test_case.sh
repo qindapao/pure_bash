@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 _test_case_old_dir="$PWD"
-root_dir="${_test_case_old_dir%%/pure_bash*}/pure_bash"
+root_dir="${PWD%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src
 . ./date/date_log.sh || return 1
