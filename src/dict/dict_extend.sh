@@ -54,30 +54,17 @@ if ((__META_BASH_VERSION>=5002000)) ; then
         true
     }
 else
-    # :TODO: 待测试
     dict_extend ()
     {
         atom_is_varname_valid "$1" "$2" || return 1
         local _dict_extend_script_i${1}${2}='
             local i'$1$2'
-            # ldebug_p "we are here"
             for i'$1$2' in "${!'$2'[@]}"; do
                 '$1'["${i'$1$2'}"]="${'$2'["${i'$1$2'}"]}"
             done'
         # 用eval执行代码的一个问题是会造成日志中打印的行号不准,要自己根据偏移计算下,但是不会影响其它部分的代码的行号计算
         eval -- eval -- \"\$"_dict_extend_script_i${1}${2}"\"
         true
-
-        # lwarn_p "we are ohter line"
-        # lerror_p "we are ohter line2"
-        # [d ./dict/dict_extend.sh dict_extend(67):test_case1(37):main(41) 2024-07-10T15:08:42] we are here 
-        # ----------------------------------------------------------------------------------
-        # [d ./dict/dict_extend.sh dict_extend(67):test_case1(37):main(41) 2024-07-10T15:08:42] we are ohter line 
-        # ----------------------------------------------------------------------------------
-        # [d ./dict/dict_extend.sh dict_extend(68):test_case1(37):main(41) 2024-07-10T15:08:42] we are ohter line2 
-        # ----------------------------------------------------------------------------------
-        # declare -A m=([$'zy\n    xk\n    122']=$'geg\n    gege' [$'45g \n    geg\n    ']=$'gge\n    gege\n    123' )
-        # root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
     }
 fi
 

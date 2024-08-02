@@ -19,7 +19,7 @@ bit_num_to_binary ()
         printf -v value_decimal "%d" "$((2#${value:2}))"
     elif [[ "$value" =~ ^[0-9]+$ ]]; then
         # 删除前导0
-        value=$(str_ltrim_zeros_s "$value")
+        str_ltrim_zeros_s "$value" value
         printf -v value_decimal "%s" "$value"
     fi
 

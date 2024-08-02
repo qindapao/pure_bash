@@ -20,7 +20,7 @@ dict_grep_block ()
 
     unset -f _dict_grep_block_tmp_function
 
-    ((${#_dict_grep_ref_out_arr[@]})) && return 0 || return 1
+    ((${#_dict_grep_ref_out_arr[@]}))
 }
 
 return 0

@@ -39,5 +39,12 @@ alias nfor="local - ; set -f ; set +B ; local OLD_IFS=\"\$IFS\" ; local IFS=\$'\
 alias ndo="do IFS=\"\$OLD_IFS\" ; set +f ; set -B ;"
 alias ndone="done ; IFS=\"\$OLD_IFS\" ; set +f ; set -B ;"
 
+# 用法
+# nfor iter in $m ; ndo
+#     # 这里的引号是必须的,不然扩展还会发生
+#     eval iter="$iter"
+#     declare -p iter
+# ndone
+
 return 0
 

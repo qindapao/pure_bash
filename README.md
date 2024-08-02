@@ -1497,7 +1497,6 @@ eval：用法： eval [参数 ...]
 
 ```bash
 eval "ls -l; - ls -l ; - ls -l;"
-
 请问这种情况和
 x='
 ls -l
@@ -2477,8 +2476,136 @@ declare -- a="'"
 root@DESKTOP-0KALMAH:~# 
 ```
 
+其实`bash`中的单引号并不能构建真正的多行字符串，只是让你看起来像是多行字符串，看一个例子：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ zx=" "
++ zx=' '
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare a=' '$zx 'xg'
++ declare 'a=  ' xg
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
++ declare -p a
+declare -- a="  "
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare a=' '$zx'xg'
++ declare 'a=  xg'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ declare -p a
++ declare -p a
+declare -- a="  xg"
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$
+```
+
+Bash 并不支持单引号的嵌套。让我们再仔细分析一下代码：
+
+
+在这行代码中，Bash 会将其解析为三个独立的部分：
+
+' '：这是一个单引号包裹的字符串，内容是一个空格 。
+$zx：这是一个变量，会被替换为变量 zx 的值。
+ ：这是一个独立的空格，会认为需要单词拆分，于是后面的内容都不会赋值给变量了。
+
+所以只有：`declare a=' '$zx'xg'`这种形式下才能把所以的字符串拼接在一起。中间不能有孤立
+的空格。
+
+对命令也同样是这种情况，只是给你看起来是支持单引号嵌套的错觉而已。
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ echo "1 x 3" | awk '{print $'$x'}'
++ awk '{print $2}'
++ echo '1 x 3'
+x
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ echo "1 x 3" | awk '{print $'$x '}'
++ awk '{print $2' '}'
++ echo '1 x 3'
+awk: 命令行:1: {print $2
+awk: 命令行:1:          ^ 未预期的新行或字符串结束
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/nfor
+$ 
+```
+
+上面这个例子就很明显，`awk '{print $2' '}'`，`{print $2`和`}`是展开后的两个字符串
+中间被空格拆分了。所以导致awk命令的参数不完整，从而出了问题。
+
 
 #### 双引号
+
+##### 双引号的嵌套
+
+除了命令替换，双引号里面不能嵌套双引号，下面的情况并不是嵌套而是拼接：
+
+```bash
+ eval "_dict_grep_block_tmp_function() { "$_dict_grep_block_exec_block" ; }"
+```
+
+字符串由以下几部分拼接而成：
+
+`"_dict_grep_block_tmp_function() { "`：这是字符串的开头部分，定义了一个函数 
+`_dict_grep_block_tmp_function` 并开始函数体。
+`$_dict_grep_block_exec_block`：这是一个变量，会被替换为其值。
+`" ; }"`：这是字符串的结尾部分，结束函数体。
+假设 `_dict_grep_block_exec_block` 的值是 `echo "Hello, World!"`，那么最终的字符串会是：
+
+```bash
+"_dict_grep_block_tmp_function() { echo \"Hello, World!\" ; }"
+```
+
+`eval` 命令会将这个字符串作为一个完整的命令来执行，定义一个名为 
+`_dict_grep_block_tmp_function` 的函数，其函数体为 `echo "Hello, World!"`。
+
+只有两种特殊情况：
+
+1. `echo "x $(my_cmd "$parm1" "$param2") y z"`
+
+这里最外层的双引号是包裹`$(...)`命令替换语法的，然后命令替换的小括号内的双引号不
+受最外面的双引号的影响。
+
+2. 关联数组的键
+
+这里和双引号的拼接对比下：
+
+情况一：嵌套双引号
+
+`echo " ${xxo[  x"y      geg       $m   1"2]}    "`
+
+在这个例子中，双引号是嵌套的。具体来说：
+
+外层的双引号包裹了整个字符串。
+内层的双引号出现在关联数组的索引部分 `x"y      geg       $m   1"2` 中。
+这里的内层双引号是索引的一部分，Bash 会将其视为一个整体索引。这种嵌套的双引号确
+保了索引部分的字符串被完整解析。
+
+情况二：拼接双引号
+`echo "gegg "$xxm"  gge"`
+
+在这个例子中，双引号用于字符串拼接：
+
+"gegg " 是一个字符串。
+$xxm 是一个变量，其值会被插入到字符串中。
+"  gge" 是另一个字符串。
+这里的双引号并没有嵌套，而是将不同部分的字符串和变量拼接在一起。Bash 会先解析变
+量 $xxm 的值，然后将所有部分拼接成一个完整的字符串。
+
+所以，`echo "gegg "$xxm"  gge"`这种写法是错误的，并不推荐，只需要外层的双引号就够了。
+
+
+总结
+嵌套双引号：用于确保复杂字符串（如关联数组的索引）被完整解析。
+拼接双引号：用于将多个字符串和变量拼接成一个完整的字符串。
+
 
 :TODO: 排查整个库的代码中单双引号使用问题!
 
@@ -2496,7 +2623,7 @@ root@DESKTOP-0KALMAH:~#
 
 https://rg1-teaching.mpi-inf.mpg.de/unixffb-ss98/quoting-guide.html
 
-一些可以 **不使用双引号** 的情况:
+##### 一些可以不使用双引号的情况
 
 1. 一个变量赋值给另外一个变量，不需要加双引号，就算里面有特殊符号也不会被扩展
 
@@ -2707,6 +2834,20 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# declare -p xxaxxb
 declare -A xxaxxb=(["1 2 3     4!(\$"]="1" )
 root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
 ```
+
+5. 默认值扩展
+
+举一个有意思的例子。
+
+```bash
+b=''
+a="${b:='$(cat 1.txt)'}"
+```
+
+仔细看上面加了双引号好像问题不大，其实问题很大，这里的双引号会导致里面的单引号功能
+失效，从而让`cat 1.txt`的命令执行，其实我们只是想要一个`cat 1.txt`这样的字符串而已，
+所以不该加双引号的地方加上双引号，同样可能导致问题。
+
 
 
 **需要加双引号**保护的情况：
@@ -3223,6 +3364,18 @@ $
 
 #### 关闭扩展
 
+每执行一个命令之前，`bash`都会进行下面的操作：
+
+1. brace expansion
+2. tilde expansion
+3. parameter and variable expansion
+4. arithmetic expansion
+5. command substitution (done in a left-to-right fashion)
+6. word splitting
+7. pathname expansion
+8. quote removal
+
+
 这里有一个[链接](https://wangdoc.com/bash/expansion)对`bash`中的扩展讲得比较详细。
 主要有下面几种：
 
@@ -3576,6 +3729,13 @@ test_big_cmd_param_process ()
 ```
 
 它会执行括号中的命令，并将其输出作为字符串赋值给变量。这个过程并不涉及到缓冲区的问题，因为它是直接将命令的输出存储到变量中。
+
+关于这个问题的解释，可以看下[这里](https://unix.stackexchange.com/questions/365336/command-line-length-limit-built-in-vs-executable)，还有[这里](https://unix.stackexchange.com/questions/356386/is-there-a-maximum-to-bash-file-name-expansion-globbing-and-if-so-what-is-it)。只有执行`exec()`函数才会出现这个限制。限制的不仅仅是命令行的长度，
+还有命令的长度、其参数以及当前环境变量及其值的组合。
+
+xargs是一个程序，它可以帮助您使用有限数量的参数多次调用程序。
+（为了解决exec()子进程的这个问题。） 
+
 
 ### bash4.4的一些BUG
 

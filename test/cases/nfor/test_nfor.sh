@@ -3,7 +3,7 @@
 set +E
 
 _test_trap_try_old_dir="$PWD"
-root_dir="${_test_trap_try_old_dir%%/pure_bash*}/pure_bash"
+root_dir="${PWD%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src
 # . ./log/log_dbg.sh || return 1
@@ -17,7 +17,7 @@ cd "$_test_trap_try_old_dir"
 
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
-
+# set -x
 
 test_case1 ()
 {
@@ -32,10 +32,6 @@ test_case1 ()
         echo "$i"
     ndone
 }
-
-test_case1
-
-exit 0
 
 nfor_func ()
 {
@@ -157,6 +153,47 @@ test_bool ()
     i=0
     ((i<=0))
 }
+
+test_nfor_special ()
+{
+    local a='1
+    gge geg * 
+    a 2 * * '
+    local b='12 3 
+    a b c * * '
+    local c='xx xy
+    gg ge * ! (  )'
+
+
+    m=$(printf "%q" "$a")
+    m+=$'\n'
+    m+=$(printf "%q" "$b")
+    m+=$'\n'
+    m+=$'\n'
+    m+=$'\n'
+    m+=$'\n'
+    m+=$'\n'
+    m+=$'\n'
+    m+=$(printf "%q" "$c")
+    m+=$'\n'
+    m+=$'\n'
+    m+=$'\n'
+    
+    declare -p m
+    
+    local iter
+    nfor iter in $m ; ndo
+        # 这里iter2和iter相同
+        eval iter2="\$iter"
+        # 这里的引号是必须的,不然扩展还会发生
+        # 这里iter展开一次后的结果
+        eval iter="$iter"
+        declare -p iter iter2
+    ndone
+}
+
+test_nfor_special
+exit 0
 
 test_bool
 echo "?:$?"

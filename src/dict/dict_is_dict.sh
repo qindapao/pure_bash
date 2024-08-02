@@ -7,7 +7,7 @@
 # 1: 需要判断的数组的名字
 dict_is_dict ()
 {
-    atom_identify_data_type "${1}" "A" && return 0 || return 1
+    atom_identify_data_type "${1}" "A"
 }
 
 

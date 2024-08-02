@@ -15,7 +15,7 @@ bit_num_to_dec ()
         printf "%d" "$((2#${value:2}))"
     elif [[ "$value" =~ ^[0-9]+$ ]]; then
         # 删除前导0
-        value=$(str_ltrim_zeros_s "$value")
+        str_ltrim_zeros_s "$value" value
         printf "%s" "$value"
     fi
 }
