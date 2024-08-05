@@ -1,9 +1,6 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[set_diff]++)) && return 0
 
-. ./dict/dict_extend.sh || return 1
-. ./atom/atom_func_reverse_params.sh || return 1
-
 # 求两个集合的差集
 # 1: 大集合
 # 2: 小集合

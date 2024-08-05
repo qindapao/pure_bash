@@ -5,7 +5,7 @@
 # :TODO: 测试代码块中有别名的情况
 dict_grep_block ()
 {
-    local -n _dict_grep_block_ref_dict=$1 _dict_grep_block_out_dict=$2
+    local -n _dict_grep_block_{ref_dict="$1",out_dict="$2"}
     _dict_grep_block_out_dict=()
     local _dict_grep_block_exec_block=$3
 

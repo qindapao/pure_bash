@@ -5,8 +5,7 @@
 struct_set_params_del_bracket ()
 {
     local -n _struct_set_params_del_bracket_params_array_ref=$1
-    local _struct_set_params_del_bracket_index
-    local _struct_set_params_del_bracket_tmp_var
+    local _struct_set_params_del_bracket_{index,tmp_var}
 
     for _struct_set_params_del_bracket_index in "${!_struct_set_params_del_bracket_params_array_ref[@]}" ; do
         _struct_set_params_del_bracket_tmp_var="${_struct_set_params_del_bracket_params_array_ref["$_struct_set_params_del_bracket_index"]}"

@@ -2,7 +2,7 @@
 ((DEFENSE_VARIABLES[array_sort]++)) && return 0
 
 . ./array/array_map_block.sh || return 1
-. ./str/str_split.sh || return 1
+. ./str/str_split_pure.sh || return 1
 
 # :TODO: 当前的素值排序只支持整形并不支持浮点数,如果要支持浮点数函数的性能会大幅降低
 # :TODO: 为了支持稳定排序(多域段优先级排序),当前的函数和后面需要实现的qsort函数需要支持
@@ -57,7 +57,7 @@
 _array_sort ()
 {
     local -n __array_sort_ref_arr=$1
-    local __array_sort_mark=$2 __array_sort_delimiter=$3 __array_sort_field=$4
+    local __array_sort_{mark="$2",delimiter="$3",field="$4"}
     declare -a __array_sort_arr_indexs=("${!__array_sort_ref_arr[@]}")
     ((${#__array_sort_arr_indexs[@]})) || return 
 
@@ -66,9 +66,8 @@ _array_sort ()
 
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
-        # str_split_pure_s "$1" "<" "2" 也可以
-        local _array_sort_block_str='str_split_s "'$2'" "'$__array_sort_delimiter'" "'$__array_sort_field'"'
-        array_map_block __array_sort_tmp_arr_filed "$_array_sort_block_str"
+        # 后面是完整的参数不能拆行
+        array_map_block __array_sort_tmp_arr_filed 'str_split_pure_s "$2" '\"$__array_sort_delimiter\"' '\"$__array_sort_field\"
     fi
 
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}

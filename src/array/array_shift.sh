@@ -6,7 +6,7 @@
 # 使用方法:  array_shift arr_name element
 array_shift ()
 {
-    local -n _array_shift_ref_arr=$1 _array_shift_ref_ret=$2
+    local -n _array_shift_ref_{arr="$1",ret="$2"}
     local array_shift_shift_element=
     local _array_shift_indexs=("${!_array_shift_ref_arr[@]}")
     ((${#_array_shift_indexs[@]})) || return 1

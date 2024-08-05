@@ -9,6 +9,7 @@
 # 参数: 1 最终保存的字符串名
 #       2 读取的二进制文件的完整路径
 # 这个函数速度很快
+# :TODO: bash无法处理$'\0'的空字符,需要确认下二进制数据中是否可能包含空字符
 bit_save_binary ()
 {
     atom_is_varname_valid "$1" || return 1

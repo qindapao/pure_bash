@@ -36,9 +36,7 @@ _struct_dump ()
     local -a __struct_dump_tree_nodes=("${@}")
 
     local -i __struct_dump_tree_node_lev=0
-    local __struct_dump_tree_node_key="" __struct_dump_tree_node_key_padding=""
-    local __struct_dump_tree_node_value_padding=""
-    local __struct_dump_tree_node_value=""
+    local __struct_dump_tree_node_{key=,key_padding=,value_padding=,value=}
     local __struct_dump_printf_mark=""
 
     local __struct_dump_index=''

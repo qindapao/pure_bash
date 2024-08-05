@@ -13,7 +13,7 @@ str_split ()
     case $1 in
         -i)
         # 从标准输入读取数据
-        read -d '' input_str
+        read -r -d '' input_str || true
         shift
         ;;
         -s)
@@ -23,7 +23,7 @@ str_split ()
         ;;
         -f)
         # 从文件读取数据
-        read -d '' input_str < "$2"
+        read -r -d '' input_str < "$2" || true
         shift 2
         ;;
     esac

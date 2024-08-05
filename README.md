@@ -2355,7 +2355,7 @@ EOF
 引号还有个意义是可以让你的here docs的结束符保持缩进
 
 ```bash
-root@DESKTOP-0KALMAH:~# read -d '' -r xx<<"    EOF"
+root@DESKTOP-0KALMAH:~# read -r -d '' -r xx<<"    EOF"
     a="$1"
     b="\$2"
     EOF

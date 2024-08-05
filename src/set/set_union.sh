@@ -22,7 +22,7 @@ set_union ()
     # 翻转函数的参数
     atom_func_reverse_params
     while(($#-1)) ; do
-        eval -- "dict_extend \"\${$#}\" \"$1\"" 
+        eval -- "dict_extend \"\${$#}\" \"\$1\"" 
         shift
     done
 

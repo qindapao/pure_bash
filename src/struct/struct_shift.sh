@@ -24,7 +24,7 @@
 #   struct_get_field 的返回值
 struct_shift ()
 {
-    local -n _struct_shift_struct_ret=$1 _struct_shift_struct_ref=$2
+    local -n _struct_shift_struct_{ret="$1",ref="$2"}
     shift 2
 
     local -a _struct_shift_get_params=("${@}")

@@ -152,6 +152,7 @@ log_dbg ()
         stty -echo 2>/dev/null
         dd if=/dev/tty bs=1 count=1 2>/dev/null
         #打开回显
+        printf "\033[32m%s\033[0m\n" "continue!"
         stty echo 2>/dev/null
         stty $_log_dbg_savedstty 2>/dev/null
     fi

@@ -8,7 +8,7 @@
 # 1: 数组为空
 array_pop ()
 {
-    local -n _array_pop_ref_arr=$1 _array_pop_ref_ret=$2
+    local -n _array_pop_ref_{arr="$1",ret="$2"}
     local _array_pop_ref_pop_element=
     ((${#_array_pop_ref_arr[@]})) || return 1
     

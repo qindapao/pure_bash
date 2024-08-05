@@ -22,7 +22,7 @@ str_split_pure ()
     case $1 in
         -i)
         # 从标准输入获取数据
-        read -d '' input_str
+        read -r -d '' input_str || true
         shift
         ;;
         # 从字符串获取数据
@@ -58,8 +58,8 @@ str_split_pure ()
 }
 
 # 这里的双引号最好留着,表明是一个参数
-alias str_split_pure_i 'str_split_pure "-i"'
-alias str_split_pure_s 'str_split_pure "-s"'
+alias str_split_pure_i='str_split_pure "-i"'
+alias str_split_pure_s='str_split_pure "-s"'
 
 return 0
 

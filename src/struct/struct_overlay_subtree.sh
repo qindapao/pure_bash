@@ -14,16 +14,12 @@
 #   其它: struct_set_field的返回值
 struct_overlay_subtree ()
 {
-    local -n _struct_overlay_subtree_father_struct_ref=$1
-    local -n _struct_overlay_subtree_son_struct_ref=$2
+    local -n _struct_overlay_subtree_{father_struct_ref="$1",son_struct_ref="$2"}
     # 注意这里,如果要挂接的是关联数组的键[key]形式传入,否则用数字键
     shift 2
-    local _struct_overlay_subtree_add_keys=("${@}")
-    local _struct_overlay_subtree_add_keys_nude=("${@}")
-    local _struct_overlay_subtree_param_left_padding=''
-    local _struct_overlay_subtree_param_right_padding=''
-    local _struct_overlay_subtree_son_index=''
-    local _struct_overlay_subtree_ret_code=0
+    local -a _struct_overlay_subtree_add_keys=("${@}")
+    local -a _struct_overlay_subtree_add_keys_nude=("${@}")
+    local _struct_overlay_subtree_{param_left_padding=,param_right_padding=,son_index=,ret_code=0}
     
     # 参数合法性检查
     struct_set_params_check "${_struct_overlay_subtree_add_keys[@]}" || return 1

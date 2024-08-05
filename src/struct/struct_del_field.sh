@@ -22,9 +22,7 @@ struct_del_field ()
     # 不是顶级键的情况,从上到下查找
     # 记录每层需要更新的索引(0 1层不处理先占位)
     local -a _struct_del_field_index_lev=('' '')
-    local _struct_del_field_index _struct_del_field_top_level_str=''
-    local _struct_del_field_lev_cnt=1
-    local _struct_del_field_index_first=$1
+    local _struct_del_field_{index,top_level_str="",lev_cnt=1,index_first="$1"}
 
     [[ -z "$_struct_del_field_index_first" ]] && return 1
     if [[ "${_struct_del_field_struct_ref@a}" != *A* ]] && ! [[ "${_struct_del_field_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then

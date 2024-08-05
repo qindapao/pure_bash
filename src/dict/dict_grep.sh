@@ -5,7 +5,7 @@
 # 不改变原始的字典
 dict_grep ()
 {
-    local -n _dict_grep_ref_dict=$1 _dict_grep_ref_out_dict=$2
+    local -n _dict_grep_ref_{dict="$1",out_dict="$2"}
     _dict_grep_ref_out_dict=()
     # local _dict_grep_function=${BASH_ALIASES[$3]-$3}
     local _dict_grep_function=$3

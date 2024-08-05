@@ -37,7 +37,7 @@ struct_set_field ()
     # eval local _struct_set_field_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev{1..20}=''
     # 记录每层需要更新的索引(0 1层不处理先占位)
     local -a _struct_set_field_index_lev=('' '') _struct_set_filed_index_type=('' '')
-    local _struct_set_field_index _struct_set_field_set_type _struct_set_field_set_index _struct_set_field_top_level_str
+    local _struct_set_field_{index,set_type,set_index,top_level_str}
     _struct_set_field_top_level_str="${@:$#:1}"
 
     local _struct_set_field_set_index_first="${1#[}" ; _struct_set_field_set_index_first="${_struct_set_field_set_index_first%]}"

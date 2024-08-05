@@ -46,10 +46,8 @@ struct_load ()
     local -a _struct_load_struct_file_contents=()
     local -a _struct_load_struct_file_contents_tmp=()
     local -a _struct_load_key_stack=()
-    local _struct_load_line_last_char=''
-    local _struct_load_line_cnt=''
-    local _struct_load_line_content=''
-    local _struct_load_value='' _struct_load_key='' _struct_load_ori_str=''
+    local _struct_load_{value=,key=,ori_str=}
+    local _struct_load_line_{last_char=,cnt=,content=}
     local _struct_load_leaf_set_key=''
     local -i _struct_load_lev=0 _struct_load_pop_cnt=0
 
