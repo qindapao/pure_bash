@@ -8,7 +8,7 @@
 file_del_end_pattern () 
 { 
     local -a map_file=()
-    mapfile -t map_file  < "${1:-/dev/stdin}"
+    mapfile -t map_file  < "${1:-"$PURE_STDIN"}"
     local pattern=$2
     local tmp_line=
     while ((${#map_file[@]})) ; do

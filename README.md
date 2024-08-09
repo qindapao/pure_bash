@@ -2378,7 +2378,7 @@ declare -p xxa
 declare -a xxa=([0]=$'m="geg\ngeg "\n')
 ```
 
-其实还有一种方法让使用`read -d ''`的时候不会触发误报：
+其实还有一种方法让使用`read -r -d ''`的时候不会触发误报：
 
 ```bash
 {

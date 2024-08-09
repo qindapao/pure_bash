@@ -10,7 +10,7 @@ sed_be_no_border ()
 {
     local input_file
     case "$1" in
-    -i) input_file='/dev/stdin' ; shift ;;
+    -i) input_file=$PURE_STDIN ; shift ;;
     -f) input_file=$2 ; shift 2 ;;
     esac
     local begin=$1 end=$2

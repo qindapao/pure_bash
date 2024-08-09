@@ -8,7 +8,7 @@
 file_del_pattern () 
 { 
     local -a map_file=()
-    mapfile -t map_file  < "${1:-/dev/stdin}"
+    mapfile -t map_file  < "${1:-"$PURE_STDIN"}"
     local pattern=$2
     local tmp_line=
     
@@ -18,7 +18,7 @@ file_del_pattern ()
 }
 
 # awk实现版本
-# file_del_pattern () { awk '!/'$2'/' < "${1:-/dev/stdin}" ; }
+# file_del_pattern () { awk '!/'$2'/' < "${1:-"$PURE_STDIN"}" ; }
 
 alias file_del_pattern_pipe='file_del_pattern ""'
 

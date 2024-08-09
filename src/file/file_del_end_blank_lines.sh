@@ -13,7 +13,7 @@ file_del_end_blank_lines ()
         :start
         /^[[:space:]]*$/{$d ; N ; b start }
     }'
-} < "${1:-/dev/stdin}"
+} < "${1:-"$PURE_STDIN"}"
 
 return 0
 

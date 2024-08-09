@@ -50,7 +50,7 @@ if ((__META_BASH_VERSION>=5002000)) ; then
         # 不能用小写的k操作符,但是在printf中可以用小写的k操作符
         # 注意这里需要两层展开
         atom_is_varname_valid "$1" "$2" || return 1
-        eval "eval $1+=(\"\${$2[@]@K}\")"
+        eval -- "eval -- $1+=(\"\${$2[@]@K}\")"
         true
     }
 else
