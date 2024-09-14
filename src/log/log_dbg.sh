@@ -1,10 +1,9 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[log_dbg]++)) && return 0
 
-. ./array/array_del_elements_dense.sh || return 1
 . ./date/date_log.sh || return 1
 . ./date/date_prt_t.sh || return 1
-. ./struct/struct_dump.sh || return 1
+. ./json/json_dump.sh || return 1
 
 
 # :TODO: 打印变量的功能暂时屏蔽掉
@@ -85,7 +84,7 @@ log_dbg ()
                         _log_dbg_declare_str="$_log_dbg_prt_str"
                         # 横向打印原始字符串,更方便阅读(但是换行的时候就比较难看)
                         # :TODO: 如何打印最合适啊?
-                        _log_dbg_declare_str+=$(struct_dump_ho "${!_log_dbg_i}")
+                        _log_dbg_declare_str+=$(json_dump_ho "${!_log_dbg_i}")
                     else
                         [[ "$_log_dbg_prt_str" == "${!_log_dbg_i}" ]] && _log_dbg_prt_str='' || _log_dbg_prt_str+=' '
                         _log_dbg_declare_str="${_log_dbg_prt_str}${_log_dbg_declare_str:8}"
@@ -133,7 +132,7 @@ log_dbg ()
         # echo "==============ALL VARIABLE===================" >>"$LOG_FILE_NAME"
         # for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do
         #     if [[ "${!_log_dbg_i@a}" == *[aA]* ]] ; then
-        #         struct_dump_hq "${_log_dbg_i}" >> "$LOG_FILE_NAME" 
+        #         json_dump_hq "${_log_dbg_i}" >> "$LOG_FILE_NAME" 
         #     else
         #         declare -p "$_log_dbg_i" >> "$LOG_FILE_NAME"
         #     fi
