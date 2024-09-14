@@ -306,8 +306,8 @@ fun_process_bar ()
         )
 
     local show_time_str=${2-${show_time_arr[RANDOM%${#show_time_arr[@]}]}}
-    local -i wait_senconds=$1
-    local sleep_time=$(awk '{print('$wait_senconds'/100)}' <<<'')
+    local -i wait_senconds=${1:-10}
+    local sleep_time=$(awk 'BEGIN {print('$wait_senconds'/100)}')
 
     local -i pi=-1
     local icon=''

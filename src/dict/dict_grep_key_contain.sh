@@ -1,21 +1,22 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[dict_is_key_contain]++)) && return 0
+((DEFENSE_VARIABLES[dict_grep_key_contain]++)) && return 0
 
-# 判断关联数组的键是否包含一个字符串
-dict_is_key_contain ()
+# 截取键包含特定关键字的键值对,返回新关联数组
+# 1: 保存的新数组
+# 2: 原始数组
+# 3: 需要匹配的关键字
+dict_grep_key_contain ()
 {
-    local _script_i${1}='
-        local i'$1'
-        local -i i'$1'_contain=0
-        for i'$1' in "${!'$1'[@]}"; do
-            if [[ "${i'$1'}" == *"${2}"* ]] ; then
-                i'$1'_contain=1
-                break
+    local _script_${1}${2}='
+        '$1'=()
+        local i'$1$2'
+        for i'$1$2' in "${!'$2'[@]}"; do
+            if [[ "${i'$1$2'}" == *"${3}"* ]] ; then
+                '$1'["${i'$1$2'}"]="${'$2'["${i'$1$2'}"]}"
             fi
-        done
-        ((i'$1'_contain))
-    '
-    eval -- eval -- \"\$"_script_i${1}"\"
+        done'
+    eval -- eval -- \"\$"_script_${1}${2}"\"
+    true
 }
 
 return 0

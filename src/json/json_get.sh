@@ -1,11 +1,11 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[struct_get_field]++)) && return 0
+((DEFENSE_VARIABLES[json_get]++)) && return 0
 
 . ./array/array_sort.sh || return 1
 
-# struct_get_field 'field_name' 'struct_name' '4' '0'
+# json_get 'field_name' 'json_name' '4' '0'
 # 下面可以用于获取索引或者判断字段是否存在
-# struct_get_field 'struct_name' '' '4' '0'
+# json_get 'json_name' '' '4' '0'
 # 获取结构体中某个层级每个字段的值(最终的结果可能是字符串也可能是数组或者关联数组,取决于层级所在数据类型)
 # 第一级要么是一个数组要么是一个关联数组
 # 1: 获取到的字段保存数据结构引用
@@ -24,85 +24,85 @@
 #   bit2: 异常3: 索引在原数据中是否存在
 #   bit4: 异常4: 获取到的数据结构是关联数组,但是外部没有声明
 #   bit5: 异常5: 获取到的是字符串,但是外部错误声明为数组或者关联数组
-struct_get_field ()
+json_get ()
 {
-    local -i _struct_get_filed_is_index=1
+    local -i _json_get_filed_is_index=1
     if [[ -n "${1}" ]] ; then
-        _struct_get_filed_is_index=0
-        local -n _struct_get_field_out_var_name=$1
+        _json_get_filed_is_index=0
+        local -n _json_get_out_var_name=$1
     fi
-    local -n _struct_get_field_struct_ref=$2
-    local _struct_get_field_tmp_var=''
+    local -n _json_get_json_ref=$2
+    local _json_get_tmp_var=''
     shift 2
-    local _struct_get_field_param=''
-    local _struct_get_field_flags=''
-    local -i _struct_get_field_ret_code=0
+    local _json_get_param=''
+    local _json_get_flags=''
+    local -i _json_get_ret_code=0
 
     [[ -z "${1}" ]] && return 1
-    if [[ "${_struct_get_field_struct_ref@a}" != *A* ]] && ! [[ "${1}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+    if [[ "${_json_get_json_ref@a}" != *A* ]] && ! [[ "${1}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
         return 2
     fi
 
-    [[ ! -v '_struct_get_field_struct_ref[${1}]' ]] && return 4
+    [[ ! -v '_json_get_json_ref[${1}]' ]] && return 4
 
-    local _struct_get_field_data_lev_ref_last="${_struct_get_field_struct_ref["${1}"]}"
+    local _json_get_data_lev_ref_last="${_json_get_json_ref["${1}"]}"
 
     local -i is_not_first_in=0
-    for _struct_get_field_param in "${@:1}" ; do
-        unset _struct_get_field_tmp_var
+    for _json_get_param in "${@:1}" ; do
+        unset _json_get_tmp_var
 
-        if [[ "$_struct_get_field_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _struct_set_field_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
-            _struct_get_field_flags="${BASH_REMATCH[2]}"
-            declare ${BASH_REMATCH[2]} _struct_get_field_tmp_var
-            eval _struct_get_field_tmp_var="${BASH_REMATCH[3]}"
+        if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+            _json_get_flags="${BASH_REMATCH[2]}"
+            declare ${BASH_REMATCH[2]} _json_get_tmp_var
+            eval _json_get_tmp_var="${BASH_REMATCH[3]}"
         else
-            _struct_get_field_flags=''
+            _json_get_flags=''
             # 如果不匹配就是普通变量
-            local _struct_get_field_tmp_var="${_struct_get_field_data_lev_ref_last}"
+            local _json_get_tmp_var="${_json_get_data_lev_ref_last}"
             break
         fi
 
         if ((is_not_first_in++)) ; then
-            if [[ -z "$_struct_get_field_param" ]] ; then
+            if [[ -z "$_json_get_param" ]] ; then
                 # 索引为空值,遇到就返回
-                ((_struct_get_field_ret_code|=1))
-                return $_struct_get_field_ret_code
+                ((_json_get_ret_code|=1))
+                return $_json_get_ret_code
             fi
             
-            if [[ "$_struct_get_field_flags" != *A* ]] && ! [[ "${_struct_get_field_param}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
-                ((_struct_get_field_ret_code|=2))
-                return $_struct_get_field_ret_code
+            if [[ "$_json_get_flags" != *A* ]] && ! [[ "${_json_get_param}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+                ((_json_get_ret_code|=2))
+                return $_json_get_ret_code
             fi
-            [[ ! -v '_struct_get_field_tmp_var["${_struct_get_field_param}"]' ]] && {
-                ((_struct_get_field_ret_code|=4))
-                return $_struct_get_field_ret_code
+            [[ ! -v '_json_get_tmp_var["${_json_get_param}"]' ]] && {
+                ((_json_get_ret_code|=4))
+                return $_json_get_ret_code
             }
-            _struct_get_field_data_lev_ref_last="${_struct_get_field_tmp_var["$_struct_get_field_param"]}"
+            _json_get_data_lev_ref_last="${_json_get_tmp_var["$_json_get_param"]}"
         fi
     done
  
-    unset _struct_get_field_tmp_var
-    if [[ "$_struct_get_field_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _struct_set_field_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
-        _struct_get_field_flags="${BASH_REMATCH[2]}"
-        declare ${BASH_REMATCH[2]} _struct_get_field_tmp_var
-        eval _struct_get_field_tmp_var="${BASH_REMATCH[3]}"
+    unset _json_get_tmp_var
+    if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+        _json_get_flags="${BASH_REMATCH[2]}"
+        declare ${BASH_REMATCH[2]} _json_get_tmp_var
+        eval _json_get_tmp_var="${BASH_REMATCH[3]}"
     else
-        _struct_get_field_flags=''
+        _json_get_flags=''
         # 如果不匹配就是普通变量
-        local _struct_get_field_tmp_var="${_struct_get_field_data_lev_ref_last}"
+        local _json_get_tmp_var="${_json_get_data_lev_ref_last}"
     fi
 
-    ((_struct_get_filed_is_index)) && {
+    ((_json_get_filed_is_index)) && {
         # 打包安全字符串返回索引,如果是最后一级或者没有找到索引,返回打印空字符串
-        if [[ "$_struct_get_field_flags" == *[aA]* ]] ; then
-            local -a _struct_get_field_indexs=("${!_struct_get_field_tmp_var[@]}")
-            case "$_struct_get_field_flags" in
-            *a*)    array_sort _struct_get_field_indexs '-gt' ;;
-            *A*)    array_sort _struct_get_field_indexs '>' ;;
+        if [[ "$_json_get_flags" == *[aA]* ]] ; then
+            local -a _json_get_indexs=("${!_json_get_tmp_var[@]}")
+            case "$_json_get_flags" in
+            *a*)    array_sort _json_get_indexs '-gt' ;;
+            *A*)    array_sort _json_get_indexs '>' ;;
             esac
-            local _struct_get_field_iter_index=''
-            for _struct_get_field_iter_index in "${_struct_get_field_indexs[@]}" ; do
-                printf "%q\n" "$_struct_get_field_iter_index"
+            local _json_get_iter_index=''
+            for _json_get_iter_index in "${_json_get_indexs[@]}" ; do
+                printf "%q\n" "$_json_get_iter_index"
             done
             return 0
         else
@@ -115,32 +115,32 @@ struct_get_field ()
 
     # 复制当前获取到的变量到外部引用变量中(目前这是最好的方式,因为函数中的变量是动态改变类型的)
     # 并且不能在函数内部改变外部变量的属性,所以如果需要获取关联数组或者别的属性
-    # 需要在函数外部指定${_struct_get_field_out_var_name}引用的变量的属性
-    if [[ "$_struct_get_field_flags" == *[aA]* ]] ; then
-        local _struct_get_field_iter_index
-        _struct_get_field_out_var_name=()
+    # 需要在函数外部指定${_json_get_out_var_name}引用的变量的属性
+    if [[ "$_json_get_flags" == *[aA]* ]] ; then
+        local _json_get_iter_index
+        _json_get_out_var_name=()
 
         # 如果获取到的数据结构是关联数组但是外部没有声明,那么报错
-        if [[ "$_struct_get_field_flags" == *A* ]] && [[ "${_struct_get_field_out_var_name@a}" != *A* ]] ; then
-            ((_struct_get_field_ret_code|=8))
+        if [[ "$_json_get_flags" == *A* ]] && [[ "${_json_get_out_var_name@a}" != *A* ]] ; then
+            ((_json_get_ret_code|=8))
         else
-            for _struct_get_field_iter_index in "${!_struct_get_field_tmp_var[@]}" ; do
-                _struct_get_field_out_var_name["$_struct_get_field_iter_index"]="${_struct_get_field_tmp_var["$_struct_get_field_iter_index"]}"
+            for _json_get_iter_index in "${!_json_get_tmp_var[@]}" ; do
+                _json_get_out_var_name["$_json_get_iter_index"]="${_json_get_tmp_var["$_json_get_iter_index"]}"
             done
         fi
     else
         # 获取获取到的是字符串,但是外部声明为数组,报错
-        if [[ "${_struct_get_field_out_var_name@a}" == *[aA]* ]] ; then
-            ((_struct_get_field_ret_code|=16))
+        if [[ "${_json_get_out_var_name@a}" == *[aA]* ]] ; then
+            ((_json_get_ret_code|=16))
         else
-            _struct_get_field_out_var_name="$_struct_get_field_tmp_var"
+            _json_get_out_var_name="$_json_get_tmp_var"
         fi
     fi
 
-    return $_struct_get_field_ret_code
+    return $_json_get_ret_code
 }
 
-alias struct_get_field_index='struct_get_field ""'
+alias json_get_index='json_get ""'
 
 return 0
 

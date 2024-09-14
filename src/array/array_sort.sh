@@ -67,6 +67,7 @@ _array_sort ()
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
         # 后面是完整的参数不能拆行
+        # :TODO: 这里的效率会比较低下
         array_map_block __array_sort_tmp_arr_filed 'str_split_pure_s "$2" '\"$__array_sort_delimiter\"' '\"$__array_sort_field\"
     fi
 

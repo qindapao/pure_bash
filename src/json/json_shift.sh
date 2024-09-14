@@ -1,15 +1,15 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[struct_shift]++)) && return 0
+((DEFENSE_VARIABLES[json_shift]++)) && return 0
 
 # . ./log/log_dbg.sh || return 1
 . ./array/array_shift.sh || return 1
-. ./struct/struct_get_field.sh || return 1
-. ./struct/struct_del_field.sh || return 1
-. ./struct/struct_set_params_del_bracket.sh || return 1
-. ./struct/struct_overlay_subtree.sh || return 1
+. ./json/json_get.sh || return 1
+. ./json/json_del.sh || return 1
+. ./json/json_set_params_del_bracket.sh || return 1
+. ./json/json_overlay.sh || return 1
 
 # 对某级下挂的数组shift第一个元素到标准输出,并且删除这个元素
-# struct_shift 'struct_name' 'ret' '4' '0' '[key1]'
+# json_shift 'json_name' 'ret' '4' '0' '[key1]'
 # 参数:
 #   1: shift的元素保存的变量
 #   2: 需要shift的数组的引用
@@ -21,40 +21,40 @@
 #       1:重组结构体的时候出错
 #   bit6:
 #       1:删除结构体的时候出错
-#   struct_get_field 的返回值
-struct_shift ()
+#   json_get 的返回值
+json_shift ()
 {
-    local -n _struct_shift_struct_{ret="$1",ref="$2"}
+    local -n _json_shift_json_{ret="$1",ref="$2"}
     shift 2
 
-    local -a _struct_shift_get_params=("${@}")
-    struct_set_params_del_bracket _struct_shift_get_params
+    local -a _json_shift_get_params=("${@}")
+    json_set_params_del_bracket _json_shift_get_params
 
-    local -a _struct_shift_get_array=() _struct_shift_get_array_indexs=()
-    local -i _struct_shift_get_array_max_index=-1 _struct_shift_return_code=0
-    struct_get_field _struct_shift_get_array _struct_shift_struct_ref "${_struct_shift_get_params[@]}"
-    _struct_shift_return_code=$?
-    if ((_struct_shift_return_code)) ; then
-        return $_struct_shift_return_code
+    local -a _json_shift_get_array=() _json_shift_get_array_indexs=()
+    local -i _json_shift_get_array_max_index=-1 _json_shift_return_code=0
+    json_get _json_shift_get_array _json_shift_json_ref "${_json_shift_get_params[@]}"
+    _json_shift_return_code=$?
+    if ((_json_shift_return_code)) ; then
+        return $_json_shift_return_code
     fi
-    _struct_shift_return_code=0
+    _json_shift_return_code=0
 
     # 删除数组的第一个元素
-    array_shift _struct_shift_get_array _struct_shift_struct_ret
+    array_shift _json_shift_get_array _json_shift_json_ret
 
-    if ! ((${#_struct_shift_get_array[@]})) ; then
+    if ! ((${#_json_shift_get_array[@]})) ; then
         # 如果已经是空数组,那么原始数组删除键
-        struct_del_field _struct_shift_struct_ref "${_struct_shift_get_params[@]}"
-        _struct_shift_return_code=$?
-        ((_struct_shift_return_code)) && ((_struct_shift_return_code|=64))
-        return $_struct_shift_return_code
+        json_del _json_shift_json_ref "${_json_shift_get_params[@]}"
+        _json_shift_return_code=$?
+        ((_json_shift_return_code)) && ((_json_shift_return_code|=64))
+        return $_json_shift_return_code
     fi
 
     # 数组重构
-    struct_overlay_subtree _struct_shift_struct_ref _struct_shift_get_array "${@}"
-    _struct_shift_return_code=$?
-    ((_struct_shift_return_code)) && ((_struct_shift_return_code|=128))
-    return $_struct_shift_return_code
+    json_overlay _json_shift_json_ref _json_shift_get_array "${@}"
+    _json_shift_return_code=$?
+    ((_json_shift_return_code)) && ((_json_shift_return_code|=128))
+    return $_json_shift_return_code
 }
 
 return 0
