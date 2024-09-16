@@ -173,6 +173,14 @@ EOF
     json_set 'bash_json2' '[other]' '[xx]' 10 - '10_value'
     json_set 'bash_json2' '[other]' '[xx]' 11 - '11_value'
     echo $?
+
+    json_dump_vq 'bash_json2'
+    # json_overlay 空数组场景
+    local -a bash_son=()
+    json_set 'bash_json2' '[other]' '[pp]' '[kk]' - 'kk_value'
+    json_dump_vq 'bash_json2' | tee json_bash_after.txt
+    json_overlay 'bash_json2' 'bash_son' '[other]' '[pp]' '[kk]'
+
     json_dump_vq 'bash_json2' | tee json_bash_after.txt
 
     # :TODO: json_insert 删除元素保持数组连续
@@ -185,5 +193,35 @@ EOF
 
     # rm -f ./{json_file,json_bash}.txt
 }
-test_case1
+
+test_case2 ()
+{
+cat <<EOF >json_standard.txt
+{
+    "person": {
+        "name": "John",
+        "age": "30",
+        "age2": 33,
+        "kind": ["对这部", "dkkge"]
+    }
+}
+EOF
+
+    json_init   
+
+    json_common_load.py -i json_standard.txt -o json_bash.txt -m 'standard_to_bash'
+    # 测试json_load
+    local -A bash_json=()
+
+    json_load 'bash_json' './json_bash.txt'
+    # 测试json_dump
+    json_dump_vq 'bash_json'
+    
+    declare -p bash_json
+
+
+}
+
+# test_case1
+test_case2
 

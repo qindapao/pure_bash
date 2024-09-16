@@ -7,8 +7,8 @@ json_init ()
     local root_dir
     root_dir="${PWD%%/pure_bash*}/pure_bash"
 
-    cp -f "${root_dir}/src/json/json_common_load.py" /usr/bin/
-    chmod +x /usr/bin/json_common_load.py
+    sudo cp -f "${root_dir}/src/json/json_common_load.py" /usr/bin/
+    sudo chmod +x /usr/bin/json_common_load.py
 }
 
 return 0

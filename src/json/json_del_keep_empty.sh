@@ -1,5 +1,3 @@
-json_del_keep_empty.sh
-
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_del_keep_empty]++)) && return 0
 

@@ -46,9 +46,9 @@ json_overlay ()
     # 空数组或者空hash
     if ((_json_overlay_is_son_json_null)) ; then
         if [[ "${_json_overlay_son_json_ref@a}" == *A* ]] ; then
-            local _json_overlay_set_value='declare\ -A\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=\(\)'
+            local _json_overlay_set_value='declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
         else
-            local _json_overlay_set_value='declare\ -a\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=\(\)'
+            local _json_overlay_set_value='declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
         fi
         json_set _json_overlay_father_json_ref "${_json_overlay_add_keys[@]}" - "$_json_overlay_set_value"
         _json_overlay_ret_code=$?
