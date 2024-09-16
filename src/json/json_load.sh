@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[json_load]++)) && return 0
 
 . ./json/json_set.sh || return 1
+. ./json/json_overlay.sh || return 1
 
 # . ./log/log_dbg.sh || return 1
 
@@ -35,6 +36,7 @@
 
 # 缩进增加的时候键一直往栈里面压,缩进减少的时候键往外弹，减少几个缩进弹几个，然后把当前键加入栈
 # 缩进的数量可以通过计算当前行的前导空格数量/4得到，这个值和栈里面键的数量比较即可
+# :TODO: 无法支持json中的null对象,只能暂时当作字符串处理
 json_load ()
 {
     # 变量的数据类型必须外面定义
@@ -81,23 +83,33 @@ json_load ()
         _json_load_key="${_json_load_line_content#"${_json_load_line_content%%[! ]*}"}"
         # 判断最后一个字符是否是空格确定是否是叶子节点
         _json_load_line_last_char="${_json_load_line_content: -1}"
+        local -i _json_load_space_num=0
+        if [[ "$_json_load_key" =~ ([⇒⩦])([[:space:]]*) ]] ; then
+            _json_load_space_num=${#BASH_REMATCH[2]}
+            _json_load_leaf_set_key=${BASH_REMATCH[1]}
+        fi
 
-        if [[ ' ' == "$_json_load_line_last_char" ]] ; then
-            # 先取key字符,和栈里面组合成的键一起设置数据结构
-            _json_load_value="${_json_load_json_file_contents[_json_load_line_cnt+1]}"
-            _json_load_value="${_json_load_value#"${_json_load_value%%[! ]*}"}"  
-
+        if ((_json_load_space_num)) ; then
             # key和value都要从Q字符串转换成常规字符串(最后三个字符不能转,它们不属于Q字符串 ⇒ )
-            eval "_json_load_ori_str=${_json_load_key:0:-3}"
-            eval "_json_load_value=$_json_load_value"
-
-            _json_load_leaf_set_key="${_json_load_key: -2:1}"
-
+            eval "_json_load_ori_str=${_json_load_key:0:-2-_json_load_space_num}"
 
             if [[ "${_json_load_leaf_set_key}" == '⇒' ]] ; then
                 _json_load_leaf_set_key="[${_json_load_ori_str}]"
             else
                 _json_load_leaf_set_key="${_json_load_ori_str}"
+            fi
+
+            # 如果是字符串用设置值的方式,如果是空数组或者空字典,overlay进去即可
+            # :TODO: 字符串节点和null节点一起处理的,可能不严谨
+            if ((_json_load_space_num<3)) ; then
+                # 先取key字符,和栈里面组合成的键一起设置数据结构
+                _json_load_value="${_json_load_json_file_contents[_json_load_line_cnt+1]}"
+                _json_load_value="${_json_load_value#"${_json_load_value%%[! ]*}"}"  
+                eval "_json_load_value=$_json_load_value"
+            elif ((_json_load_space_num==3)) ; then
+                _json_load_value='declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
+            else
+                _json_load_value='declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
             fi
 
             json_set '_json_load_json_out_ref' "${_json_load_key_stack[@]}" "${_json_load_leaf_set_key}" '' "$_json_load_value"

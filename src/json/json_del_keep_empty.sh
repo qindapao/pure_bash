@@ -1,15 +1,16 @@
+json_del_keep_empty.sh
+
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[json_del]++)) && return 0
+((DEFENSE_VARIABLES[json_del_keep_empty]++)) && return 0
 
 . ./log/log_dbg.sh || return 1
 
 # LOG_LEVEL=2
 
-# :TODO: 中间的索引删除后会造成数组空洞,可能需要解决,因为python是没有稀疏数组的
-# 如果保留稀疏数组,那么可能python的交互可能存在问题
+# 和json_del的不同是,这里删除并不会递归删除空元素
 
 # 删除不需要指定键的类型
-# json_del 'json_name' 'key1' 0 4
+# json_del_keep_empty 'json_name' 'key1' 0 4
 # 结构体复合变量创建
 # 第一级要么是一个数组要么是一个关联数组
 # 
@@ -17,7 +18,7 @@
 #   bit0: 传入的参数中有空字符串
 #   bit1: 原始键是非关联数组,但是想要获取的是字符串键
 #   bit2: 键不存在
-json_del ()
+json_del_keep_empty ()
 {
     local -n _json_del_json_ref=$1
     shift
@@ -88,10 +89,10 @@ json_del ()
             # root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
             unset '_json_del_data_lev_ref[$_json_del_delate_key]'
         else
-            # 如果上一级删除的结果导致了空数组或者空hash,那么继续删除
+            # 如果上一级删除的结果导致了空数组或者空hash,那么保留为空数组或者hash
             if [[ -z "$_json_del_top_level_str" ]] ; then
                 unset '_json_del_data_lev_ref[$_json_del_delate_key]'
-            else
+             else
                 # 如果不是空的,更新索引
                 _json_del_data_lev_ref["$_json_del_delate_key"]="$_json_del_top_level_str"
             fi
@@ -101,7 +102,11 @@ json_del ()
         if((${#_json_del_data_lev_ref[@]})) ; then
             _json_del_top_level_str="${_json_del_data_lev_ref[@]@A}"
         else
-            _json_del_top_level_str=''
+            if [[ "${_json_del_data_lev_ref@a}" == *A* ]] ; then
+                _json_del_top_level_str='declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
+            else
+                _json_del_top_level_str='declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
+            fi
         fi
         ((_json_del_lev_cnt--))
     done

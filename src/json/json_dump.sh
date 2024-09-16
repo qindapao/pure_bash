@@ -51,8 +51,25 @@ _json_dump ()
         __json_dump_tree_node_lev="${__json_dump_tree_nodes[-4]}"
         eval unset __json_dump_tree_nodes[{-4..-1}]
 
+        local __json_dump_node_type='normal'
+        local __json_dump_space_str=''
         # 如果嵌套层数过深,这里会非常耗时,当字符数量达到千万级,这里需要4秒
-        if [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+        if  [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=\(\)$ ]] \
+            || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+$ ]] ; then
+            __json_dump_node_type='null_array_leaf'
+            __json_dump_space_str='   '
+        elif  [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=\(\)$ ]] \
+            || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+$ ]] ; then
+            __json_dump_node_type='null_dict_leaf'
+            __json_dump_space_str='    '
+        elif [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+            __json_dump_node_type='not_leaf'
+        else
+            __json_dump_node_type='str_leaf'
+            __json_dump_space_str=' '
+        fi
+
+        if [[ "$__json_dump_node_type" == 'not_leaf' ]] ; then
             # 不是叶子节点,先打印当前数据结构的键,然后把当前键值对压入栈中
             case "$__json_dump_print_type_bit_map" in
             1|3)  
@@ -76,6 +93,7 @@ _json_dump ()
                 __json_dump_sort_method='<'
                 __json_dump_printf_mark='⇒'
             else
+                __json_dump_sort_method='-lt'
                 __json_dump_printf_mark='⩦'
             fi
             array_sort __json_dump_var_indexs "$__json_dump_sort_method"
@@ -93,14 +111,14 @@ _json_dump ()
                 printf -v __json_dump_tree_node_value_padding "%-$((4*(__json_dump_tree_node_lev+1)))s" ' '
                 __json_dump_tree_node_value_padding=${__json_dump_tree_node_value//$'\n'/$'\n'$__json_dump_tree_node_value_padding}
                 ;;&
-            0)  printf "%*s%q%s%q\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark} " "$__json_dump_tree_node_value" ;;
-            1)  printf "%*s%s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark} " "$__json_dump_tree_node_value_padding" ;;
+            0)  printf "%*s%q%s%q\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark}${__json_dump_space_str}" "$__json_dump_tree_node_value" ;;
+            1)  printf "%*s%s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark}${__json_dump_space_str}" "$__json_dump_tree_node_value_padding" ;;
             2)
-                printf "%*s%q%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark} "
+                printf "%*s%q%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark}${__json_dump_space_str}"
                 printf "%*s%q\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_value"
                 ;;
             3)
-                printf "%*s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark} "
+                printf "%*s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark}${__json_dump_space_str}"
                 printf "%*s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_value_padding"
                 ;;
             esac
