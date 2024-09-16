@@ -1,5 +1,5 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[json_del_keep_empty]++)) && return 0
+((DEFENSE_VARIABLES[json_del_ke]++)) && return 0
 
 . ./log/log_dbg.sh || return 1
 
@@ -8,7 +8,7 @@
 # 和json_del的不同是,这里删除并不会递归删除空元素
 
 # 删除不需要指定键的类型
-# json_del_keep_empty 'json_name' 'key1' 0 4
+# json_del_ke 'json_name' 'key1' 0 4
 # 结构体复合变量创建
 # 第一级要么是一个数组要么是一个关联数组
 # 
@@ -16,7 +16,7 @@
 #   bit0: 传入的参数中有空字符串
 #   bit1: 原始键是非关联数组,但是想要获取的是字符串键
 #   bit2: 键不存在
-json_del_keep_empty ()
+json_del_ke ()
 {
     local -n _json_del_json_ref=$1
     shift

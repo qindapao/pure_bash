@@ -1,10 +1,10 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[json_pop_keep_empty]++)) && return 0
+((DEFENSE_VARIABLES[json_pop_ke]++)) && return 0
 
 # . ./log/log_dbg.sh || return 1
 . ./json/json_get.sh || return 1
 . ./json/json_set_params_del_bracket.sh || return 1
-. ./json/json_overlay_keep_empty.sh || return 1
+. ./json/json_overlay_ke.sh || return 1
 
 # 对某级下挂的结构体pop最后一个元素到标准输出,并且删除这个元素
 # json_pop xx 'json_name' '4' '0' '[key1]'
@@ -19,7 +19,7 @@
 #   bit6:
 #       1:删除结构体的时候出错
 #   json_get 的返回值
-json_pop_keep_empty ()
+json_pop_ke ()
 {
     local -n _json_pop_out_var=$1 _json_pop_json_ref=$2
     shift 2
@@ -48,7 +48,7 @@ json_pop_keep_empty ()
     fi
 
     # 数组重构
-    json_overlay_keep_empty _json_pop_json_ref _json_pop_get_array "${@}"
+    json_overlay_ke _json_pop_json_ref _json_pop_get_array "${@}"
     _json_pop_return_code=$?
     ((_json_pop_return_code)) && ((_json_pop_return_code|=128))
     return $_json_pop_return_code

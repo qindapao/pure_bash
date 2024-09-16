@@ -1,8 +1,8 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[json_overlay_keep_empty]++)) && return 0
+((DEFENSE_VARIABLES[json_overlay_ke]++)) && return 0
 
 . ./json/json_set_params_check.sh || return 1
-. ./json/json_del_keep_empty.sh || return 1
+. ./json/json_del_ke.sh || return 1
 . ./json/json_set.sh || return 1
 . ./json/json_set_params_del_bracket.sh || return 1
 
@@ -12,7 +12,7 @@
 # 返回值:
 #   bit0: 传入的设置参数不合法
 #   其它: json_set的返回值
-json_overlay_keep_empty ()
+json_overlay_ke ()
 {
     local -n _json_overlay_{father_json_ref="$1",son_json_ref="$2"}
     # 注意这里,如果要挂接的是关联数组的键[key]形式传入,否则用数字键
@@ -33,7 +33,7 @@ json_overlay_keep_empty ()
 
     # 先清除原始键(这里不用判断错误),需要删除中括号
     json_set_params_del_bracket '_json_overlay_add_keys_nude'
-    json_del_keep_empty _json_overlay_father_json_ref "${_json_overlay_add_keys_nude[@]}"
+    json_del_ke _json_overlay_father_json_ref "${_json_overlay_add_keys_nude[@]}"
 
     # 开始挂接(子数是数组和关联数组传入的参数是不同的)
     for _json_overlay_son_index in "${!_json_overlay_son_json_ref[@]}" ; do

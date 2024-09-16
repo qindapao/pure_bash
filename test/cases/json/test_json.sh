@@ -7,20 +7,20 @@ cd "$root_dir"/src
 . ./log/log_dbg.sh || return 1
 . ./date/date_log.sh || return 1
 . ./json/json_del.sh || return 1
-. ./json/json_del_keep_empty.sh || return 1
+. ./json/json_del_ke.sh || return 1
 . ./json/json_dump.sh || return 1
 . ./json/json_get.sh || return 1
 . ./json/json_init.sh || return 1
 . ./json/json_load.sh || return 1
 . ./json/json_overlay.sh || return 1
-. ./json/json_overlay_keep_empty.sh || return 1
+. ./json/json_overlay_ke.sh || return 1
 . ./json/json_pack.sh || return 1
 . ./json/json_pop.sh || return 1
-. ./json/json_pop_keep_empty.sh || return 1
+. ./json/json_pop_ke.sh || return 1
 . ./json/json_push.sh || return 1
 . ./json/json_set.sh || return 1
 . ./json/json_shift.sh || return 1
-. ./json/json_shift_keep_empty.sh || return 1
+. ./json/json_shift_ke.sh || return 1
 . ./json/json_unpack.sh || return 1
 . ./json/json_unshift.sh || return 1
 
@@ -91,17 +91,17 @@ EOF
     json_del 'bash_json' 'other' 'mm'
     json_dump_vo 'bash_json'
 
-    # json_del_keep_empty
-    json_del_keep_empty 'bash_json' 'other' 'yy' '不是'
-    json_del_keep_empty 'bash_json' 'other' 'yy' '就是'
+    # json_del_ke
+    json_del_ke 'bash_json' 'other' 'yy' '不是'
+    json_del_ke 'bash_json' 'other' 'yy' '就是'
     json_set 'bash_json' '[other]' '[yy]' '[当然是]' - '234 441'
-    json_del_keep_empty 'bash_json' 'other' 'yy' '当然是'
+    json_del_ke 'bash_json' 'other' 'yy' '当然是'
     json_dump_vq 'bash_json'
-    json_del_keep_empty 'bash_json' 'others' '132' '0'
-    json_del_keep_empty 'bash_json' 'others' '132' '1'
-    json_del_keep_empty 'bash_json' 'others' '132' '2'
+    json_del_ke 'bash_json' 'others' '132' '0'
+    json_del_ke 'bash_json' 'others' '132' '1'
+    json_del_ke 'bash_json' 'others' '132' '2'
     json_set 'bash_json' '[others]' '[132]' '[tst]' '[tst2]' '[tst3]' - 'aggin'
-    json_del_keep_empty 'bash_json' 'others' '132' 'tst' 'tst2' 'tst3'
+    json_del_ke 'bash_json' 'others' '132' 'tst' 'tst2' 'tst3'
     json_dump_vq 'bash_json'
 
     # 测试json_get 
@@ -122,17 +122,17 @@ EOF
     json_dump_vq 'bash_json2'
     json_push 'bash_json2' '[other]' '[xx]' - 'xxhh' 
     json_dump_vq 'bash_json2'
-    json_del_keep_empty 'bash_json2' 'other' 'xx' 0
-    json_del_keep_empty 'bash_json2' 'other' 'xx' 1
-    json_del_keep_empty 'bash_json2' 'other' 'xx' 2
-    json_del_keep_empty 'bash_json2' 'other' 'xx' 3
+    json_del_ke 'bash_json2' 'other' 'xx' 0
+    json_del_ke 'bash_json2' 'other' 'xx' 1
+    json_del_ke 'bash_json2' 'other' 'xx' 2
+    json_del_ke 'bash_json2' 'other' 'xx' 3
     json_dump_vq 'bash_json2'
     json_push 'bash_json2' '[other]' '[xx]' - 'xxhh' 
     json_dump_vq 'bash_json2'
 
 
     # 测试json_unshift
-    json_del_keep_empty 'bash_json2' 'other' 'xx' 0
+    json_del_ke 'bash_json2' 'other' 'xx' 0
     json_dump_vq 'bash_json2'
     json_unshift 'bash_json2' '[other]' '[xx]' - 'xxhh' 
     json_unshift 'bash_json2' '[other]' '[xx]' - 'xxhh2' 
@@ -144,23 +144,23 @@ EOF
     json_dump_vq 'bash_json2'
 
 
-    # 测试json_pop_keep_empty
+    # 测试json_pop_ke
     json_unshift 'bash_json2' '[other]' '[xx]' - 'xxhh' 
     json_unshift 'bash_json2' '[other]' '[xx]' - 'xxhh2' 
     json_dump_vq 'bash_json2'
-    json_pop_keep_empty xx 'bash_json2' '[other]' '[xx]'
-    json_pop_keep_empty xx 'bash_json2' '[other]' '[xx]'
+    json_pop_ke xx 'bash_json2' '[other]' '[xx]'
+    json_pop_ke xx 'bash_json2' '[other]' '[xx]'
     json_pop xx 'bash_json2' '[other]' '[xx]'
     echo $?
     json_dump_vq 'bash_json2'
     
-    # 测试json_shift & json_shift_keep_empty
+    # 测试json_shift & json_shift_ke
     json_unshift 'bash_json2' '[other]' '[xx]' - 'xxhh' 
     json_unshift 'bash_json2' '[other]' '[xx]' - 'xxhh2' 
     json_dump_vq 'bash_json2'
-    json_shift_keep_empty xx 'bash_json2' '[other]' '[xx]'
+    json_shift_ke xx 'bash_json2' '[other]' '[xx]'
     json_dump_vq 'bash_json2'
-    json_shift_keep_empty xx 'bash_json2' '[other]' '[xx]'
+    json_shift_ke xx 'bash_json2' '[other]' '[xx]'
     json_dump_vq 'bash_json2'
     json_shift xx 'bash_json2' '[other]' '[xx]'
     json_set 'bash_json2' '[other]' '[xx]' 0 - '1_value'
