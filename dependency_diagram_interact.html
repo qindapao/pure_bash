@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Bash Dependency Graph</title>
-    <!-- https://d3js.org/d3.v7.min.js -->
-    <!-- https://d3js.org/getting-started -->
     <script src="d3.v7.min.js"></script>
     <style>
         .node {
@@ -36,14 +34,16 @@
         .cycle-node {
             fill: purple;
         }
+        .marked {
+            fill: yellow;
+        }
     </style>
 </head>
 <body>
     <style>
-        /* 其他样式 */
         .info {
             position: absolute;
-            top: 50px;  /* 调整位置 */
+            top: 50px;
             right: 10px;
             background-color: white;
             padding: 5px;
@@ -58,7 +58,7 @@
     <svg width="2500" height="1500">
         <defs>
             <marker id="arrowhead" viewBox="0 -5 10 10" refX="30" refY="0" markerWidth="10" markerHeight="10" orient="auto">
-                <path d="M0,-5L10,0L0,5" fill="#999"></path> <!-- 修改为实心箭头 -->
+                <path d="M0,-5L10,0L0,5" fill="#999"></path>
             </marker>
         </defs>
     </svg>
@@ -92,7 +92,7 @@
                 .enter().append("line")
                 .attr("class", "link")
                 .attr("stroke", d => d.color)
-                .attr("marker-end", "url(#arrowhead)");  // 添加箭头
+                .attr("marker-end", "url(#arrowhead)");
 
             const node = svgGroup.append("g")
                 .attr("class", "nodes")
@@ -118,40 +118,49 @@
                 .attr("y", 3)
                 .text(d => d.id);
 
-            node.on("click", function(event, d) {
+            const markedNodes = new Set();
 
-                // 重置所有节点和连线的颜色和可见性
+            node.on("contextmenu", function(event, d) {
+                event.preventDefault();
+                const circle = d3.select(this).select("circle");
+                if (circle.classed("marked")) {
+                    circle.classed("marked", false).attr("fill", d => color(d.group));
+                    markedNodes.delete(d.id);
+                } else {
+                    circle.classed("marked", true).attr("fill", "yellow");
+                    markedNodes.add(d.id);
+                }
+                updateVisibility();
+            });
+
+            node.on("click", function(event, d) {
+                event.stopPropagation();
                 node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
-                node.classed("hidden", false);  // 确保节点文字也显示
+                node.classed("hidden", false);
                 link.attr("stroke", d => d.color).classed("hidden", false);
 
-                event.stopPropagation();  // 防止事件冒泡到 SVG 画布
-
-                // 隐藏与点击的节点无关的节点和连线
                 node.filter(n => !(n.id === d.id || graph.edges.some(e => (e.source.id === d.id && e.target.id === n.id) || (e.target.id === d.id && e.source.id === n.id))))
                     .classed("hidden", true);
 
                 link.filter(l => !(l.source.id === d.id || l.target.id === d.id))
                     .classed("hidden", true);
+
+                updateVisibility();
             });
 
             svg.on("click", function() {
-                // 重置所有节点和连线的颜色和可见性
                 node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
-                node.classed("hidden", false);  // 确保节点文字也显示
+                node.classed("hidden", false);
                 link.attr("stroke", d => d.color).classed("hidden", false);
             });
 
-            // 添加搜索功能
             d3.select("#search").on("input", function() {
                 const searchTerm = this.value.toLowerCase();
                 if (searchTerm === "") {
-                    // 重置所有节点和连线的颜色和可见性
                     node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
-                    node.classed("hidden", false);  // 确保节点文字也显示
+                    node.classed("hidden", false);
                     link.attr("stroke", d => d.color).classed("hidden", false);
                 } else {
-                    // 高亮显示匹配的节点及其相关连线
                     node.select("circle").attr("fill", d => color(d.group)).classed("hidden", true);
                     link.attr("stroke", d => d.color).classed("hidden", true);
 
@@ -164,7 +173,19 @@
                     link.filter(l => l.source.id.toLowerCase().includes(searchTerm) || l.target.id.toLowerCase().includes(searchTerm))
                         .classed("hidden", false);
                 }
+                updateVisibility();
             });
+
+            function updateVisibility() {
+                node.filter(d => markedNodes.has(d.id))
+                    .select("circle").classed("hidden", false);
+
+                node.filter(d => markedNodes.has(d.id))
+                    .classed("hidden", false);
+
+                link.filter(l => markedNodes.has(l.source.id) || markedNodes.has(l.target.id))
+                    .classed("hidden", false);
+            }
 
             // 检查图中的环，并用虚线显示
             function detectCycles() {
@@ -214,6 +235,7 @@
             } else {
                 console.log("No cycles found");
             }
+
 
             simulation
                 .nodes(graph.nodes)
