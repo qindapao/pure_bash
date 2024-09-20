@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bash Dependency Graph</title>
+    <!-- https://d3js.org/d3.v7.min.js -->
+    <!-- https://d3js.org/getting-started -->
+    <script src="d3.v7.min.js"></script>
+    <style>
+        .node {
+            cursor: pointer;
+        }
+        .link {
+            stroke-width: 0.5px;
+        }
+        .highlight {
+            stroke: orange;
+            stroke-width: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+        .label {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            fill: #333;
+        }
+        #search {
+            margin-bottom: 10px;
+            padding: 5px;
+            font-size: 14px;
+        }
+        .dashed {
+            stroke-dasharray: 5, 5;
+        }
+        .cycle-node {
+            fill: purple;
+        }
+    </style>
+</head>
+<body>
+    <style>
+        /* 其他样式 */
+        .info {
+            position: absolute;
+            top: 50px;  /* 调整位置 */
+            right: 10px;
+            background-color: white;
+            padding: 5px;
+            border: 1px solid black;
+            border-radius: 5px;
+        }
+    </style>
+    <div class="info">
+        蓝色普通节点正常，紫色环节点表示代码调用关系有循环引用，有问题。
+    </div>
+    <input type="text" id="search" placeholder="Search for a node...">
+    <svg width="2500" height="1500">
+        <defs>
+            <marker id="arrowhead" viewBox="0 -5 10 10" refX="30" refY="0" markerWidth="10" markerHeight="10" orient="auto">
+                <path d="M0,-5L10,0L0,5" fill="#999"></path> <!-- 修改为实心箭头 -->
+            </marker>
+        </defs>
+    </svg>
+    <script>
+        const svg = d3.select("svg"),
+              width = +svg.attr("width"),
+              height = +svg.attr("height");
+
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 10])
+            .on("zoom", (event) => {
+                svgGroup.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        const svgGroup = svg.append("g");
+
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id).distance(150))
+            .force("charge", d3.forceManyBody().strength(-500))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        d3.json("bash_dependency_graph.json").then(graph => {
+            const link = svgGroup.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(graph.edges)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke", d => d.color)
+                .attr("marker-end", "url(#arrowhead)");  // 添加箭头
+
+            const node = svgGroup.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(graph.nodes)
+                .enter().append("g")
+                .attr("class", "node")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            node.append("circle")
+                .attr("r", 10)
+                .attr("fill", d => color(d.group));
+
+            node.append("title")
+                .text(d => d.id);
+
+            node.append("text")
+                .attr("class", "label")
+                .attr("x", 12)
+                .attr("y", 3)
+                .text(d => d.id);
+
+            node.on("click", function(event, d) {
+
+                // 重置所有节点和连线的颜色和可见性
+                node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
+                node.classed("hidden", false);  // 确保节点文字也显示
+                link.attr("stroke", d => d.color).classed("hidden", false);
+
+                event.stopPropagation();  // 防止事件冒泡到 SVG 画布
+
+                // 隐藏与点击的节点无关的节点和连线
+                node.filter(n => !(n.id === d.id || graph.edges.some(e => (e.source.id === d.id && e.target.id === n.id) || (e.target.id === d.id && e.source.id === n.id))))
+                    .classed("hidden", true);
+
+                link.filter(l => !(l.source.id === d.id || l.target.id === d.id))
+                    .classed("hidden", true);
+            });
+
+            svg.on("click", function() {
+                // 重置所有节点和连线的颜色和可见性
+                node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
+                node.classed("hidden", false);  // 确保节点文字也显示
+                link.attr("stroke", d => d.color).classed("hidden", false);
+            });
+
+            // 添加搜索功能
+            d3.select("#search").on("input", function() {
+                const searchTerm = this.value.toLowerCase();
+                if (searchTerm === "") {
+                    // 重置所有节点和连线的颜色和可见性
+                    node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
+                    node.classed("hidden", false);  // 确保节点文字也显示
+                    link.attr("stroke", d => d.color).classed("hidden", false);
+                } else {
+                    // 高亮显示匹配的节点及其相关连线
+                    node.select("circle").attr("fill", d => color(d.group)).classed("hidden", true);
+                    link.attr("stroke", d => d.color).classed("hidden", true);
+
+                    node.filter(d => d.id.toLowerCase().includes(searchTerm))
+                        .select("circle").classed("hidden", false);
+
+                    node.filter(d => d.id.toLowerCase().includes(searchTerm))
+                        .classed("hidden", false);
+
+                    link.filter(l => l.source.id.toLowerCase().includes(searchTerm) || l.target.id.toLowerCase().includes(searchTerm))
+                        .classed("hidden", false);
+                }
+            });
+
+            // 检查图中的环，并用虚线显示
+            function detectCycles() {
+                const visited = new Set();
+                const stack = [];
+                const cycles = [];
+
+                function visit(node) {
+                    if (stack.includes(node)) {
+                        cycles.push(stack.slice(stack.indexOf(node)));
+                        return;
+                    }
+                    if (visited.has(node)) {
+                        return;
+                    }
+
+                    visited.add(node);
+                    stack.push(node);
+
+                    for (const edge of graph.edges) {
+                        if (edge.source === node.id) {
+                            const targetNode = graph.nodes.find(n => n.id === edge.target);
+                            visit(targetNode);
+                        }
+                    }
+
+                    stack.pop();
+                }
+
+                for (const node of graph.nodes) {
+                    visit(node);
+                }
+
+                return cycles;
+            }
+
+            const cycles = detectCycles();
+            if (cycles.length > 0) {
+                console.log("Cycles found:", cycles);
+                cycles.forEach(cycle => {
+                    const cycleSet = new Set(cycle.map(n => n.id));
+                    link.filter(l => cycleSet.has(l.source) && cycleSet.has(l.target))
+                        .classed("dashed", true);
+                    node.filter(n => cycleSet.has(n.id))
+                        .select("circle").classed("cycle-node", true);
+                });
+            } else {
+                console.log("No cycles found");
+            }
+
+            simulation
+                .nodes(graph.nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(graph.edges);
+
+            function ticked() {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node.attr("transform", d => `translate(${d.x},${d.y})`);
+            }
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }).catch(error => {
+            console.error('Error loading JSON data:', error);
+        });
+    </script>
+</body>
+</html>
+
