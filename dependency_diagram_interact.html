@@ -37,6 +37,10 @@
         .marked {
             fill: yellow;
         }
+        #stats {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -52,9 +56,14 @@
         }
     </style>
     <div class="info">
-        蓝色普通节点正常，紫色环节点表示代码调用关系有循环引用，有问题。
+        蓝色普通节点正常，紫色环节点表示代码调用关系有循环引用，有问题。<br>
+        右键点击节点标记节点隐藏与不隐藏<br>
+        左键点击节点切换全部显示与部分显示<br>
+        点击空白还原初始状态<br>
+        F5刷新页面<br>
     </div>
     <input type="text" id="search" placeholder="Search for a node...">
+    <div id="stats"></div>
     <svg width="2500" height="1500">
         <defs>
             <marker id="arrowhead" viewBox="0 -5 10 10" refX="30" refY="0" markerWidth="10" markerHeight="10" orient="auto">
@@ -236,6 +245,8 @@
                 console.log("No cycles found");
             }
 
+            // 显示节点和边的数量
+            d3.select("#stats").text(`Nodes: ${graph.nodes.length}, Edges: ${graph.edges.length}`);
 
             simulation
                 .nodes(graph.nodes)
