@@ -24,6 +24,9 @@ cd "$root_dir"/src
 . ./json/json_unpack.sh || return 1
 . ./json/json_unshift.sh || return 1
 
+. ./json/json_del_de.sh || return 1
+
+
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
 
@@ -222,6 +225,36 @@ EOF
 
 }
 
+test_case3 ()
+{
+cat <<EOF >json_standard.txt
+{
+    "person": {
+        "name": "John",
+        "age": "30",
+        "age2": 33,
+        "kind": [{"a": "b", "c": "d"}, {"dkkge": "334"}, "123 4"]
+    }
+}
+EOF
+    json_init   
+    json_common_load.py -i json_standard.txt -o json_bash.txt -m 'standard_to_bash'
+    # 测试json_load
+    local -A bash_json=()
+
+    json_load 'bash_json' './json_bash.txt'
+    # 测试json_dump
+    json_dump_vq 'bash_json'
+    json_del_de 'xx' 'bash_json' '[kind]' '1'
+    json_dump_vq 'bash_json'
+    # json_del_de 'xx' 'bash_json' '[kind]' '0'
+    # json_del_de 'xx' 'bash_json' '[kind]' '1'
+    # json_dump_vq 'bash_json'
+}
+
+
+
 # test_case1
-test_case2
+# test_case2
+test_case3 '1 2 ' '3 4' '5 6' '7*'
 
