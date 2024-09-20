@@ -245,8 +245,15 @@
                 console.log("No cycles found");
             }
 
-            // 显示节点和边的数量
-            d3.select("#stats").text(`Nodes: ${graph.nodes.length}, Edges: ${graph.edges.length}`);
+            // 计算所有环节点的总数
+            // :TODO: 这个计算也不严谨的，可能有多重环,最好是判断节点名字才严谨，有重复的要剔除
+            let cycleNodesCount = 0;
+            cycles.forEach(cycle => {
+                cycleNodesCount += cycle.length;
+            });
+
+            const normalNodesCount = graph.nodes.length - cycleNodesCount;
+            d3.select("#stats").html(`Nodes: ${graph.nodes.length}, Edges: ${graph.edges.length}<br>Normal Nodes: ${normalNodesCount}, Cycle Nodes: ${cycleNodesCount}`);
 
             simulation
                 .nodes(graph.nodes)
