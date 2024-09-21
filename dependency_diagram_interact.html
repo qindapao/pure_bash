@@ -141,21 +141,13 @@
                     circle.classed("marked", true).attr("fill", "yellow");
                     markedNodes.add(d.id);
                 }
-                updateVisibility();
+                <!-- updateVisibility(); -->
             });
 
+            // 修改左键点击事件处理函数
             node.on("click", function(event, d) {
                 event.stopPropagation();
-                node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
-                node.classed("hidden", false);
-                link.attr("stroke", d => d.color).classed("hidden", false);
-
-                node.filter(n => !(n.id === d.id || graph.edges.some(e => (e.source.id === d.id && e.target.id === n.id) || (e.target.id === d.id && e.source.id === n.id))))
-                    .classed("hidden", true);
-
-                link.filter(l => !(l.source.id === d.id || l.target.id === d.id))
-                    .classed("hidden", true);
-
+                currentNode = d; // 设置当前节点
                 updateVisibility();
             });
 
@@ -188,14 +180,28 @@
             });
 
             function updateVisibility() {
+                // 隐藏所有节点和边
+                node.classed("hidden", true);
+                link.classed("hidden", true);
+
+                // 显示标记过的节点及其边
                 node.filter(d => markedNodes.has(d.id))
+                    .classed("hidden", false)
                     .select("circle").classed("hidden", false);
 
-                node.filter(d => markedNodes.has(d.id))
+                link.filter(l => markedNodes.has(l.source.id) && markedNodes.has(l.target.id))
                     .classed("hidden", false);
 
-                link.filter(l => markedNodes.has(l.source.id) || markedNodes.has(l.target.id))
-                    .classed("hidden", false);
+                // 显示当前点击的节点及其与标记节点之间的边
+                if (currentNode) {
+                    node.filter(d => d.id === currentNode.id)
+                        .classed("hidden", false)
+                        .select("circle").classed("hidden", false);
+
+                    link.filter(l => (l.source.id === currentNode.id && markedNodes.has(l.target.id)) || 
+                                     (l.target.id === currentNode.id && markedNodes.has(l.source.id)))
+                        .classed("hidden", false);
+                }
             }
 
             // 检查图中的环，并用虚线显示
