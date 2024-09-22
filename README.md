@@ -4,6 +4,11 @@ bash是优美的，纯bash更优美，本项目尽量使用bash内置的功能�
 
 不使用递归实现，函数与函数之间不能嵌套调用。比如`A->B->C->A`是不允许的。
 
+关于检查库函数是否存在嵌套调用情况，可以使用`dependency_diagram.py`生成函数的调用关系图，如果想用更直观更交互式的方式  
+查看函数之间的调用关系以及校验是否有嵌套引用的情况，可以使用`dependency_diagram_interact.py`生成函数调用关系节点的`json`  
+配置文件，然后使用`dependency_diagram_interact.html`生成动态可以交互的调用关系图谱，通过浏览器查看当前库函数的函数调用  
+情况，并且可以直观发现有嵌套引用的情况，这种函数都需要修改。
+
 测试库脚本可以改变目录，但是在引用`source`后必须还原原始目录。正式函数脚本不允许改变工作目录。
 
 并且引用库的脚本必须是`UTF-8`格式的，不允许非`UTF-8`格式的脚本引用本库的函数。会造成不可预期的问题。
@@ -2277,7 +2282,22 @@ strace -f -e trace=process bash -c 'echo $(echo $$)'
 这种改变的一个重要影响是，现在你可以在脚本中更高效地使用进程替换，而不必担心每次
 都会创建新的进程。这对于需要频繁使用进程替换的脚本来说，可能会带来显著的性能提升。
 
+#### 管道
 
+一旦使用管道，那么所有的`shell`命令都会在子shell中执行，因此不会更新主`shell`中的
+变量，比如：
+
+```bash
+echo "alarm_$((alarm_cnt++))]" | tee -a "log.txt"
+```
+
+由于使用了管道，变成了子`shell`，上面的`alarm_cnt`变量不会自增。
+
+test.sh 
+
+sjons_unpack 0 "$ori_str" unpack 改成 
+
+json_unpack_o "$ori_str" unpack
 
 ### HEAR DOCS
 

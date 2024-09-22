@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_get]++)) && return 0
 
+. ./json/json_common.sh || return 1
 . ./array/array_sort.sh || return 1
 
 # json_get 'field_name' 'json_name' '4' '0'
@@ -38,12 +39,12 @@ json_get ()
     local _json_get_flags=''
     local -i _json_get_ret_code=0
 
-    [[ -z "${1}" ]] && return 1
+    [[ -z "${1}" ]] && return ${JSON_COMMON_ERR_DEFINE[get_null_key]}
     if [[ "${_json_get_json_ref@a}" != *A* ]] && ! [[ "${1}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
-        return 2
+        return ${JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]}
     fi
 
-    [[ ! -v '_json_get_json_ref[${1}]' ]] && return 4
+    [[ ! -v '_json_get_json_ref[${1}]' ]] && return ${JSON_COMMON_ERR_DEFINE[get_key_not_found]}
 
     local _json_get_data_lev_ref_last="${_json_get_json_ref["${1}"]}"
 
@@ -65,17 +66,14 @@ json_get ()
         if ((is_not_first_in++)) ; then
             if [[ -z "$_json_get_param" ]] ; then
                 # 索引为空值,遇到就返回
-                ((_json_get_ret_code|=1))
-                return $_json_get_ret_code
+                return ${JSON_COMMON_ERR_DEFINE[get_null_key]}
             fi
             
             if [[ "$_json_get_flags" != *A* ]] && ! [[ "${_json_get_param}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
-                ((_json_get_ret_code|=2))
-                return $_json_get_ret_code
+                return ${JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]}
             fi
             [[ ! -v '_json_get_tmp_var["${_json_get_param}"]' ]] && {
-                ((_json_get_ret_code|=4))
-                return $_json_get_ret_code
+                return ${JSON_COMMON_ERR_DEFINE[get_key_not_found]}
             }
             _json_get_data_lev_ref_last="${_json_get_tmp_var["$_json_get_param"]}"
         fi
@@ -97,6 +95,7 @@ json_get ()
         if [[ "$_json_get_flags" == *[aA]* ]] ; then
             local -a _json_get_indexs=("${!_json_get_tmp_var[@]}")
             case "$_json_get_flags" in
+            # :TODO: 这里使用 array_revert 效率更高
             *a*)    array_sort _json_get_indexs '-gt' ;;
             *A*)    array_sort _json_get_indexs '>' ;;
             esac
@@ -104,12 +103,12 @@ json_get ()
             for _json_get_iter_index in "${_json_get_indexs[@]}" ; do
                 printf "%q\n" "$_json_get_iter_index"
             done
-            return 0
+            return ${JSON_COMMON_ERR_DEFINE[ok]}
         else
             # :TODO: 这里是需要返回Q字符串的空''还是什么都不返回?
             # 如果返回Q字符串的空,那么外部会发生迭代
             # 如果什么都不返回,外部不会发生迭代
-            return 1
+            return ${JSON_COMMON_ERR_DEFINE[undefined]}
         fi
     }
 
@@ -122,7 +121,7 @@ json_get ()
 
         # 如果获取到的数据结构是关联数组但是外部没有声明,那么报错
         if [[ "$_json_get_flags" == *A* ]] && [[ "${_json_get_out_var_name@a}" != *A* ]] ; then
-            ((_json_get_ret_code|=8))
+            _json_get_ret_code=${JSON_COMMON_ERR_DEFINE[get_dict_but_not_declare_outside]}
         else
             for _json_get_iter_index in "${!_json_get_tmp_var[@]}" ; do
                 _json_get_out_var_name["$_json_get_iter_index"]="${_json_get_tmp_var["$_json_get_iter_index"]}"
@@ -132,6 +131,7 @@ json_get ()
         # 获取获取到的是字符串,但是外部声明为数组,报错
         if [[ "${_json_get_out_var_name@a}" == *[aA]* ]] ; then
             ((_json_get_ret_code|=16))
+            _json_get_ret_code=${JSON_COMMON_ERR_DEFINE[get_str_but_declare_not_str_outside]}
         else
             _json_get_out_var_name="$_json_get_tmp_var"
         fi

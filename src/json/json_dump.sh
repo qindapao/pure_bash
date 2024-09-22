@@ -1,7 +1,9 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_dump]++)) && return 0
 
+. ./json/json_common.sh || return 1
 . ./array/array_sort.sh || return 1
+. ./array/array_revert.sh || return 1
 
 # 树状打印一个结构体变量
 # 第一级要么是一个数组要么是一个关联数组
@@ -41,7 +43,7 @@ _json_dump ()
 
     local __json_dump_index=''
     # 如果是用递归函数,那么用-gt >
-    local __json_dump_var __json_dump_sort_method='-lt'
+    local __json_dump_var
     local -a __json_dump_var_indexs=()
 
     while((${#__json_dump_tree_nodes[@]})) ; do
@@ -90,13 +92,13 @@ _json_dump ()
             
             if [[ "${__json_dump_var@a}" == *A* ]] ; then
                 # 如果是用递归函数,那么用-gt <
-                __json_dump_sort_method='<'
                 __json_dump_printf_mark='⇒'
+                # :TODO: 这里冒泡排序的效率比较低,后续可以优化
+                array_sort __json_dump_var_indexs '<'
             else
-                __json_dump_sort_method='-lt'
                 __json_dump_printf_mark='⩦'
+                array_revert __json_dump_var_indexs
             fi
-            array_sort __json_dump_var_indexs "$__json_dump_sort_method"
 
             # 压栈
             for __json_dump_index in "${__json_dump_var_indexs[@]}" ; do
@@ -202,14 +204,15 @@ json_dump ()
     fi
 
     # 不使用默认的等号和胖箭头是因为防止键和值都有这些字符
-    local _json_dump_index='' _json_dump_printf_mark='⩦' _json_dump_sort_method='-gt'
+    local _json_dump_index='' _json_dump_printf_mark='⩦'
+    local _json_dump_indexs=("${!_json_dump_json_ref[@]}")
     [[ "${_json_dump_json_ref@a}" == *A* ]] && {
-        _json_dump_sort_method='>' ;  _json_dump_printf_mark='⇒'
+        # 如果是关联数组按照字典排序,数组的顺序本来就是对的
+        _json_dump_printf_mark='⇒'
+        # :TODO: 这里冒泡排序效率比较低,后续可以优化
+        array_sort _json_dump_indexs '>'
     }
     printf "%s %s\n" "${2}" "$_json_dump_printf_mark"
-    local _json_dump_indexs=("${!_json_dump_json_ref[@]}")
-    # 如果是关联数组按照字典排序,否则按照数字排序(默认按照数字排序)
-    array_sort _json_dump_indexs "$_json_dump_sort_method"
 
     for _json_dump_index in "${_json_dump_indexs[@]}" ; do
         _json_dump "$_json_dump_print_type_map" '1' "$_json_dump_index" "${_json_dump_json_ref["$_json_dump_index"]}" "$_json_dump_printf_mark"

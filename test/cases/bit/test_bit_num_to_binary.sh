@@ -20,7 +20,7 @@ test_case1 ()
 {
     local a=10
     local b=$(bit_num_to_binary "$a")
-    if [[ "$b" = '1010' ]] ; then
+    if [[ "$b" == '1010' ]] ; then
         echo "${FUNCNAME[0]} test pass"
     else
         echo "${FUNCNAME[0]} test fail"
@@ -31,7 +31,7 @@ test_case2 ()
 {
     local a=0b1010111
     local b=$(bit_num_to_binary "$a")
-    if [[ "$b" = '1010111' ]] ; then
+    if [[ "$b" == '1010111' ]] ; then
         echo "${FUNCNAME[0]} test pass"
     else
         echo "${FUNCNAME[0]} test fail"
@@ -42,7 +42,7 @@ test_case3 ()
 {
     local a=0xaa
     local b=$(bit_num_to_binary "$a")
-    if [[ "$b" = '10101010' ]] ; then
+    if [[ "$b" == '10101010' ]] ; then
         echo "${FUNCNAME[0]} test pass"
     else
         echo "${FUNCNAME[0]} test fail"

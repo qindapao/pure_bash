@@ -1,25 +1,27 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[json_push]++)) && return 0
+((DEFENSE_VARIABLES[json_o_push]++)) && return 0
 
 # . ./log/log_dbg.sh || return 1
 . ./json/json_common.sh || return 1
 . ./json/json_get.sh || return 1
 . ./json/json_set.sh || return 1
 . ./json/json_set_params_del_bracket.sh || return 1
+. ./json/json_overlay.sh || return 1
 
 # :attention: 其实这个函数的实现还可以和json_unshift保持一致,代码更简洁,可能执行
 # 效率更高,也不一定高多少
-# 对某级下挂的数组push一个元素进去
-# json_push 'json_name' '4' '0' '[key1]' '' "value"
+# 对某级下挂的数组push一个元素进去(和json_push不同的是这里传递引用,所以可以push数组)
+# json_o_push 'json_name' '4' '0' '[key1]' '' "value"
 # 返回值:
 #   bit7: 
 #       0:获取结构体的时候出错
 #       1:设置结构体的时候出错
 #   json_get 的返回值
-json_push ()
+json_o_push ()
 {
     local -n _json_push_json_ref=$1
-    shift
+    local -n _json_push_json_son_ref=$2
+    shift 2
     local -a _json_push_get_array_indexs=()
     local -i _json_push_get_array_max_index=-1
     local -i _json_push_return_code=0
@@ -31,12 +33,13 @@ json_push ()
     ((_json_push_get_array_max_index++))
 
     # push顶级的极端情况
-    if (($#==2)) ; then
-        json_set _json_push_json_ref "$_json_push_get_array_max_index" "${@:$#-1}"
+    (($#)) || {
+        declare -p _json_push_get_array_max_index
+        json_overlay _json_push_json_ref _json_push_json_son_ref "$_json_push_get_array_max_index"
         return $?
-    fi
+    }
 
-    local -a _json_push_get_params=("${@:1:$#-2}")
+    local -a _json_push_get_params=("${@}")
     json_set_params_del_bracket _json_push_get_params
 
     local -a _json_push_get_array=()
@@ -58,7 +61,8 @@ json_push ()
     ((_json_push_get_array_max_index++))
 
     # 往最大索引+1写入值
-    json_set _json_push_json_ref "${@:1:$#-2}" "$_json_push_get_array_max_index" "${@:$#-1}"
+    delcare -p _json_push_get_params _json_push_get_array_max_index
+    json_overlay _json_push_json_ref _json_push_json_son_ref "${_json_push_get_params[@]}" "$_json_push_get_array_max_index"
 }
 
 return 0

@@ -100,7 +100,7 @@ test_case3 ()
         if [[ "3" == "$a" ]] ; then
             echo "3"
         '$all_block_str'
-        elif [[ "1" = "$a" ]] ; then
+        elif [[ "1" == "$a" ]] ; then
             echo '1'
         fi
     '
@@ -127,7 +127,7 @@ test_case4 ()
         if [[ "3" == "$a" ]] ; then
             echo "3"
         '$all_block_str'
-        elif [[ "1" = "$a" ]] ; then
+        elif [[ "1" == "$a" ]] ; then
             echo '1'
         fi
     '

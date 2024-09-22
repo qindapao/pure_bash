@@ -13,7 +13,6 @@ cd "$root_dir"/src
 . ./json/json_init.sh || return 1
 . ./json/json_load.sh || return 1
 . ./json/json_overlay.sh || return 1
-. ./json/json_overlay_ke.sh || return 1
 . ./json/json_pack.sh || return 1
 . ./json/json_pop.sh || return 1
 . ./json/json_pop_ke.sh || return 1
@@ -24,7 +23,15 @@ cd "$root_dir"/src
 . ./json/json_unpack.sh || return 1
 . ./json/json_unshift.sh || return 1
 
+. ./json/json_extract_de.sh || return 1
+. ./json/json_extract_de_ke.sh || return 1
 . ./json/json_del_de.sh || return 1
+. ./json/json_del_de_ke.sh || return 1
+. ./json/json_insert.sh || return 1
+
+. ./json/json_o_push.sh || return 1
+. ./json/json_o_unshift.sh || return 1
+. ./json/json_o_insert.sh || return 1
 
 
 cd "$root_dir"/test/lib
@@ -43,24 +50,15 @@ cat <<EOF >json_standard.txt
 {
     "person": {
         "name": "John",
-        "age": "30",
-        "age2": 33,
         "address": {
-            "city": "New York\\ngeg geg\\n",
-            "zipcode": "10001"
+            "city": "'New York\ngeg geg\n?*中文"
         },
         "other": {
-            "xx": ["OO", {}, []],
-            "yy": {"不是": "putong", "就是": "zhecichenggsng"},
-            "mm": [],
-            "geg不对": {}
+            "xx": ["OO", {}, [null, null, 1, 2]],
+            "mm": []
         },
-        "another": null,
-        "hobbies": ["reading", "traveling", "swimming"],
         "others": {
-            "132": ["gge", "geg", "1223"],
-            "133": ["gge", "geg", "1223"],
-            "gegeeg": {"geg": "geg", "kkk": "yyyyg"}
+            "132": ["gge", "geg", "1223"]
         }
     }
 }
@@ -79,6 +77,8 @@ EOF
     json_dump_ho 'bash_json'
     json_dump_vq 'bash_json'
     json_dump_vo 'bash_json'
+
+    json_common_load.py -i json_bash.txt -o json_standard2.txt -m 'bash_to_standard'
 
     # json_set
     json_set 'bash_json' '[other]' '[xx]' 0 - 'XX'
@@ -109,11 +109,11 @@ EOF
 
     # 测试json_get 
     local -A bash_json_get
-    json_get 'bash_json_get' 'bash_json' 'other' 'yy'
+    time json_get 'bash_json_get' 'bash_json' 'other' 'yy'
     echo $?
     declare -p bash_json_get
     unset bash_json_get ; local -a bash_json_get
-    json_get 'bash_json_get' 'bash_json' 'other' 'xx'
+    time json_get 'bash_json_get' 'bash_json' 'other' 'xx'
     echo $?
     declare -p bash_json_get
     
@@ -166,18 +166,33 @@ EOF
     json_shift_ke xx 'bash_json2' '[other]' '[xx]'
     json_dump_vq 'bash_json2'
     json_shift xx 'bash_json2' '[other]' '[xx]'
-    json_set 'bash_json2' '[other]' '[xx]' 0 - '1_value'
-    json_set 'bash_json2' '[other]' '[xx]' 5 - '5_value'
-    json_set 'bash_json2' '[other]' '[xx]' 20 - '20_value'
-    json_set 'bash_json2' '[other]' '[xx]' 6 - '6_value'
-    json_set 'bash_json2' '[other]' '[xx]' 7 - '8_value'
-    json_set 'bash_json2' '[other]' '[xx]' 8 - '8_value'
-    json_set 'bash_json2' '[other]' '[xx]' 9 - '9_value'
-    json_set 'bash_json2' '[other]' '[xx]' 10 - '10_value'
-    json_set 'bash_json2' '[other]' '[xx]' 11 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 0 0 - 'x'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 0 1 - 'y'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 0 2 0 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 0 3 1 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 0 6 1 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 0 7 1 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 2 0 1 - 'x1'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 2 1 2 - 'y1'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 2 2 - '1_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 2 3 - '1_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 2 6 - '1_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 2 7 - '1_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 11 0 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 11 1 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 11 2 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 11 5 - '11_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 11 6 - '12_value'
+    time json_set 'bash_json2' '[other]' '[xx]' 0 0 0 0 0 0 0 0 11 7 - '13_value'
+    time json_get xx 'bash_json2' 'other' 'xx' 0 0 0 0 0 0 0 0 11 4
     echo $?
 
     json_dump_vq 'bash_json2'
+    declare -p xx
+    length=$(declare -p bash_json2)
+    echo "length:${#length}"
+
+
     # json_overlay 空数组场景
     local -a bash_son=()
     json_set 'bash_json2' '[other]' '[pp]' '[kk]' - 'kk_value'
@@ -205,7 +220,7 @@ cat <<EOF >json_standard.txt
         "name": "John",
         "age": "30",
         "age2": 33,
-        "kind": ["对这部", "dkkge"]
+        "kind": ["对这部", "dkkge", "是否有空元素"]
     }
 }
 EOF
@@ -220,24 +235,36 @@ EOF
     # 测试json_dump
     json_dump_vq 'bash_json'
     
-    declare -p bash_json
+    json_extract_de_ke xx 'bash_json' '[kind]' 1
+    json_dump_vq 'bash_json'
+    declare -p xx
+    json_extract_de_ke xx 'bash_json' '[kind]' 1
+    json_dump_vq 'bash_json'
+    declare -p xx
+    json_extract_de_ke xx 'bash_json' '[kind]' 0
+    json_dump_vq 'bash_json'
+    declare -p xx
+    json_extract_de_ke xx 'bash_json' '[kind]' 0
+    json_dump_vq 'bash_json'
+    declare -p xx
 
 
 }
 
-test_case3 ()
-{
+test_case3 () {
 cat <<EOF >json_standard.txt
 {
     "person": {
         "name": "John",
         "age": "30",
         "age2": 33,
-        "kind": [{"a": "b", "c": "d"}, {"dkkge": "334"}, "123 4"]
+        "kind": ["对这部", "dkkge", "是否有空元素"]
     }
 }
 EOF
+
     json_init   
+
     json_common_load.py -i json_standard.txt -o json_bash.txt -m 'standard_to_bash'
     # 测试json_load
     local -A bash_json=()
@@ -245,16 +272,635 @@ EOF
     json_load 'bash_json' './json_bash.txt'
     # 测试json_dump
     json_dump_vq 'bash_json'
-    json_del_de 'xx' 'bash_json' '[kind]' '1'
+    
+    json_del_de 'bash_json' '[kind]' 1
     json_dump_vq 'bash_json'
-    # json_del_de 'xx' 'bash_json' '[kind]' '0'
-    # json_del_de 'xx' 'bash_json' '[kind]' '1'
-    # json_dump_vq 'bash_json'
+    json_del_de 'bash_json' '[kind]' 1
+    json_dump_vq 'bash_json'
+    json_del_de 'bash_json' '[kind]' 0
+    json_dump_vq 'bash_json'
+    json_del_de 'bash_json' '[kind]' 0
+    json_dump_vq 'bash_json'
+
+
+}
+
+test_case4 () {
+cat <<EOF >json_standard.txt
+{
+    "person": {
+        "name": "John",
+        "age": "30",
+        "age2": 33,
+        "kind": ["对这部", "dkkge", "是否有空元素"]
+    }
+}
+EOF
+
+    json_init   
+
+    json_common_load.py -i json_standard.txt -o json_bash.txt -m 'standard_to_bash'
+    # 测试json_load
+    local -A bash_json=()
+
+    json_load 'bash_json' './json_bash.txt'
+    # 测试json_dump
+    json_dump_vq 'bash_json'
+    
+    json_del_de_ke 'bash_json' '[kind]' 1
+    json_dump_vq 'bash_json'
+    json_del_de_ke 'bash_json' '[kind]' 1
+    json_dump_vq 'bash_json'
+    json_del_de_ke 'bash_json' '[kind]' 0
+    json_dump_vq 'bash_json'
+    json_del_de_ke 'bash_json' '[kind]' 0
+    json_dump_vq 'bash_json'
+
+
+}
+
+test_case5 ()
+{
+    local -a null_array=()
+
+    declare -a json_unpack=('ce shi1' 'ce shi2')
+    json_set 'json_unpack' '0' '[dick_key1]' - 'xx'
+    local -a json_pack=$(json_pack_o 'json_unpack')
+
+    json_push 'null_array' - "$json_pack"
+    json_push 'null_array' - "$json_pack"
+    # json_push 'null_array' - "$json_pack"
+
+    json_set 'null_array' 0 1 2 - 'value1'
+    json_push 'null_array' 0 1 - 'value2'
+    # json_push 'null_array' 0 1 - 'value2'
+    json_dump_vq 'null_array'
+    json_del 'null_array' 0
+    json_del 'null_array' 1
+    json_dump_vq 'null_array'
+
+    local -A null_dict=(['a bc']=1)
+    json_dump_vq 'null_dict'
+    json_del 'null_dict' 'a bc'
+    json_dump_vq 'null_dict'
 }
 
 
+test_case6 ()
+{
+    local -a null_array=()
 
-# test_case1
+    declare -a json_unpack=('ce shi1' 'ce shi2')
+    json_set 'json_unpack' '0' '[dick_key1]' - 'xx'
+    local -a json_pack=$(json_pack_o 'json_unpack')
+
+    json_push 'null_array' - "$json_pack"
+    json_push 'null_array' - "$json_pack"
+    # json_push 'null_array' - "$json_pack"
+
+    json_dump_vq 'null_array'
+    json_unshift 'null_array' - 'rt'
+    json_dump_vq 'null_array'
+
+}
+
+test_case7 ()
+{
+    local -a null_array=()
+
+    declare -a json_unpack=('ce shi1' 'ce shi2')
+    json_set 'json_unpack' '0' '[dick_key1]' - 'xx'
+    local -a json_pack=$(json_pack_o 'json_unpack')
+
+    json_push 'null_array' - "$json_pack"
+    json_push 'null_array' - "$json_pack"
+    # json_push 'null_array' - "$json_pack"
+
+    json_dump_vq 'null_array'
+    json_unshift 'null_array' - 'rt'
+    json_dump_vq 'null_array'
+    json_unshift 'null_array' - 'rt'
+    json_dump_vq 'null_array'
+    json_push 'null_array' - 'rt2'
+    json_dump_vq 'null_array'
+}
+
+test_case8 ()
+{
+    local -a null_array=()
+
+    declare -a json_unpack=('ce shi1' 'ce shi2')
+    json_set 'json_unpack' '0' '[dick_key1]' - 'xx'
+    local -a json_pack=$(json_pack_o 'json_unpack')
+
+    json_push 'null_array' - "$json_pack"
+    json_push 'null_array' - "$json_pack"
+    # json_push 'null_array' - "$json_pack"
+
+    json_dump_vq 'null_array'
+    json_unshift 'null_array' - 'rt'
+    json_dump_vq 'null_array'
+    json_unshift 'null_array' - 'rt'
+    json_dump_vq 'null_array'
+    json_push 'null_array' - 'rt2'
+    json_dump_vq 'null_array'
+    json_insert 'null_array' '4' - 'insert_4'
+    json_dump_vq 'null_array'
+    json_set 'null_array' 2 5 - 'insert 5'
+    json_set 'null_array' 2 9 - 'insert 9'
+    json_dump_vq 'null_array'
+    json_insert 'null_array' 2 0 - 'insert 100'
+    json_set 'null_array' 20 - 'insert 20'
+    json_dump_vq 'null_array'
+    json_insert 'null_array' 0 - 'insert top 0'
+    json_dump_vq 'null_array'
+}
+
+test_case9 ()
+{
+    local -a test_json=(0 1 2 3 4)
+    json_dump_ho 'test_json'
+    json_shift xx 'test_json'
+    json_dump_ho 'test_json'
+
+}
+
+
+test_json_unpack ()
+{
+    local -a arr=(1 2 3 4 5)
+    local str1 out_str1
+    json_get 'str1' 'arr' 2
+    
+    json_unpack_o "$str1" 'out_str1'
+    echo $?
+    declare -p str1 out_str1
+
+    json_set 'arr' 2 '[key1]' '[key2]' - 'value1'
+    json_set 'arr' 2 '[key3]' '10' - 'value1'
+    json_dump_ho 'arr'
+
+    local -A get_dict=()
+    json_get 'get_dict' arr 2
+    json_dump_ho get_dict
+    
+    local arr_str=
+    arr_str=$(json_pack_o arr)
+    local -a unpack_obj
+    json_unpack_o "$arr_str" 'unpack_obj'
+    echo $?
+    json_dump_ho 'unpack_obj'
+
+    local -A dict=([key1]='value1' [key2]='value2')
+}
+
+test_json_pop ()
+{
+    local -a arr=(0 1 2 3 4 5)
+    arr[10]=10
+    arr[15]=15
+    local str_out=
+    json_pop 'str_out' 'arr'
+    json_dump_ho 'arr'
+    declare -p str_out
+
+    # pop一个字典出来
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 0 '[key3]' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 2 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 2 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 2 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 2 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 2 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 5 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 5 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 5 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 5 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 5 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 7 '[key3]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 3 - 'value3'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_pop 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local -a arr_out=()
+    json_pop 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local -a arr_out=()
+    json_pop 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local -A arr_out=()
+    json_pop 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+
+}
+
+test_json_pop_ke ()
+{
+    local -a arr=(0 1 2 3 4 5)
+    arr[10]=10
+    arr[15]=15
+    local str_out=
+    json_pop_ke 'str_out' 'arr'
+    json_dump_ho 'arr'
+    declare -p str_out
+
+    # pop一个字典出来
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 0 '[key3]' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 2 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 2 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 2 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 2 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 2 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 5 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 5 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 5 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 5 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 5 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 7 '[key3]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 3 - 'value3'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_pop_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local -a arr_out=()
+    json_pop_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local -a arr_out=()
+    json_pop_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local -A arr_out=()
+    json_pop_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    unset arr_out ; local arr_out=''
+    json_pop_ke 'arr_out' 'arr' 10 '[key1]'
+    echo $?
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+
+}
+
+test_json_shift ()
+{
+    local -a arr=(0 1 2 3 4 5)
+    arr[10]=10
+    arr[15]=15
+    local str_out=
+    json_shift 'str_out' 'arr'
+    json_dump_ho 'arr'
+    declare -p str_out
+
+    # pop一个字典出来
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 0 '[key3]' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 2 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 2 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 2 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 2 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 2 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 5 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 5 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 5 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 5 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 5 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 7 '[key3]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 3 - 'value3'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_shift 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+
+    unset arr_out ; local -a arr_out=()
+    json_shift 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -a arr_out=()
+    json_shift 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_shift 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+}
+
+test_json_shift_ke ()
+{
+    local -a arr=(0 1 2 3 4 5)
+    arr[10]=10
+    arr[15]=15
+    local str_out=
+    json_shift_ke 'str_out' 'arr'
+    json_dump_ho 'arr'
+    declare -p str_out
+
+    # pop一个字典出来
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 0 '[key3]' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 2 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 2 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 2 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 2 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 2 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 5 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 5 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 5 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 5 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 5 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 7 '[key3]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 3 - 'value3'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_shift_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+
+    unset arr_out ; local -a arr_out=()
+    json_shift_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -a arr_out=()
+    json_shift_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_shift_ke 'arr_out' 'arr' 10 '[key1]'
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+}
+
+test_json_extract_de ()
+{
+    local -a arr=(0 1 2 3 4 5)
+    arr[10]=10
+    arr[15]=15
+    local str_out=
+    json_extract_de 'str_out' 'arr' '3'
+    json_dump_ho 'arr'
+    declare -p str_out
+
+    # pop一个字典出来
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 0 '[key3]' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 2 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 2 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 2 '0' 14 - 'value4'
+    json_set 'arr' 10 '[key1]' 2 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 2 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 5 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 5 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 5 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 5 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 5 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 7 '[key3]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 3 - 'value3'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -a arr_out=()
+    json_extract_de 'arr_out' 'arr' 10 '[key1]' 2
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+    
+
+    unset arr_out ; local -a arr_out=()
+    json_extract_de 'arr_out' 'arr' 10 '[key1]' 1
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_extract_de 'arr_out' 'arr' 10 '[key1]' 1
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_extract_de 'arr_out' 'arr' 10 '[key1]' 0
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+}
+
+test_json_extract_de_ke ()
+{
+    local -a arr=(0 1 2 3 4 5)
+    arr[10]=10
+    arr[15]=15
+    local str_out=
+    json_extract_de_ke 'str_out' 'arr' '3'
+    json_dump_ho 'arr'
+    declare -p str_out
+
+    # pop一个字典出来
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 0 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 0 '[key3]' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 2 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 2 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 2 '0' 14 - 'value4'
+    json_set 'arr' 10 '[key1]' 2 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 2 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 5 '0' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 5 '0' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 5 '0' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 5 '0' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 5 '5' 3 - 'value3'
+
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 0 - 'value0'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 1 - 'value1'
+    json_set 'arr' 10 '[key1]' 7 '[key3]' 4 - 'value4'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 5 - 'value5'
+    json_set 'arr' 10 '[key1]' 7 '[key2]' 3 - 'value3'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -a arr_out=()
+    json_extract_de_ke 'arr_out' 'arr' 10 '[key1]' 2
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+    
+
+    unset arr_out ; local -a arr_out=()
+    json_extract_de_ke 'arr_out' 'arr' 10 '[key1]' 1
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_extract_de_ke 'arr_out' 'arr' 10 '[key1]' 1
+    json_dump_ho 'arr_out'
+    json_dump_ho 'arr'
+
+    unset arr_out ; local -A arr_out=()
+    json_extract_de_ke 'arr_out' 'arr' 10 '[key1]' 0
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+
+    unset arr_out ; local -A arr_out=()
+    json_extract_de_ke 'arr_out' 'arr' 10 '[key1]' 0
+    json_dump_ho 'arr'
+    json_dump_ho 'arr_out'
+}
+
+test_json_overlay ()
+{
+    local -a arr=(0 2 3 4)
+    local str1=" new info"
+    json_overlay 'arr' 'str1' 2
+    json_dump_ho 'arr'
+
+    local arr2=(5 6 7)
+    json_overlay 'arr' 'arr2' 3
+    json_dump_ho 'arr'
+}
+
+test_json_o_push ()
+{
+    local -a arr=(0 1 2 3)
+    local str1=" new info"
+    json_o_push 'arr' 'str1'
+    json_dump_ho 'arr'
+
+    local -A dict1=([test_key1]='value1' [test_key2]='value2')
+    json_o_push 'arr' 'dict1'
+    json_dump_ho 'arr'
+
+    local arr2=(5 6 7)
+    json_o_push 'arr' 'arr2' 7
+    echo $?
+    local arr2=(5 6 7)
+    json_o_push 'arr' 'arr2' 7
+    echo $?
+    json_dump_ho 'arr'
+
+}
+
+test_json_o_unshift ()
+{
+    local -a arr=(0 1 2 3)
+    local str1=" new info"
+    json_o_unshift 'arr' 'str1'
+    json_dump_ho 'arr'
+
+    local -A dict1=([test_key1]='value1' [test_key2]='value2')
+    json_o_unshift 'arr' 'dict1'
+    json_dump_ho 'arr'
+
+    local arr2=(5 6 7)
+    json_o_unshift 'arr' 'arr2' 7
+    local arr2=(x 6 7)
+    json_o_unshift 'arr' 'arr2' 7
+    echo $?
+    json_dump_ho 'arr'
+    # local arr2=(5 6 7)
+    # json_o_unshift 'arr' 'arr2' 7
+    # echo $?
+    # json_dump_ho 'arr'
+
+}
+
+test_json_o_insert ()
+{
+    local -a arr=(0 1 2 3)
+    local str1="new info"
+    json_o_insert 'arr' 'str1' 1
+    json_dump_ho 'arr'
+
+    local -A dict1=([test_key1]='value1' [test_key2]='value2')
+    json_overlay 'arr' dict1 '10' '[key2]' '[key3]' 0
+    json_dump_ho 'arr'
+
+    local -a arr2=(7 8 9 10)
+    json_o_insert arr arr2 '10' '[key2]' '[key3]' '4'
+    json_dump_ho 'arr'
+    local -a arr2=(x 8 9 10)
+    json_o_insert arr arr2 '10' '[key2]' '[key3]' '1'
+    json_dump_ho 'arr'
+    local -a arr2=(y 8 9 10)
+    json_o_insert arr arr2 '10' '[key2]' '[key3]' '2'
+    json_dump_ho 'arr'
+    local -a arr2=(z 8 9 10)
+    json_o_insert arr arr2 '10' '[key2]' '[key3]' '1'
+    json_dump_ho 'arr'
+}
+
+test_case1
 # test_case2
-test_case3 '1 2 ' '3 4' '5 6' '7*'
+# test_case3
+# test_case4
+# test_case5
+# test_case6
+# test_case7
+# test_case8
+# test_case9
+
+# test_json_unpack
+# test_json_pop
+# test_json_pop_ke
+# test_json_shift
+# test_json_shift_ke
+# test_json_extract_de
+# test_json_extract_de_ke
+
+# test_json_overlay
+# test_json_o_push
+# test_json_o_unshift
+# test_json_o_insert
 

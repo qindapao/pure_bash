@@ -1,4 +1,4 @@
- . ./meta/meta.sh
+. ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_egenerator]++)) && return 0
 
 # 生成一个数组

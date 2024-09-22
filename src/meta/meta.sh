@@ -71,7 +71,7 @@ meta_get_bash_version ()
 
 meta_get_bash_version __META_BASH_VERSION
 
-declare -gA PURE_STDIN='/dev/stdin'
+declare -g PURE_STDIN='/dev/stdin'
 
 
 return 0

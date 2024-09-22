@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[json_set]++)) && return 0
 
 # . ./log/log_dbg.sh || return 1
+. ./json/json_common.sh || return 1
 
 # json_set 'json_name' '4' '0' '[key1]' i "value"
 # json_set 'json_name' '4' '0' '[key1]' - "value"
@@ -21,8 +22,7 @@
 #   bit0: 索引是否是空值(索引不允许是空值)
 #   bit1: 设置为非A数据结构,但是原始保存的是A,那么异常
 #   bit2: 传入的数字索引并不是10进制数字
-#   bit3: 字典索引忘记了后半中括号
-#   bit4: 不是关联数组但是想访问非数字键
+#   bit3: 不是关联数组但是想访问非数字键
 json_set ()
 {
     local -n _json_set_json_ref=$1
@@ -42,10 +42,10 @@ json_set ()
 
     local _json_set_set_index_first="${1#[}" ; _json_set_set_index_first="${_json_set_set_index_first%]}"
 
-    [[ -z "$_json_set_set_index_first" ]] && return 1
+    [[ -z "$_json_set_set_index_first" ]] && return ${JSON_COMMON_ERR_DEFINE[set_null_key]}
     # 不是关联数组,但是要访问非数字键
     if [[ "${_json_set_json_ref@a}" != *A* ]] && ! [[ "${_json_set_set_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
-        return 8
+        return ${JSON_COMMON_ERR_DEFINE[set_key_but_not_dict]}
     fi
 
     if [ -v '_json_set_json_ref[$_json_set_set_index_first]' ] ; then
@@ -58,15 +58,15 @@ json_set ()
         _json_set_set_type='a' ; _json_set_set_index="${!_json_set_index}"
 
         if [[ "[" == "${_json_set_set_index:0:1}" ]] ; then
-            [[ "${_json_set_set_index: -1}" != ']' ]] && return 8
+            [[ "${_json_set_set_index: -1}" != ']' ]] && return ${JSON_COMMON_ERR_DEFINE[set_key_right_side_wrong]}
             _json_set_set_type='A' ; _json_set_set_index="${_json_set_set_index:1:-1}"
         else
             # 判断是否是10进制数字
-            [[ "$_json_set_set_index" =~ ^[1-9][0-9]*$|^0$ ]] || return 4
+            [[ "$_json_set_set_index" =~ ^[1-9][0-9]*$|^0$ ]] || return ${JSON_COMMON_ERR_DEFINE[set_key_index_not_decimal]}
         fi
 
         # 检查索引是否是空值,如果是直接异常退出
-        [[ -z "$_json_set_set_index" ]] && return 1
+        [[ -z "$_json_set_set_index" ]] && return ${JSON_COMMON_ERR_DEFINE[set_null_key]}
 
         # 不限制层数,在这里初始化
         local _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_set_index}=''
@@ -83,8 +83,8 @@ json_set ()
         if [[ "$_json_set_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
             # 这里要进行键校验(设置为非A数据结构,但是原始保存的是A,那么异常)
             # 关联数组转换成索引数组不允许,但是索引数组转换成关联数组可以
-            if [[ 'A' != "$_json_set_set_type" ]] && [[ "${BASH_REMATCH[2]}" = *A* ]] ; then
-                return 2
+            if [[ 'A' != "$_json_set_set_type" ]] && [[ "${BASH_REMATCH[2]}" == *A* ]] ; then
+                return ${JSON_COMMON_ERR_DEFINE[set_convert_dict_to_array]}
             fi
 
             declare -${_json_set_set_type} _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_set_index}
@@ -132,7 +132,7 @@ json_set ()
     
     # 最终把_json_set_tmp_var更新到最顶层
     _json_set_json_ref["$_json_set_set_index_first"]="$_json_set_tmp_var"
-    return 0
+    return ${JSON_COMMON_ERR_DEFINE[ok]}
 }
 
 return 0

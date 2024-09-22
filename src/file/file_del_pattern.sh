@@ -3,7 +3,7 @@
 
 # 删除文件中所有包含某个模式的行
 # 两种用法
-# file_del_pattern other.txt '^\s*$' | file_del_end_pattern '' '^\s*return\s*0\s*$'
+# file_del_pattern other.txt '^[[:space:]]*$' | file_del_end_pattern '' '^[[:space:]]*return[[:space:]]*0[[:space:]]*$'
 # /dev/stdin 文件是标准输入
 file_del_pattern () 
 { 

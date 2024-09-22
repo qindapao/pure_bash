@@ -5,6 +5,16 @@
     <title>Bash Dependency Graph</title>
     <script src="d3.v7.min.js"></script>
     <style>
+        .hollow-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: transparent;
+            -webkit-text-stroke: 1px green; /* 将颜色改为绿色 */
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
         .node {
             cursor: pointer;
         }
@@ -23,11 +33,6 @@
             font-size: 12px;
             fill: #333;
         }
-        #search {
-            margin-bottom: 10px;
-            padding: 5px;
-            font-size: 14px;
-        }
         .dashed {
             stroke-dasharray: 5, 5;
         }
@@ -37,24 +42,34 @@
         .marked {
             fill: yellow;
         }
+
+        .info, #stats {
+            position: absolute;
+            background-color: #f9f9f9; /* 更柔和的背景颜色 */
+            padding: 10px; /* 增加内边距 */
+            border: 1px solid #ccc; /* 更柔和的边框颜色 */
+            border-radius: 8px; /* 更大的圆角 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+            font-size: 14px; /* 调整字体大小 */
+            cursor: move; /* 鼠标悬停时显示移动光标 */
+        }
+
+        .info {
+            top: 50px;
+            right: 30px; /* 增加右边距 */
+            max-width: 300px; /* 设置最大宽度 */
+        }
         #stats {
+            position: absolute;
+            top: 50px;
+            left: 10px;
             margin-bottom: 10px;
             font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <style>
-        .info {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            background-color: white;
-            padding: 5px;
-            border: 1px solid black;
-            border-radius: 5px;
-        }
-    </style>
+    <div class="hollow-text">pure_bash 库函数引用关系图谱</div>
     <div class="info">
         蓝色普通节点正常，紫色环节点表示代码调用关系有循环引用，有问题。<br>
         右键点击节点标记节点隐藏与不隐藏<br>
@@ -62,7 +77,6 @@
         点击空白还原初始状态<br>
         F5刷新页面<br>
     </div>
-    <input type="text" id="search" placeholder="Search for a node...">
     <div id="stats"></div>
     <svg width="2500" height="1500">
         <defs>
@@ -157,28 +171,6 @@
                 link.attr("stroke", d => d.color).classed("hidden", false);
             });
 
-            d3.select("#search").on("input", function() {
-                const searchTerm = this.value.toLowerCase();
-                if (searchTerm === "") {
-                    node.select("circle").attr("fill", d => color(d.group)).classed("hidden", false);
-                    node.classed("hidden", false);
-                    link.attr("stroke", d => d.color).classed("hidden", false);
-                } else {
-                    node.select("circle").attr("fill", d => color(d.group)).classed("hidden", true);
-                    link.attr("stroke", d => d.color).classed("hidden", true);
-
-                    node.filter(d => d.id.toLowerCase().includes(searchTerm))
-                        .select("circle").classed("hidden", false);
-
-                    node.filter(d => d.id.toLowerCase().includes(searchTerm))
-                        .classed("hidden", false);
-
-                    link.filter(l => l.source.id.toLowerCase().includes(searchTerm) || l.target.id.toLowerCase().includes(searchTerm))
-                        .classed("hidden", false);
-                }
-                updateVisibility();
-            });
-
             function updateVisibility() {
                 // 隐藏所有节点和边
                 node.classed("hidden", true);
@@ -264,6 +256,47 @@
             let cycleNodesCount = cycleNodesSet.size;
             const normalNodesCount = graph.nodes.length - cycleNodesCount;
             d3.select("#stats").html(`Nodes: ${graph.nodes.length}, Edges: ${graph.edges.length}<br>Normal Nodes: ${normalNodesCount}, Cycle Nodes: ${cycleNodesCount}`);
+
+            // 打印检测到的环
+            let cyclesHtml = cycles.map(cycle => 
+                cycle.map(node => `<span style="color: black;">${node.id}</span>`).join(' <span style="color: blue;">=> </span>')
+            ).join('<br>');
+            d3.select("#stats").append('div').html(`<br><span style="color: red; font-weight: bold;">Detected Cycles:</span><br>${cyclesHtml}`);
+
+            function makeDraggable(element) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                element.onmousedown = dragMouseDown;
+
+                function dragMouseDown(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = closeDragElement;
+                    document.onmousemove = elementDrag;
+                }
+
+                function elementDrag(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    element.style.top = (element.offsetTop - pos2) + "px";
+                    element.style.left = (element.offsetLeft - pos1) + "px";
+                }
+
+                function closeDragElement() {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+            }
+
+            makeDraggable(document.getElementById("stats"));
+            makeDraggable(document.querySelector(".info"));
+            makeDraggable(document.querySelector(".hollow-text"));
+
 
             simulation
                 .nodes(graph.nodes)

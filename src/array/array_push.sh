@@ -1,4 +1,4 @@
- . ./meta/meta.sh
+. ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_push]++)) && return 0
 
 # 这个函数并没有用,直接操作更简单

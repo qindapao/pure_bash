@@ -1,13 +1,15 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_unpack]++)) && return 0
 
+. ./json/json_common.sh || return 1
+
 # :TODO: 整个结构体是否需要重构?传参统一使用Q字符串？安全？或者没有必要，暂时不实现
 # :TODO: 或者这么说，是否需要传参的地方都用@Q安全字符串来处理？
 # 但是@Q和printf "%q" 提供了额外的保护层
 # var='some string with special characters & $(rm -rf /)'
 # printf "%q\n" "$var"
 #
-# json_unpack 0 str "json_name"
+# json_unpack_o str "json_name"
 # 压缩后的结构体(原始字符串或者是Q字符串)解压成结构体
 # 参数:
 #   1: 字符串类型
@@ -20,6 +22,7 @@ json_unpack ()
 {
     local -i _json_unpack_str_type=$1
     local _json_unpack_str=$2
+    local -n _json_unpack_out_json_ref=$3
 
     # 如果本身是一个Q字符串,先转换成普通字符串
     if ((_json_unpack_str_type)) ; then
@@ -29,8 +32,23 @@ json_unpack ()
     # 普通字符串拿到申明后的数据部分
     if [[ "$_json_unpack_str" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
         # 这里不能重新声明,因为重新声明就变成局部变量了,所以变量的类型和解压的类型必须一致
-        eval "$3=${BASH_REMATCH[3]}"
+        if [[ "${BASH_REMATCH[2]}" == *a* ]] && [[ "${_json_unpack_out_json_ref@a}" == *a* ]] ; then
+            eval "_json_unpack_out_json_ref=${BASH_REMATCH[3]}"
+        elif [[ "${BASH_REMATCH[2]}" == *A* ]] && [[ "${_json_unpack_out_json_ref@a}" == *A* ]] ; then
+            eval "_json_unpack_out_json_ref=${BASH_REMATCH[3]}"
+        else
+            # 类型错误
+            return ${JSON_COMMON_ERR_DEFINE[unpack_type_err]}
+        fi
+    else
+        if [[ "${_json_unpack_out_json_ref@a}" != *[aA]* ]] ; then
+            _json_unpack_out_json_ref="$_json_unpack_str"
+        else
+            return ${JSON_COMMON_ERR_DEFINE[unpack_type_err]}
+        fi
     fi
+
+    return ${JSON_COMMON_ERR_DEFINE[ok]}
 }
 
 alias json_unpack_o='json_unpack 0'

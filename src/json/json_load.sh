@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_load]++)) && return 0
 
+. ./json/json_common.sh || return 1
 . ./json/json_set.sh || return 1
 . ./json/json_overlay.sh || return 1
 
@@ -89,10 +90,9 @@ json_load ()
             _json_load_leaf_set_key=${BASH_REMATCH[1]}
         fi
 
+        # key和value都要从Q字符串转换成常规字符串(最后3~5个字符不能转,它们不属于Q字符串 ⇒ )
+        eval "_json_load_ori_str=${_json_load_key:0:-2-_json_load_space_num}"
         if ((_json_load_space_num)) ; then
-            # key和value都要从Q字符串转换成常规字符串(最后三个字符不能转,它们不属于Q字符串 ⇒ )
-            eval "_json_load_ori_str=${_json_load_key:0:-2-_json_load_space_num}"
-
             if [[ "${_json_load_leaf_set_key}" == '⇒' ]] ; then
                 _json_load_leaf_set_key="[${_json_load_ori_str}]"
             else
@@ -116,9 +116,6 @@ json_load ()
 
             ((_json_load_line_cnt+=2))
         else
-            # key从Q字符串转换成常规字符串(最后两个字符不能转,它们不属于Q字符串 ⇒)
-            eval "_json_load_ori_str=${_json_load_key:0:-2}"
-
             if [[ "${_json_load_key: -1}" == '⇒' ]] ; then
                 _json_load_key_stack+=("[${_json_load_ori_str}]")
             else

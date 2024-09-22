@@ -1,4 +1,4 @@
- . ./meta/meta.sh
+. ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_eunshift]++)) && return 0
 
 # 使用evil的原生unshift,拥有最高效率

@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[json_del_de]++)) && return 0
 
 # . ./log/log_dbg.sh || return 1
+. ./json/json_common.sh || return 1
 . ./json/json_get.sh || return 1
 . ./json/json_del.sh || return 1
 . ./json/json_set_params_del_bracket.sh || return 1
@@ -26,16 +27,15 @@
 #   json_get 的返回值
 json_del_de ()
 {
-    local -n _json_del_de_out_var=$1 _json_del_de_json_ref=$2
-    shift 2
+    local -n _json_del_de_json_ref=$1
+    shift 1
 
     # 如果剩下的参数只有一个,证明是数组的情况
     local _json_del_de_delete_key="${!#}"
     if (($#==1)) ; then
-        _json_del_de_out_var="${_json_del_de_json_ref[_json_del_de_delete_key]}"
         unset -v '_json_del_de_json_ref[_json_del_de_delete_key]'
         _json_del_de_json_ref=("${_json_del_de_json_ref[@]}")
-        return 0
+        return ${JSON_COMMON_ERR_DEFINE[ok]}
     fi
 
     local -a _json_del_de_get_params=("${@:1:$#-1}")
@@ -51,15 +51,10 @@ json_del_de ()
     fi
     _json_del_de_return_code=0
 
-    # :TODO: 是直接返回还是打包后返回(如果不是叶子数组)实际使用中再看
-    # str_pack 打包后可以直接在外部拿到数组
-    # 数组删除最后一个元素
     if ((${#_json_del_de_get_array[@]})) ; then
-        _json_del_de_out_var="${_json_del_de_get_array[_json_del_de_delete_key]}"
-        unset '_json_del_de_get_array[_json_del_de_delete_key]'
+        unset -v '_json_del_de_get_array[_json_del_de_delete_key]'
     else
-        _json_del_de_out_var=''
-        return 128
+        return ${JSON_COMMON_ERR_DEFINE[del_null_array_not_need_handle]}
     fi
 
     if ! ((${#_json_del_de_get_array[@]})) ; then
@@ -80,5 +75,4 @@ json_del_de ()
 }
 
 return 0
-
 

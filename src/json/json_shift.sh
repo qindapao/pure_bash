@@ -2,12 +2,15 @@
 ((DEFENSE_VARIABLES[json_shift]++)) && return 0
 
 # . ./log/log_dbg.sh || return 1
+. ./json/json_common.sh || return 1
 . ./array/array_shift.sh || return 1
 . ./json/json_get.sh || return 1
 . ./json/json_del.sh || return 1
 . ./json/json_set_params_del_bracket.sh || return 1
 . ./json/json_overlay.sh || return 1
+. ./json/json_unpack.sh || return 1
 
+# pop函数也是不需要de函数的,因为如果数组本身致密,那么shift后也是致密的
 # 对某级下挂的数组shift第一个元素到标准输出,并且删除这个元素
 # json_shift 'json_name' 'ret' '4' '0' '[key1]'
 # 参数:
@@ -27,11 +30,32 @@ json_shift ()
     local -n _json_shift_json_{ret="$1",ref="$2"}
     shift 2
 
+    local -i _json_shift_return_code=0
+    local _json_shift_json_str
+
+    (($#)) || {
+        # 普通数组
+        if ((${#_json_shift_json_ref[@]})) ; then
+            if [[ "${_json_shift_json_ref@a}" == *a* ]] ; then
+                array_shift _json_shift_json_ref _json_shift_json_str
+                json_unpack_o "$_json_shift_json_str" _json_shift_json_ret
+                _json_shift_return_code=$?
+                ((_json_shift_return_code)) && return $_json_shift_return_code
+                return ${JSON_COMMON_ERR_DEFINE[ok]}
+            else
+                # 非数组
+                return ${JSON_COMMON_ERR_DEFINE[shift_not_array]}
+            fi
+        else
+            return ${JSON_COMMON_ERR_DEFINE[shift_null_array]}
+        fi
+    }
+
     local -a _json_shift_get_params=("${@}")
     json_set_params_del_bracket _json_shift_get_params
 
     local -a _json_shift_get_array=() _json_shift_get_array_indexs=()
-    local -i _json_shift_get_array_max_index=-1 _json_shift_return_code=0
+    local -i _json_shift_get_array_max_index=-1
     json_get _json_shift_get_array _json_shift_json_ref "${_json_shift_get_params[@]}"
     _json_shift_return_code=$?
     if ((_json_shift_return_code)) ; then
@@ -41,24 +65,22 @@ json_shift ()
 
     # 删除数组的第一个元素
     if ((${#_json_shift_get_array[@]})) ; then
-        array_shift _json_shift_get_array _json_shift_json_ret
+        array_shift _json_shift_get_array _json_shift_json_str
+        json_unpack_o "$_json_shift_json_str" _json_shift_json_ret
+        _json_shift_return_code=$?
+        ((_json_shift_return_code)) && return $_json_shift_return_code
     else
-        return 128
+        return ${JSON_COMMON_ERR_DEFINE[shift_null_array]}
     fi
 
     if ! ((${#_json_shift_get_array[@]})) ; then
         # 如果已经是空数组,那么原始数组删除键
         json_del _json_shift_json_ref "${_json_shift_get_params[@]}"
-        _json_shift_return_code=$?
-        ((_json_shift_return_code)) && ((_json_shift_return_code|=64))
-        return $_json_shift_return_code
+        return $?
     fi
 
     # 数组重构
     json_overlay _json_shift_json_ref _json_shift_get_array "${@}"
-    _json_shift_return_code=$?
-    ((_json_shift_return_code)) && ((_json_shift_return_code|=128))
-    return $_json_shift_return_code
 }
 
 return 0

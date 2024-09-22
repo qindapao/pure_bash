@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_del]++)) && return 0
 
+. ./json/json_common.sh || return 1
 . ./log/log_dbg.sh || return 1
 
 # LOG_LEVEL=2
@@ -27,13 +28,13 @@ json_del ()
     local -a _json_del_index_lev=('' '')
     local _json_del_{index,top_level_str="",lev_cnt=1,index_first="$1"}
 
-    [[ -z "$_json_del_index_first" ]] && return 1
+    [[ -z "$_json_del_index_first" ]] && return ${JSON_COMMON_ERR_DEFINE[del_null_key]}
     if [[ "${_json_del_json_ref@a}" != *A* ]] && ! [[ "${_json_del_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
-        return 2
+        return ${JSON_COMMON_ERR_DEFINE[del_key_but_not_dict]}
     fi
 
     if [[ ! -v '_json_del_json_ref[$_json_del_index_first]' ]] ; then
-        return 4
+        return ${JSON_COMMON_ERR_DEFINE[del_key_not_fount]}
     fi
 
     local _json_del_data_lev_ref_last=${_json_del_json_ref["$_json_del_index_first"]}
@@ -41,7 +42,7 @@ json_del ()
 
     for _json_del_index in "${@:2:$#}" ; do
         ((_json_del_lev_cnt++))
-        [[ -z "$_json_del_index" ]] && return 1
+        [[ -z "$_json_del_index" ]] && return ${JSON_COMMON_ERR_DEFINE[del_null_key]}
         # :TODO: 这里的local是否多余?
         local _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_del_lev_cnt}=''
         local -n _json_del_data_lev_ref=_json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_del_lev_cnt}
@@ -56,14 +57,14 @@ json_del ()
         fi
 
         if [[ "$_json_del_declare_flag" != *A* ]] && ! [[ "${_json_del_index}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
-            return 2
+            return ${JSON_COMMON_ERR_DEFINE[del_key_but_not_dict]}
         fi
 
         if [[ -v '_json_del_data_lev_ref[$_json_del_index]' ]] ; then
             _json_del_data_lev_ref_last="${_json_del_data_lev_ref["$_json_del_index"]}"
             _json_del_index_lev+=("$_json_del_index")
         else
-            return 4
+            return ${JSON_COMMON_ERR_DEFINE[del_key_not_fount]}
         fi
     done
 
@@ -114,7 +115,7 @@ json_del ()
         _json_del_json_ref["$_json_del_index_first"]="$_json_del_top_level_str"
     fi
 
-    return 0
+    return ${JSON_COMMON_ERR_DEFINE[ok]}
 }
 
 return 0

@@ -35,8 +35,8 @@ copy_modules ()
 
     # meta是一定要拷贝的,先处理
     cat ./meta/meta.sh | grep -v '^((__META++))' |\
-                         file_del_end_pattern_pipe '^\s*$' |\
-                         file_del_end_pattern_pipe '^\s*return\s*0\s*$' >>"$SINGLE_FILE_NAME"
+                         file_del_end_pattern_pipe '^[[:space:]]*$' |\
+                         file_del_end_pattern_pipe '^[[:space:]]*return[[:space:]]*0[[:space:]]*$' >>"$SINGLE_FILE_NAME"
     echo "#-----------------" >>"$SINGLE_FILE_NAME"
     
     ldebug_bp 'show all_modules' all_modules
@@ -60,7 +60,7 @@ copy_modules ()
             local -a source_file=()
             mapfile -t source_file < "$cur_file"
             for i in "${source_file[@]}" ; do
-                if [[ "$i" =~ ^\.\ +([^| ]+)\ +\|\|\ +return\ +1\s*$ ]] ; then
+                if [[ "$i" =~ ^\.\ +([^| ]+)\ +\|\|\ +return\ +1[[:space:]]*$ ]] ; then
                     # 已经被处理过的文件不再压入,既然已经处理证明它所依赖的文件也已经处理
                     # 所以它不需要压入
                     [[ "${file_have_deal[${BASH_REMATCH[1]}]+set}" ]] || {
@@ -88,9 +88,9 @@ copy_modules ()
                 
                 cat "$cur_file" | grep -v '^. ./meta/meta.sh' |\
                                   grep -v '^((DEFENSE_VARIABLES' |\
-                                  file_del_end_pattern_pipe '^\s*$' |\
-                                  file_del_end_pattern_pipe '^\s*return\s*0\s*$' |\
-                                  file_del_pattern_pipe '^\.\ +([^| ]+)\ +\|\|\ +return\ +1\s*$' >>"$SINGLE_FILE_NAME"
+                                  file_del_end_pattern_pipe '^[[:space:]]*$' |\
+                                  file_del_end_pattern_pipe '^[[:space:]]*return[[:space:]]*0[[:space:]]*$' |\
+                                  file_del_pattern_pipe '^\.\ +([^| ]+)\ +\|\|\ +return\ +1[[:space:]]*$' >>"$SINGLE_FILE_NAME"
                 echo "#-----------------" >>"$SINGLE_FILE_NAME"
             fi
             # 移除栈顶元素(这个时候元素一定在栈顶)
