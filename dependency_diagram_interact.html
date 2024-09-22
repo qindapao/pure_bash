@@ -65,6 +65,7 @@
             left: 10px;
             margin-bottom: 10px;
             font-size: 14px;
+            user-select: text; /* 允许文本选择 */
         }
     </style>
 </head>
@@ -265,7 +266,13 @@
 
             function makeDraggable(element) {
                 let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                element.onmousedown = dragMouseDown;
+                const header = document.createElement('div');
+                header.style.cursor = 'move';
+                header.style.backgroundColor = '#fff';
+                header.style.padding = '4px';
+                header.innerHTML = '';
+                element.insertBefore(header, element.firstChild);
+                header.onmousedown = dragMouseDown;
 
                 function dragMouseDown(e) {
                     e = e || window.event;
@@ -291,6 +298,12 @@
                     document.onmouseup = null;
                     document.onmousemove = null;
                 }
+
+                // 设置鼠标悬停时的光标样式
+                element.onmouseenter = () => { element.style.cursor = 'text'; };
+                element.onmouseleave = () => { element.style.cursor = 'default'; };
+                header.onmouseenter = () => { header.style.cursor = 'move'; };
+                header.onmouseleave = () => { header.style.cursor = 'default'; };
             }
 
             makeDraggable(document.getElementById("stats"));
