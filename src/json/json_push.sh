@@ -23,15 +23,21 @@ json_push ()
     local -a _json_push_get_array_indexs=()
     local -i _json_push_get_array_max_index=-1
     local -i _json_push_return_code=0
-    # 获取数组最大索引
-    _json_push_get_array_indexs=("${!_json_push_json_ref[@]}")
-    if ((${#_json_push_get_array_indexs[@]})) ; then
-        _json_push_get_array_max_index="${_json_push_get_array_indexs[-1]}"
-    fi
-    ((_json_push_get_array_max_index++))
 
     # push顶级的极端情况
     if (($#==2)) ; then
+        # 获取数组最大索引
+        # 如果不是数组直接报错
+        if [[ "${_json_push_json_ref@a}" != *a* ]] ; then
+            return ${JSON_COMMON_ERR_DEFINE[push_top_lev_not_array]}
+        fi
+
+        _json_push_get_array_indexs=("${!_json_push_json_ref[@]}")
+        if ((${#_json_push_get_array_indexs[@]})) ; then
+            _json_push_get_array_max_index="${_json_push_get_array_indexs[-1]}"
+        fi
+        ((_json_push_get_array_max_index++))
+
         json_set _json_push_json_ref "$_json_push_get_array_max_index" "${@:$#-1}"
         return $?
     fi

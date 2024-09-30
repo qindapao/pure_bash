@@ -52,6 +52,10 @@ JSON_COMMON_ERR_DEFINE[pop_null_array]=33
 JSON_COMMON_ERR_DEFINE[shift_not_array]=40
 JSON_COMMON_ERR_DEFINE[shift_null_array]=41
 
+# push
+JSON_COMMON_ERR_DEFINE[push_top_lev_not_array]=48
+
+
 # extract
 JSON_COMMON_ERR_DEFINE[extract_not_array]=64
 JSON_COMMON_ERR_DEFINE[extract_null_array]=65
@@ -70,8 +74,27 @@ JSON_COMMON_ERR_DEFINE[insert_type_err]=88
 # overlay
 
 
+# 0: 使用语言内置的eval和引用来解包和压包
+#   优点: 不需要依赖外部的base64等等工具,小数据量情况速度极快
+#   缺点: 不能无限层级嵌套,嵌套层级越多速度越慢
+#
+# 1: 使用base64模块来解包和压包
+#   优点: 可以无限嵌套,大数据量的时候速度也不会明显被影响
+#   缺点: 依赖外部的base64解码编码工具,且小数据量的时候没有内置实现快速
+#         每一级压缩还是会造成33%的空间膨胀,嵌套层级太多的时候数据也会变得很大
+#         如果有基于bash loadable的实现后,base64的速度反而最快
+#
+# 注意: json_common_load.py 中也需要同步更改
+declare -gA JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM=([builtin]=0 [base64]=1)
+# JSON序列化算法
+JSON_COMMON_SERIALIZATION_ALGORITHM=${JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin]}
 
+# 空数组的base64编码
+# JSON_COMMON_NULL_ARRAY_BASE64=$(base_encode '()')
+JSON_COMMON_NULL_ARRAY_BASE64='KCk='
 
+# 魔法字符串,json_common_load.py中需要同步更新
+JSON_COMMON_MAGIC_STR='_json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev'
 
 return 0
 

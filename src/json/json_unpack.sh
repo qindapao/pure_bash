@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_unpack]++)) && return 0
 
+. ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
 
 # :TODO: 整个结构体是否需要重构?传参统一使用Q字符串？安全？或者没有必要，暂时不实现
@@ -30,12 +31,18 @@ json_unpack ()
     fi
 
     # 普通字符串拿到申明后的数据部分
-    if [[ "$_json_unpack_str" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+    if [[ "$_json_unpack_str" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
         # 这里不能重新声明,因为重新声明就变成局部变量了,所以变量的类型和解压的类型必须一致
         if [[ "${BASH_REMATCH[2]}" == *a* ]] && [[ "${_json_unpack_out_json_ref@a}" == *a* ]] ; then
-            eval "_json_unpack_out_json_ref=${BASH_REMATCH[3]}"
+            ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                eval "_json_unpack_out_json_ref=${BASH_REMATCH[3]}" ; } || {
+                    base64_decode _json_unpack_out_json_ref "${BASH_REMATCH[3]}"
+                    eval _json_unpack_out_json_ref="$_json_unpack_out_json_ref" ; }
         elif [[ "${BASH_REMATCH[2]}" == *A* ]] && [[ "${_json_unpack_out_json_ref@a}" == *A* ]] ; then
-            eval "_json_unpack_out_json_ref=${BASH_REMATCH[3]}"
+            ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                eval "_json_unpack_out_json_ref=${BASH_REMATCH[3]}" ; } || {
+                base64_decode _json_unpack_out_json_ref "${BASH_REMATCH[3]}"
+                eval _json_unpack_out_json_ref="$_json_unpack_out_json_ref" ; }
         else
             # 类型错误
             return ${JSON_COMMON_ERR_DEFINE[unpack_type_err]}

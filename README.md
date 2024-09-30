@@ -74,6 +74,199 @@ https://devtut.github.io/bash/when-to-use-eval.html#using-eval
 https://github.com/hornos/shf3
 https://github.com/javier-lopez/learn
 
+## bash 编译和loadables可加载共享模块编译开发指南
+
+### bash的编译和安装
+
+1. 从bash官方网站下载源码包，需要下载和当前系统的大版本相同的
+
+具体去这里找相应的源码包：https://ftp.gnu.org/gnu/bash/
+
+下载后解压源码包，然后进入源码目录
+
+2. 在源码的根目录下，运行configure配置脚本
+
+```bash
+[root@localhost bash-5.0]# pwd
+/root/qinqing/bash-5.0
+[root@localhost bash-5.0]# sudo ./configure
+```
+
+3. 配置完成后，在当前目录下运行make
+
+```bash
+[root@localhost bash-5.0]# sudo ./make
+```
+
+4. 构建完成后安装
+
+```bash
+sudo make install
+```
+
+5. 安装完成后查看版本
+
+```bash
+bash --version
+```
+
+6. 配置环境
+
+如果需要，你可以将新安装的 Bash 设置为默认的 Shell。编辑 /etc/shells 文件，添加  
+新安装的 Bash 路径，然后使用 chsh 命令更改默认 Shell：
+
+```bash
+sudo chsh -s /usr/local/bin/bash
+```
+
+### bash的可加载模块开发指南
+
+在`bash`的源码中，有一些范例的可加载模块位于`examples/loadables/`目录下，这个目录  
+下的所有`.c`文件都可以独立编译成一个`bash`内置的工具。`bash`内置的工具比外部工具  
+的优势是，运行它们不需要启动新的进程，节省内存和运行时间。并且这些工具可以开发成  
+能够访问`bash`内部的数据结构，或者方便的和操作系统交互。
+
+
+#### bash loadables的编译
+
+在`examples/loadables/`目录下所有现成的工具，我们进入这个目录，直接`make`就可以  
+编译出来。
+
+如果我们想编译自己开发的工具，比如，我们开发了一个工具，叫`ibase64`，它的功能是对  
+数据进行`base64`编码和解码。我们可以修改这个目录下的`Makefile`，在适当的位置修改成下  
+面的代码：
+
+```bash
+ALLPROG = print truefalse sleep finfo logname basename dirname fdflags \
+	  tty pathchk tee head mkdir rmdir printenv id whoami \
+	  uname sync push ln unlink realpath strftime mypid setpgid seq ibase64
+OTHERPROG = necho hello cat pushd stat rm
+
+... ...
+
+ibase64:	ibase64.o
+	$(SHOBJ_LD) $(SHOBJ_LDFLAGS) $(SHOBJ_XLDFLAGS) -o $@ ibase64.o $(SHOBJ_LIBS)
+
+... ...
+
+ibase64.o: ibase64.c
+```
+
+然后下面这样编译出来:
+
+```bash
+[root@localhost loadables]# make ibase64
+gcc -fPIC -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security -I. -I.. -I../.. -I../../lib -I../../builtins -I. -I../../include -I/root/qinqing/bash-5.0 -I/root/qinqing/bash-5.0/lib -I/root/qinqing/bash-5.0/builtins  -c -o ibase64.o ibase64.c
+gcc -shared -Wl,-soname,ibase64   -o ibase64 ibase64.o 
+[root@localhost loadables]# 
+[root@localhost loadables]# ls -l | grep ibas
+-rwxr-xr-x. 1 root root  87432 Sep 24 14:52 ibase64
+-rw-r--r--. 1 root root   5342 Sep 24 14:08 ibase64.c
+-rw-r--r--. 1 root root  35616 Sep 24 14:52 ibase64.o
+[root@localhost loadables]# 
+```
+
+或者修改`Makefile`的模板文件`Makefile.inc`，里面只加入我们需要编译的模块，然后把名字  
+改成`Makefile`即可。然后直接`make`。
+
+
+#### bash loadables的开发
+
+内置工具的开发可以参考当前`bash`库中现成的工具的开发模块，引用的头文件等等，还有  
+如何访问`bash`内置的数据结构，除了读代码，也可以去开源社区寻求帮助。
+
+目前遇到的问题是有一个头文件比较奇怪，是源码根目录下的`xmalloc.h`，里面的内容大概是  
+
+```bash
+/* Allocation functions in xmalloc.c */
+extern PTR_T xmalloc __P((size_t));
+extern PTR_T xrealloc __P((void *, size_t));
+extern void xfree __P((void *));
+
+#if defined(USING_BASH_MALLOC) && !defined (DISABLE_MALLOC_WRAPPERS)
+extern PTR_T sh_xmalloc __P((size_t, const char *, int));
+extern PTR_T sh_xrealloc __P((void *, size_t, const char *, int));
+extern void sh_xfree __P((void *, const char *, int));
+
+#define xmalloc(x)	sh_xmalloc((x), __FILE__, __LINE__)
+#define xrealloc(x, n)	sh_xrealloc((x), (n), __FILE__, __LINE__)
+#define xfree(x)	sh_xfree((x), __FILE__, __LINE__)
+
+#ifdef free
+#undef free
+#endif
+#define free(x)		sh_xfree((x), __FILE__, __LINE__)
+#endif	/* USING_BASH_MALLOC */
+
+#endif	/* _XMALLOC_H_ */
+```
+
+不同的`bash`版本可能略有差异，大概的意思是会把`malloc`和`free`两个标准的内存函数  
+重定向到`xmalloc`和`xfree`，然后又会被重定向到`sh_xmalloc`和`sh_xfree`。导致编译  
+出来的二进制工具运行的时候报找不到符号的错误。
+
+目前暂时的解决方案是把`malloc`和`free`的指向宏屏蔽掉。然后自己开发的工具中就  
+使用标准的`malloc`和`free`函数，不使用`xmalloc`和`xfree`。
+
+```bash
+#if defined(USING_BASH_MALLOC) && !defined (DISABLE_MALLOC_WRAPPERS)
+extern PTR_T sh_xmalloc __P((size_t, const char *, int));
+extern PTR_T sh_xrealloc __P((void *, size_t, const char *, int));
+extern void sh_xfree __P((void *, const char *, int));
+
+#define xmalloc(x)	sh_xmalloc((x), __FILE__, __LINE__)
+#define xrealloc(x, n)	sh_xrealloc((x), (n), __FILE__, __LINE__)
+#define xfree(x)	sh_xfree((x), __FILE__, __LINE__)
+
+// #ifdef free
+// #undef free
+// #endif
+// #define free(x)		sh_xfree((x), __FILE__, __LINE__)
+#endif	/* USING_BASH_MALLOC */
+
+#endif	/* _XMALLOC_H_ */
+```
+
+上面的例子中只有`free`被重定向，如果遇到`malloc`被重定向也相同的方式处理。
+
+具体原因还要深挖下，不过目前不影响工具使用。
+
+
+#### bash loadables的使用
+
+在`bash`脚本中，使用下面的命令使能我们的内置工具，一般放到脚本的最上面:
+
+```bash
+enable -f ./ibase64 ibase64
+```
+
+如果工具不在脚本的当前目录下，那么需要使用绝对路径引用工具。
+
+```bash
+enable -f /root/xx/yy/ibase64 ibase64
+```
+
+如果不想用工具了，也可以移除它们:
+
+```bash
+enable -n ibase64
+```
+
+使用下面的命令可以打印所有的`bash`内置工具(可加载模块也是内置工具，和builtin地位相同)。
+
+
+```bash
+[root@localhost ~]# enable -p
+enable .
+enable :
+enable [
+enable alias
+enable bg
+enable bind
+enable break
+enable builtin
+enable caller
+```
 
 
 ## bash特殊语法记录
@@ -2293,11 +2486,6 @@ echo "alarm_$((alarm_cnt++))]" | tee -a "log.txt"
 
 由于使用了管道，变成了子`shell`，上面的`alarm_cnt`变量不会自增。
 
-test.sh 
-
-sjons_unpack 0 "$ori_str" unpack 改成 
-
-json_unpack_o "$ori_str" unpack
 
 ### HEAR DOCS
 

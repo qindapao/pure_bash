@@ -107,9 +107,13 @@ json_load ()
                 _json_load_value="${_json_load_value#"${_json_load_value%%[! ]*}"}"  
                 eval "_json_load_value=$_json_load_value"
             elif ((_json_load_space_num==3)) ; then
-                _json_load_value='declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
+                ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                    _json_load_value="declare -a ${JSON_COMMON_MAGIC_STR}1=()" ; } || {
+                    _json_load_value="declare -a ${JSON_COMMON_MAGIC_STR}1=${JSON_COMMON_NULL_ARRAY_BASE64}" ;}
             else
-                _json_load_value='declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=()'
+                ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                    _json_load_value="declare -A ${JSON_COMMON_MAGIC_STR}1=()" ; } || {
+                    _json_load_value="declare -A ${JSON_COMMON_MAGIC_STR}1=${JSON_COMMON_NULL_ARRAY_BASE64}" ; }
             fi
 
             json_set '_json_load_json_out_ref' "${_json_load_key_stack[@]}" "${_json_load_leaf_set_key}" '' "$_json_load_value"

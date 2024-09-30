@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_dump]++)) && return 0
 
+. ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
 . ./array/array_sort.sh || return 1
 . ./array/array_revert.sh || return 1
@@ -56,15 +57,17 @@ _json_dump ()
         local __json_dump_node_type='normal'
         local __json_dump_space_str=''
         # 如果嵌套层数过深,这里会非常耗时,当字符数量达到千万级,这里需要4秒
-        if  [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=\(\)$ ]] \
-            || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+$ ]] ; then
+        if  [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=\(\)$ ]] \
+            || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ ${JSON_COMMON_MAGIC_STR}[0-9]+$ ]] \
+            || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+a[^\ ]*)\ ${JSON_COMMON_MAGIC_STR}[0-9]+="${JSON_COMMON_NULL_ARRAY_BASE64}"$ ]] ; then
             __json_dump_node_type='null_array_leaf'
             __json_dump_space_str='   '
-        elif  [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=\(\)$ ]] \
-            || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+$ ]] ; then
+        elif  [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=\(\)$ ]] \
+              || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ ${JSON_COMMON_MAGIC_STR}[0-9]+$ ]] \
+              || [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+A[^\ ]*)\ ${JSON_COMMON_MAGIC_STR}[0-9]+="${JSON_COMMON_NULL_ARRAY_BASE64}"$ ]] ; then
             __json_dump_node_type='null_dict_leaf'
             __json_dump_space_str='    '
-        elif [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+        elif [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
             __json_dump_node_type='not_leaf'
         else
             __json_dump_node_type='str_leaf'
@@ -87,10 +90,13 @@ _json_dump ()
             # 变量类型可能改变,这里必须unset,这里和递归不同,递归只用一次
             unset __json_dump_var
             declare ${BASH_REMATCH[2]} __json_dump_var
-            eval __json_dump_var="${BASH_REMATCH[3]}"
+            ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                eval __json_dump_var="${BASH_REMATCH[3]}" ; } || {
+                    base64_decode __json_dump_var "${BASH_REMATCH[3]}" 
+                    eval __json_dump_var="$__json_dump_var" ; }
             __json_dump_var_indexs=("${!__json_dump_var[@]}")
             
-            if [[ "${__json_dump_var@a}" == *A* ]] ; then
+            if [[ "${BASH_REMATCH[2]}" == *A* ]] ; then
                 # 如果是用递归函数,那么用-gt <
                 __json_dump_printf_mark='⇒'
                 # :TODO: 这里冒泡排序的效率比较低,后续可以优化
@@ -140,7 +146,7 @@ _json_dump ()
 #     local __json_dump_var sort_method='-gt'
 #     local -a __json_dump_var_indexs=()
 
-#     if [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+#     if [[ "$__json_dump_tree_node_value" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
 #         # 不是叶子节点,先打印当前数据结构的键,然后迭代当前数据结构递归调用_json_dump
 #         printf "%*s%q%s\n" "$((4*(__json_dump_tree_node_lev)))" ' ' "$__json_dump_tree_node_key" " ${__json_dump_printf_mark}"
 #         declare ${BASH_REMATCH[2]} __json_dump_var

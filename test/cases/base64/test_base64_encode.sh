@@ -34,12 +34,20 @@ test_case1 ()
 
     for i in {1..2}; do
         # time out_str=$(base64<<<"$test_str")
-        time out_str=$(base64_encode<<<"$test_str")
-        time out_str=$(printf "%s" "$test_str" |base64_encode)
+        base64_encode out_str "$test_str"
     done
     
     printf "%s\n" "$out_str"
 }
 
+# 测试多级引用变量是否能正常拿到值
+test_case2 ()
+{
+
+}
+
+
+
 test_case1
+test_case2
 

@@ -30,6 +30,13 @@ unalias -a
 # 目前验证了这种语法在bash4.4.23(1)上是支持的
 alias disable_xv='local - ; set +xv'
 
+# :TODO: LC_COLLATE=C
+#           强制使用C语言环境的字符排序规则，从而确保 [a-z] 和 [A-Z] 按预期工作
+#       globasciiranges
+#           bash5.2引入了这个，不会有匹配问题
+#       locale
+#           命令查看和所有环境变量相关
+#
 # :TODO: 给函数传递多个数组的方法
 # -a1 xx -a1 yy -a1 zz -a2 kk -a2 uu ... ...
 # :TODO: 使用这种方式甚至可以传递关联数组,其实最简单的还是直接传递名字

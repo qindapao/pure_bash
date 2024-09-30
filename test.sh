@@ -385,7 +385,7 @@ ori_str="$(json_pack_o my_dict1)"
 orq_str=$(json_pack_q my_dict1)
 
 local -a unpack=()
-sjson_unpack 0 "$ori_str" unpack
+json_unpack_o "$ori_str" unpack
 json_dump_hq unpack
 
 

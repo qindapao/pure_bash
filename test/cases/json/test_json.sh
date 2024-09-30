@@ -881,7 +881,99 @@ test_json_o_insert ()
     json_dump_ho 'arr'
 }
 
-test_case1
+test_base_64 ()
+{
+cat <<EOF >json_standard.txt
+{
+    "person": {
+        "name": "John",
+        "age": "30",
+        "爱好": ["打乒乓球", "打羽毛球", "发呆"],
+        "其它": [],
+        "other": {},
+        "别的": [[], {}],
+        "部门": "测试与装备部",
+        "进行中的项目": {
+            "项目1": {"名字": "自动化测试", "进度": "10%"},
+            "项目2": {"名字": "性能优化", "进度": "40%"}
+        }
+    }
+}
+EOF
+
+    json_init 1 'hahaha' 
+    json_common_load.py -i json_standard.txt -o json_bash.txt -m 'standard_to_bash' -a 1 -s 'hahaha'
+
+    # base64字符串的膨胀基数是
+    # 测试json_load
+    local -A person=()
+
+    json_load 'person' './json_bash.txt'
+
+    # 测试json_dump
+    json_dump_ho 'person'
+    return  
+
+    local project1_name
+    json_get project1_name 'person' '进行中的项目' '项目1' '名字'
+    declare -p project1_name
+    
+    json_insert person '[爱好]' 2 - "跑步"
+    json_dump_ho 'person'
+
+    local -A project3=([名字]="代码开发" [进度]="50%" [备注]="紧急项目")
+    json_dump_ho 'project3'
+    json_overlay person project3 [进行中的项目] [项目3]
+    json_dump_ho 'person'
+
+    # return
+
+    local -A bash_json=()
+    json_load 'bash_json' './json_bash.txt'
+    declare -p bash_json
+
+
+    # 298
+    time json_set 'bash_json' '[key1]' - 'error'
+    m=$(declare -p bash_json)
+    echo ${#m}
+    # 313
+    time json_set 'bash_json' '[key2]' - 'error'
+    m=$(declare -p bash_json)
+    echo ${#m}
+    # 328
+    time json_set 'bash_json' '[key1]' '[key3]' - 'error'
+    m=$(declare -p bash_json)
+    echo ${#m}
+    # 416
+    time json_set 'bash_json' '[key1]' '[key4]' - 'error'
+    m=$(declare -p bash_json)
+    echo ${#m}
+    # 436
+    time json_set 'bash_json' '[key1]' '[key5]' - 'error'
+    m=$(declare -p bash_json)
+    echo ${#m}
+    # 456
+    time json_set 'bash_json' '[key1]' '[key5]' 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 - 'error'
+    m=$(declare -p bash_json)
+    echo ${#m}
+    # 60152
+
+    json_push bash_json '[null_arr]' 0 - 'xx'
+    json_push bash_json '[null_arr]' 1 - 'yy'
+    json_dump_vo bash_json
+
+    json_get xx bash_json 'null_arr'
+    echo $?
+    declare -p xx
+
+
+    json_dump_ho 'bash_json'
+
+
+}
+
+# test_case1
 # test_case2
 # test_case3
 # test_case4
@@ -903,4 +995,10 @@ test_case1
 # test_json_o_push
 # test_json_o_unshift
 # test_json_o_insert
+
+
+
+
+# base64算法的用例
+test_base_64
 

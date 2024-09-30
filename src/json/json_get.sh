@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_get]++)) && return 0
 
+. ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
 . ./array/array_sort.sh || return 1
 
@@ -52,10 +53,13 @@ json_get ()
     for _json_get_param in "${@:1}" ; do
         unset _json_get_tmp_var
 
-        if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+        if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
             _json_get_flags="${BASH_REMATCH[2]}"
             declare ${BASH_REMATCH[2]} _json_get_tmp_var
-            eval _json_get_tmp_var="${BASH_REMATCH[3]}"
+            ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                eval _json_get_tmp_var="${BASH_REMATCH[3]}" ; } || {
+                    base64_decode _json_get_tmp_var "${BASH_REMATCH[3]}"
+                    eval _json_get_tmp_var="$_json_get_tmp_var" ; }
         else
             _json_get_flags=''
             # 如果不匹配就是普通变量
@@ -80,10 +84,13 @@ json_get ()
     done
  
     unset _json_get_tmp_var
-    if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
+    if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
         _json_get_flags="${BASH_REMATCH[2]}"
         declare ${BASH_REMATCH[2]} _json_get_tmp_var
-        eval _json_get_tmp_var="${BASH_REMATCH[3]}"
+        ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+            eval _json_get_tmp_var="${BASH_REMATCH[3]}" ; } || {
+                base64_decode _json_get_tmp_var "${BASH_REMATCH[3]}"
+                eval _json_get_tmp_var="$_json_get_tmp_var" ; }
     else
         _json_get_flags=''
         # 如果不匹配就是普通变量
@@ -95,8 +102,7 @@ json_get ()
         if [[ "$_json_get_flags" == *[aA]* ]] ; then
             local -a _json_get_indexs=("${!_json_get_tmp_var[@]}")
             case "$_json_get_flags" in
-            # :TODO: 这里使用 array_revert 效率更高
-            *a*)    array_sort _json_get_indexs '-gt' ;;
+            # 普通数组根本不用排序
             *A*)    array_sort _json_get_indexs '>' ;;
             esac
             local _json_get_iter_index=''
@@ -130,7 +136,6 @@ json_get ()
     else
         # 获取获取到的是字符串,但是外部声明为数组,报错
         if [[ "${_json_get_out_var_name@a}" == *[aA]* ]] ; then
-            ((_json_get_ret_code|=16))
             _json_get_ret_code=${JSON_COMMON_ERR_DEFINE[get_str_but_declare_not_str_outside]}
         else
             _json_get_out_var_name="$_json_get_tmp_var"

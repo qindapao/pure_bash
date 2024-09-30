@@ -27,7 +27,6 @@ json_o_unshift ()
 
     local -i _json_unshift_return_code=0
     (($#)) || {
-        declare -p _json_unshift_json_son_pack_str
         array_unshift _json_unshift_json_ref "$_json_unshift_json_son_pack_str"
         return $?
      }

@@ -1,7 +1,9 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_del]++)) && return 0
 
+. ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
+. ./json/json_pack.sh || return 1
 . ./log/log_dbg.sh || return 1
 
 # LOG_LEVEL=2
@@ -44,13 +46,16 @@ json_del ()
         ((_json_del_lev_cnt++))
         [[ -z "$_json_del_index" ]] && return ${JSON_COMMON_ERR_DEFINE[del_null_key]}
         # :TODO: 这里的local是否多余?
-        local _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_del_lev_cnt}=''
-        local -n _json_del_data_lev_ref=_json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_del_lev_cnt}
+        local ${JSON_COMMON_MAGIC_STR}${_json_del_lev_cnt}=''
+        local -n _json_del_data_lev_ref=${JSON_COMMON_MAGIC_STR}${_json_del_lev_cnt}
         
         # 转换上一个数据类型
-        if [[ "$_json_del_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev[0-9]+=(.*) ]] ; then
-            declare ${BASH_REMATCH[2]} _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_del_lev_cnt}
-            eval _json_del_data_lev_ref="${BASH_REMATCH[3]}"
+        if [[ "$_json_del_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
+            declare ${BASH_REMATCH[2]} ${JSON_COMMON_MAGIC_STR}${_json_del_lev_cnt}
+            ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                eval _json_del_data_lev_ref="${BASH_REMATCH[3]}" ; } || {
+                    base64_decode _json_del_data_lev_ref "${BASH_REMATCH[3]}" 
+                    eval _json_del_data_lev_ref="$_json_del_data_lev_ref" ; }
             _json_del_declare_flag="${BASH_REMATCH[2]}"   
         else
             _json_del_declare_flag=''
@@ -72,7 +77,7 @@ json_del ()
     local -i _json_del_is_not_last_lev=0
     while ((_json_del_lev_cnt>1)) ; do
         # 取出当前层数据结构
-        local -n _json_del_data_lev_ref=_json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev${_json_del_lev_cnt}
+        local -n _json_del_data_lev_ref=${JSON_COMMON_MAGIC_STR}${_json_del_lev_cnt}
 
         _json_del_delate_key="${_json_del_index_lev[_json_del_lev_cnt]}"
         if ! ((_json_del_is_not_last_lev++)) ; then
@@ -100,7 +105,7 @@ json_del ()
         
         # 当前数据结果完整的序列化保存到_json_del_top_level_str
         if((${#_json_del_data_lev_ref[@]})) ; then
-            _json_del_top_level_str="${_json_del_data_lev_ref[@]@A}"
+            json_pack_o '_json_del_data_lev_ref' '_json_del_top_level_str' "${JSON_COMMON_MAGIC_STR}${_json_del_lev_cnt}"
         else
             _json_del_top_level_str=''
         fi

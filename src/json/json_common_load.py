@@ -8,9 +8,19 @@ import os
 import sys
 import getopt
 import shlex
+import base64
 # :TODO: 后面要支持配置允许空键和不允许空键
 # :TODO: 后面脚本中要加入更多的错误处理
 # :TODO: 整数和浮点有没有必要单独处理?我觉得没有必要,bash中都当成字符串处理比较简单
+
+JSON_COMMON_SERIALIZATION_ALGORITHM = "0"
+JSON_COMMON_MAGIC_STR = '_json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev'
+
+def str_to_base64(in_str) ->str:
+    text_bytes = in_str.encode('utf-8')
+    encoded_bytes = base64.b64encode(text_bytes)
+    return encoded_bytes.decode('utf-8')
+
 
 def end_char(data):
     # 叶子普通字符串,1个空格
@@ -75,7 +85,10 @@ def custom_print(data, indent=0, output=None):
     if isinstance(data, dict):
         if not data:
             spacing = '    ' * (indent - 1)
-            output.append(spacing + r'declare\ -A\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=\(\)')
+            if JSON_COMMON_SERIALIZATION_ALGORITHM == "0":
+                output.append(spacing + r'declare\ -A\ ' + JSON_COMMON_MAGIC_STR + r'1=\(\)')
+            elif JSON_COMMON_SERIALIZATION_ALGORITHM == "1":
+                output.append(spacing + r'declare\ -A\ ' + JSON_COMMON_MAGIC_STR + r'1=' + str_to_base64(r'()'))
         else:
             for key, value in sorted(data.items()):
                 q_key = bash_q_str(key)
@@ -84,7 +97,10 @@ def custom_print(data, indent=0, output=None):
     elif isinstance(data, list):
         if not data:
             spacing = '    ' * (indent - 1)
-            output.append(spacing + r'declare\ -a\ _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=\(\)')
+            if JSON_COMMON_SERIALIZATION_ALGORITHM == "0":
+                output.append(spacing + r'declare\ -a\ ' + JSON_COMMON_MAGIC_STR + r'1=\(\)')
+            elif JSON_COMMON_SERIALIZATION_ALGORITHM == "1":
+                output.append(spacing + r'declare\ -a\ ' + JSON_COMMON_MAGIC_STR + r'1=' + str_to_base64(r'()'))
         else:
             for index, item in enumerate(data):
                 output.append(f"{spacing}{index} ⩦{end_char(item)}")
@@ -190,7 +206,7 @@ if __name__ == "__main__":
 
     argv = sys.argv[1:]
     opts, args = getopt.getopt(
-        argv, "m:i:o:", longopts=["mode=", "input_file=", "output_file="])
+        argv, "m:i:o:a:s:", longopts=["mode=", "input_file=", "output_file=", "algorithm=", "magic_str="])
 
     mode, input_file, output_file = None, None, None
     for opt, arg in opts:
@@ -200,6 +216,10 @@ if __name__ == "__main__":
             input_file = arg
         elif opt in ['--output_file', '-o']:
             output_file = arg
+        elif opt in ['--algorithm', '-a']:
+            JSON_COMMON_SERIALIZATION_ALGORITHM = arg
+        elif opt in ['--magic_str', '-s']:
+            JSON_COMMON_MAGIC_STR = arg
 
     if mode == 'standard_to_bash':
         with open(input_file, encoding='utf-8', mode='r') as f:

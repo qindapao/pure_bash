@@ -1,25 +1,82 @@
-./meta/meta.sh
+. ./meta/meta.sh
 (DEFENSE_VARIABLES[json_todo]++)) && return 0
 
+# :TODO: base64编码的数据膨胀率还是有点高,后续可以考虑使用base91编码,但是没有现成的
+# 二进制工具可以用,所以可能需要自己实现,暂时还是先实现base64的bash builtin
+# bash的官方下载地址
+# https://ftp.gnu.org/gnu/bash/
 
 
+# gcc -fPIC -shared -o ibase_64.so ibase_64.c -lbash
+# enable -f ./ibase_64.so ibase_64
 
 
-
-# :TODO: 有一个办法可以处理深度嵌套的json(大部分情况下并不需要)
-#   就是使用base64编码把子json编码成base64格式,就可以减少很多嵌套等级
-#   当需要使用的时候用base64解码出来即可
-#   但是感觉还是相当的麻烦,暂时不实现
-#   甚至可以用bash64前面加个字符串来表示数据类型，甚至能有null 数字 浮点数
-#   字符串 关联数组 普通数组。不用加那一长串的魔咒了。并且只有数组和关联数组需要
-#   编码，其它数据类型除了打头的类型字符串外，其它的部分都可以保持原始的内容，不用
-#   编码。这里的base64编码数组和关联数组是每层都编码，并不是超过多少层才编码，保持一致
-#   性，相比于反斜杠的嵌套，这个方案会让内存占用变小。在数据结构比较小的时候，可能时间
-#   复杂度比当前的方案高，但是当数据结构深度嵌套，时间复杂读反而会有优势，因为不需要保存
-#   那么多的反斜杠(字符串容量不会急速膨胀)
+#   内置命令最好是改一个名字,不要和系统的命令冲突了
 #
+#   base64的实现
 #   更甚一步，后续可以使用这种方式开发bash的C扩展程序(bash loadable)，在C语言的层
 #   面上来支持json
+#   在C语言层面上来支持可能就不需要base64编码了,用C语言的数据结构来实现
+#         Bash 可加载模块是一种更灵活的方法，可以在运行时动态加载新功能，而无需重新编译整个 Bash。以下是基本步骤：
+#         
+#         创建模块文件：
+#         创建一个新的 C 文件，例如 base64_loadable.c。
+#         实现 base64 编码和解码功能。
+#         编写模块代码：
+#         #include <stdio.h>
+#         #include <stdlib.h>
+#         #include <string.h>
+#         #include "builtins.h"
+#         #include "shell.h"
+#         
+#         int base64_builtin(WORD_LIST *list) {
+#             // 实现 base64 编码和解码逻辑
+#             return EXECUTION_SUCCESS;
+#         }
+#         
+#         char *base64_doc[] = {
+#             "Base64 encoding and decoding",
+#             NULL
+#         };
+#         
+#         struct builtin base64_struct = {
+#             "base64",
+#             base64_builtin,
+#             BUILTIN_ENABLED,
+#             base64_doc,
+#             "base64",
+#             0
+#         };
+#         
+#         编译模块：
+#         gcc -fPIC -shared -o base64.so base64_loadable.c
+#         
+#         加载模块：
+#         enable -f ./base64.so base64
+
+# 参考的文件是这个: https://github.com/wertarbyte/coreutils/blob/master/src/base64.c
+# 或者内核中的这个: https://github.com/torvalds/linux/blob/master/lib/base64.c
+
+
+# :TODO: 一篇极客文章
+# https://stackoverflow.com/questions/11325617/how-can-i-run-a-command-at-read-time-for-a-named-pipe-in-linux
+# https://www.linusakesson.net/programming/pipelogic/index.php
+
+# 创建命名管道：
+# mkfifo mypipe
+
+# 启动持久化进程并将其输出重定向到命名管道：
+# my_long_running_process > mypipe &
+
+# 从命名管道读取数据：
+# while read line < mypipe; do
+#     echo "Received: $line"
+# done
+
+# 向命名管道写入数据：
+# echo "command" > mypipe
+
+
 #
 # :TODO: 后续可以实现多元素的一些方法,举个例子
 # json_push -i 'json_name' -k 3 '4' '0' '[key1]' -v 2 '' "value" i "value2"
@@ -45,7 +102,7 @@
 # Storage:~/qinqing # declare -p my_my_dict >2.txt
 # Storage:~/qinqing # source 2.txt 
 # Storage:~/qinqing # declare -p my_dict
-# declare -A my_dict=([last_key1]="declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev2=([0]=\"v0\" [1]=\"x1\" [2]=\"x2\" [3]=\"x3\" [4]=\"declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev3=([other_key]=\\\"other6\\\" [other_key2]=\\\"other2\\\" [other_key3]=\\\"declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev4=([0]=\\\\\\\"other3-0\\\\\\\" [1]=\\\\\\\"other3-1\\\\\\\" [2]=\\\\\\\"other3-2\\\\\\\" [3]=\\\\\\\"other3-3\\\\\\\")\\\" )\" [10]=\"v10\")" [last_key]="declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev2=([z4]=\"x4\" [z5]=\"x5\" [z2]=\"x2\" [z3]=\"x3\" [z1]=\"x1\" [xxx]=\"0\" [xxx2]=\"value2\" [xxx3]=\"value3\" )" )
+# declare -A my_dict=([last_key1]="declare -a ${JSON_COMMON_MAGIC_STR}2=([0]=\"v0\" [1]=\"x1\" [2]=\"x2\" [3]=\"x3\" [4]=\"declare -A ${JSON_COMMON_MAGIC_STR}3=([other_key]=\\\"other6\\\" [other_key2]=\\\"other2\\\" [other_key3]=\\\"declare -a ${JSON_COMMON_MAGIC_STR}4=([0]=\\\\\\\"other3-0\\\\\\\" [1]=\\\\\\\"other3-1\\\\\\\" [2]=\\\\\\\"other3-2\\\\\\\" [3]=\\\\\\\"other3-3\\\\\\\")\\\" )\" [10]=\"v10\")" [last_key]="declare -A ${JSON_COMMON_MAGIC_STR}2=([z4]=\"x4\" [z5]=\"x5\" [z2]=\"x2\" [z3]=\"x3\" [z1]=\"x1\" [xxx]=\"0\" [xxx2]=\"value2\" [xxx3]=\"value3\" )" )
 # Storage:~/qinqing # . ./json/json_dump.sh
 # Storage:~/qinqing # json_dump_hq my_dict
 # my_dict =>
@@ -78,7 +135,7 @@
 # :TODO: 数据反向序列化(有点危险的是如果键里面包含了=或者=>该如何处理?可能需要考虑使用索引层级来截取字符串,而不能通过=来分隔)
 # 通过索引层级也无法安全拿到键,因为没有办法判断何使结束(键里面可能包含=或者=>) 所以可能的解决方案是把键和值分成两行打印(这也带来一个问题,如果区分空键？)
 # 确实不好区分空键,因为字符串的结尾可能也是=或者=>,也许要这样,把=和=>换成不常用的很多符合字符,用这些字符来识别,但是也不是完全严谨
-# 另外_json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev这个名字也具有一定的危险性,如果字符串本身就包含它?要用不常用的unicode字符组合来表示?或者把这个名字取得更长,减少冲突的可能性
+# 另外${JSON_COMMON_MAGIC_STR}这个名字也具有一定的危险性,如果字符串本身就包含它?要用不常用的unicode字符组合来表示?或者把这个名字取得更长,减少冲突的可能性
 # 这里判断是否是字符串主要是为了判断是否到了叶子节点(如果不通过判断declare的方式判断是否到叶子,要怎么判断?)
 # 所以重构比较有必要，解码后如果发现数组只有一个元素(或者也是两个元素,但是其中一个明确指定类型是字符串),认为到了叶子节点,否则就是还有层级,继续解压,前面说了,数据第一个元素是类型，第二个是待解压字符串
 # 但是这也有一个缺点,就是普通的数组和字典就不是我们的结构体了(这样数据结构产生了割裂),这样我们的结构体的最小打包单位必须是2个数组的压缩字符串(解压后才知道是否是叶子节点!),保存的时候也必须压缩数组成字符串.
