@@ -4,6 +4,7 @@
 . ./str/str_ltrim_zeros.sh || return 1
 . ./str/str_is_uint.sh || return 1
 
+# :TODO: $(str_to_hex x str) 会导致结尾换行符被删除
 str_to_hex ()
 {
     local in_str=$2

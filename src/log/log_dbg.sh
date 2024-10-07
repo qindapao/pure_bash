@@ -76,6 +76,7 @@ log_dbg ()
                 # :TODO: 这里的逻辑有点绕,需要优化和简化
                 if [[ -n "$_log_dbg_declare_str" ]] ; then
                     if [[ "${_log_dbg_declare_arr_ref@a}" == *[aA]* ]] ; then
+                        # 相等是没有引用变量的情况
                         if [[ "$_log_dbg_prt_str" == "${!_log_dbg_i}" ]] ; then
                             _log_dbg_prt_str=''
                         else
@@ -86,6 +87,7 @@ log_dbg ()
                         # :TODO: 如何打印最合适啊?
                         _log_dbg_declare_str+=$(json_dump_ho "${!_log_dbg_i}")
                     else
+                        # 相等是没有引用变量的情况
                         [[ "$_log_dbg_prt_str" == "${!_log_dbg_i}" ]] && _log_dbg_prt_str='' || _log_dbg_prt_str+=' '
                         _log_dbg_declare_str="${_log_dbg_prt_str}${_log_dbg_declare_str:8}"
                     fi

@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[str_pack]++)) && return 0
 
+# :TODO: $(str_pack ref 0) 当前函数的进程替换方式会导致行尾换行符被丢失
 # 把任何的内置数组结构转换成字符串形式(要求数据结构在外部必须初始化)
 # 数据结构的
 # 参数:

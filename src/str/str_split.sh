@@ -39,6 +39,7 @@ str_split ()
         (($#)) && shift
     done
     
+    # :TODO: 这里是会导致结尾换行符被删除
     printf "%s" "$output"
 }
 

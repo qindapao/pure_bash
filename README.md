@@ -2612,6 +2612,34 @@ EOF
 这个行为可能会导致一些问题，特别是在处理那些对输入格式敏感的命令时。例如，如果您的脚本依赖于精确的字符计数或者需
 要消除任何额外的空白字符，那么自动添加的换行符可能会造成问题。
 
+#### 关于进程替换的坑
+
+使用进程替换捕捉进程的标准输出的时候，比如`$(cmd)`。bash有以下的行为:
+
+```bash
+Bash 通过在子 shell 环境中执行命令并用命令的标准输出替换命令替换来执行扩展，同时删除所有尾随换行符。
+```
+
+注意这里的删除尾随的空格的属性。所以：`$(printf "%s" "$str")` 和 `$str` 并不一定是相等的。请看下面的例子:
+
+```bash
+[root@localhost ~]# x="gege
+> gege
+> "
+[root@localhost ~]# printf -v y "%s" "$x"
+[root@localhost ~]# z=$(printf "%s" "$x")
+[root@localhost ~]# declare -p y z
+declare -- y="gege
+gege
+"
+declare -- z="gege
+gege"
+[root@localhost ~]# 
+```
+
+
+:TODO: 关于这个可能导致不符合预期的行为是否需要检查所有的API？
+
 ### 引号
 
 #### 单引号
