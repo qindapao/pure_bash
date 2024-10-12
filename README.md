@@ -74,4 +74,7 @@ https://devtut.github.io/bash/when-to-use-eval.html#using-eval
 https://github.com/hornos/shf3
 https://github.com/javier-lopez/learn
 
+## Credits
+
+本库使用了 [JSON.awk](https://github.com/step-/JSON.awk)，一个用`awk`实现的`json`解析程序。比较稳定可靠。
 
