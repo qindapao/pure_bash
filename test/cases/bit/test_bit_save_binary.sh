@@ -62,24 +62,40 @@ test_case3 ()
     local get_str=
     bit_save_binary 'get_str' "$tmp_file"
     local tmp_file2=$(mktemp)
-    printf "%s" "$get_str" > "$tmp_file2"
+    
+    printf "$get_str" > "$tmp_file2"
     if diff "$tmp_file" "$tmp_file2" ; then
         echo "${FUNCNAME[0]} pass"
     else
         echo "${FUNCNAME[0]} fail"
         ret_code=1
     fi
-    rm -f -- "$tmp_file" "$tmp_file2"
+    # rm -f -- "$tmp_file" "$tmp_file2"
     return $ret_code
 }
 
+# 这个用例并没有作用,只是临时用来获取二进制文件而已
+test_case4 ()
+{
+    local ibase64_aarch64_str ibase64_x86_str
+    bit_save_binary ibase64_aarch64_str "${root_dir}/src/tools/ibase64_aarch64"
+    bit_save_binary ibase64_x86_str "${root_dir}/src/tools/ibase64_x86"
+    printf "%s\n" "$ibase64_x86_str" >x86.txt
+    printf "%s\n" "$ibase64_aarch64_str" >arm.txt
+    # 如果需要这两个文件就不要删除
+    rm -f -- x86.txt arm.txt
+}
+
+
 ret_str=''
 test_case1
-ret_str="$?|"
+ret_str+="$?|"
 test_case2
-ret_str="$?|"
+ret_str+="$?|"
 test_case3
-ret_str="$?"
+ret_str+="$?|"
+test_case4
+ret_str+="$?"
 
 ! ((ret_str))
 

@@ -79,7 +79,9 @@ meta_get_bash_version ()
 meta_get_bash_version __META_BASH_VERSION
 
 declare -g PURE_STDIN='/dev/stdin'
-
+# :TODO: 具体部署的时候这里要改变
+# ibase64 工具的部署也放到统一的目录来
+declare -g PURE_BASH_TOOLS_DIR='./tools'
 
 return 0
 

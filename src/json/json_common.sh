@@ -86,6 +86,10 @@ JSON_COMMON_ERR_DEFINE[insert_type_err]=88
 #
 # 注意: json_common_load.py 中也需要同步更改
 declare -gA JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM=([builtin]=0 [base64]=1)
+
+# 可选 python3 或者 awk(但是反转换当前只支持python3)
+declare -gA JSON_COMMON_STANDARD_JSON_PARSER='python3'
+
 # JSON序列化算法
 JSON_COMMON_SERIALIZATION_ALGORITHM=${JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin]}
 
