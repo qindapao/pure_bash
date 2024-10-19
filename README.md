@@ -69,10 +69,11 @@ https://www.programming-books.io/essential/bash/parallel-185b3ea3467c44148f42964
 https://devtut.github.io/bash/when-to-use-eval.html#using-eval
 
 
-两个比较厉害的bash库：
+3个比较厉害的bash库：
 
 https://github.com/hornos/shf3
 https://github.com/javier-lopez/learn
+https://github.com/scop/bash-completion
 
 ## Credits
 

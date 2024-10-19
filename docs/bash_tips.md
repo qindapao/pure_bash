@@ -297,7 +297,41 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun# declare -p assoc
 declare -Ai assoc=([$'gge\ngeg()\nxxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)\n']="7" )
 
 ```
+#### 数组和关联数组还有字符串的轮询
 
+在下面的语法中，字符串拥有一个默认的`0`索引，所以不能通过这种方式来判断一个变量是否是一个数组或者关联数组。
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# str="i am str"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# declare -p str
+declare -- str="i am str"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# echo ${!str[@]}
+0
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# str[1]=2
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# echo ${!str[@]}
+0 1
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# declare -p str
+declare -a str=([0]="i am str" [1]="2")
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json# 
+```
+
+见上面的例子，可以通过赋值语句隐式的把字符串转换成了数组，所以字符串其实就是只有`0`号索引的特殊数组而已。
+
+下面的两行关键字的下面加上：
+上面的例子是间接引用和`${!var}`取值嵌套的情况，会找到真正的变量。
+
+有一个讨论页面讲得比较深入：https://mywiki.wooledge.org/BashFAQ/006
+
+
+还有一个页面，讲解如果通过引用往上层传参的: https://fvue.nl/wiki/Bash:_Passing_variables_by_reference。
+
+这里有个神奇的技巧是利用了`unset`的一些惊奇的特性: https://fvue.nl/wiki/Bash:_Unset
+
+关于`unset`的行为的一些说明：
+
+1. 如果在函数中`unset`一个局部变量，那么局部变量的残影还在，后续直接操作这个变量名，依然是操作的这个局部变量。
+2. 如果在函数的下一个作用域，也就是一个子函数中`unset`这个函数的一个局部变量，那么局部变量会被测底移除，不会保留残影，但是这个行为可以被一个选项改变，就是`localvar_unset`。如果这个选项被设置，那么在下一个作用域中使用`unset`依然像在当前函数中使用`unset`一个效果，变量的残影还在。
+3. 关于`unset`这一特性的一些说明和资料，[upvar](https://fvue.nl/wiki/Bash:_Passing_variables_by_reference)，[unset行为说明1](https://unix.stackexchange.com/questions/382391/what-does-unset-do)，[unset行为说明2]()，[一些讨论](https://www.mail-archive.com/bug-bash@gnu.org/msg19445.html)。
 
 ### 关于bash的兼容级别
 
@@ -1140,6 +1174,27 @@ function ble/encoding:UTF-8/c2b {
 ```
 
 看上面例子中的用法。
+
+在`return`语句中也可以使用三目运算符，不过好像作用并不是很大
+
+```bash
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/cntr# cat test.sh 
+#! /bin/bash
+
+pram ()
+{
+        local a=1
+        return $((a==1?4:5))
+}
+pram
+echo $?
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/cntr# bash test.sh
+4
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/cntr# 
+```
+
+可以参考上面的这个例子。
+
 
 ### 条件判断
 

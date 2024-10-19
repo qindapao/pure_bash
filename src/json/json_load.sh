@@ -4,10 +4,10 @@
 . ./json/json_common.sh || return 1
 . ./json/json_set.sh || return 1
 . ./json/json_overlay.sh || return 1
+. ./json/json_awk_load.sh || return 1
 
 # . ./log/log_dbg.sh || return 1
 
-# :TODO: 利用JSON.awk模块让json_load具有标准json文件的加载功能
 # 实现应该比现在更加简单的,因为键的路径是明确的啊
 # 直接调用json_set 或者json_overlay 函数就行了,都不用先转换成树状结构
 # 这样在没有python3但是有awk的环境下就能使用
@@ -54,6 +54,26 @@ json_load ()
     _json_load_json_out_ref=()
 
     local _json_load_json_input_file_path=$2
+
+    if [[ "$(<${_json_load_json_input_file_path})" != *[⇒⩦]* ]] ; then
+        case "$JSON_COMMON_STANDARD_JSON_PARSER" in
+        python3)
+            json_common_load.py -a "$JSON_COMMON_SERIALIZATION_ALGORITHM" \
+                                -s "$JSON_COMMON_MAGIC_STR" \
+                                -m 'standard_to_bash' \
+                                -i "${_json_load_json_input_file_path}" \
+                                -o "${_json_load_json_input_file_path%.*}_bash.txt"
+            _json_load_json_input_file_path="${_json_load_json_input_file_path%.*}_bash.txt"
+            ;;
+        awk)
+            json_awk_load _json_load_json_out_ref "$_json_load_json_input_file_path"
+            return $?
+            ;;
+        *)
+            return ${JSON_COMMON_ERR_DEFINE[load_unknown_parser]}
+        esac
+    fi
+
     local -a _json_load_json_file_contents=()
     local -a _json_load_json_file_contents_tmp=()
     local -a _json_load_key_stack=()
@@ -137,6 +157,8 @@ json_load ()
             ((_json_load_line_cnt++))
         fi
     done
+
+    return ${JSON_COMMON_ERR_DEFINE[ok]}
 }
 
 return 0

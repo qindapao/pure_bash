@@ -16,6 +16,7 @@ declare -gA JSON_COMMON_ERR_DEFINE=()
 # pack      80~87
 # insert    88~95
 # overlay   96~103
+# load      104~111
 
 # set
 JSON_COMMON_ERR_DEFINE[ok]=0
@@ -73,6 +74,8 @@ JSON_COMMON_ERR_DEFINE[insert_type_err]=88
 
 # overlay
 
+# load
+JSON_COMMON_ERR_DEFINE[load_unknown_parser]=104
 
 # 0: 使用语言内置的eval和引用来解包和压包
 #   优点: 不需要依赖外部的base64等等工具,小数据量情况速度极快

@@ -6,7 +6,6 @@ root_dir="${_test_double_brackets_old_dir%%/pure_bash*}/pure_bash"
 cd "$root_dir"/src
 . ./log/log_dbg.sh || return 1
 . ./date/date_log.sh || return 1
-. ./array/array_copy.sh || return 1
 
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1

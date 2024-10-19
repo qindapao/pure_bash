@@ -5,16 +5,14 @@
 
 # 模拟perl5的获取参数方式(注意:一个函数中只能执行一次)
 # multi local
-alias my='declare -i i=1;eval declare'
-# 定义参数的同时打印入参值和个数
-# :TODO: 这里设计可能不太好,因为这里调用了log_dbg函数,外部用户并不知道
-alias myp='ldebug_p "($#) ${*}";declare -i i=1;eval declare'
-# 继续赋值剩余元素为数组(注意:一个函数中只能执行一次)
-alias mya='shift $((i-1));declare -a'
-# 使用方法
-# 这里赋值不需要用双引号保护(只有位置参数有效),并且这里大括号是必须保留的
-# 如果参数不超过10个就不用大括号,为了保险可以都加上
-# my {in_str,index,prefix,is_ignore_case}=\${$((i++))}
+alias 'ml'="eval 'declare"
+# ml '{a,b,c,d}'=$1;shift;'
+# 好像并没有太大的优势!!娱乐功能
+# local a=$1 b=$2 c=$3 d=$4
+# 但是可以这样(这样用于函数的变量前缀还行)
+P='$1;shift;'
+# ml head_'{a,b,c,d}=$P
+# local head_a=$1 head_b=$2 head_c=$3 head_d=$4
 
 return 0
 

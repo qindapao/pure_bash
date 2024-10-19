@@ -133,6 +133,7 @@ log_dbg ()
         
         # echo "==============ALL VARIABLE===================" >>"$LOG_FILE_NAME"
         # for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do
+        #     :TODO: 下面这个写法有风险,调用函数 atom_identify_data_type 保险
         #     if [[ "${!_log_dbg_i@a}" == *[aA]* ]] ; then
         #         json_dump_hq "${_log_dbg_i}" >> "$LOG_FILE_NAME" 
         #     else

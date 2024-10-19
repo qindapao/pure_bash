@@ -76,6 +76,20 @@ awk_json_files ()
     awk -f /usr/bin/JSON.awk -v BRIEF=7 "${@:2}" > "$1"
 }
 
+awk_json_value_deal ()
+{
+    if [[ "${!1}" == \"*\" ]] ; then
+        eval $1="${!1}"
+    elif [[ "${!1}" == true ]] ; then
+        # bash不支持true/false,转换成1/0
+        eval $1=1
+    elif [[ "${!1}" == false ]] ; then
+        eval $1=0
+    fi
+    printf -v $1 "%b" "${!1}"
+}
+
+# :TODO: 当前有一个限制是必须bash4.4及其以上才能用下面
 awk_json () 
 { 
     # 关联数组
@@ -85,9 +99,7 @@ awk_json ()
     shift 2
     local -a _awk_json_json_in_files=("${@}")
     local -a _awk_json_json_array
-    local _awk_json_json_item
-    local _awk_json_json_value _awk_json_json_key _awk_json_json_q_key
-    local _awk_json_json_key_tmp
+    local _awk_json_json_{item=,value=,key=,q_key=,key_tmp=}
     local -i _awk_json_json_has_comma=0
 
     awk_json_files "$_awk_json_json_out_file" "${_awk_json_json_in_files[@]}"
@@ -96,10 +108,7 @@ awk_json ()
     for _awk_json_json_item in "${_awk_json_json_array[@]}" ; do
         if [[ "$_awk_json_json_item" =~ ^\[(([0-9]+,|\"([^\"]|\\\")*\",)*([0-9]+|\"([^\"]|\\\")*\"))\]$'\t'(.*)$ ]] ; then
             _awk_json_json_value="${BASH_REMATCH[-1]}"
-            if [[ "$_awk_json_json_value" == \"*\" ]] ; then
-                eval _awk_json_json_value="$_awk_json_json_value"
-            fi
-            printf -v _awk_json_json_value "%b" "${_awk_json_json_value}"
+            awk_json_value_deal _awk_json_json_value
             
             _awk_json_json_q_key=''
             # 使用@Q字符串转换键确保安全(单纯的数字不要转换只针对有双引号的转换)
@@ -117,10 +126,9 @@ awk_json ()
                     _awk_json_json_key_tmp="${_awk_json_json_key_tmp:0:-1}"
                     _awk_json_json_has_comma=1
                 fi
-                if [[ "$_awk_json_json_key_tmp" == \"*\" ]] ; then
-                    eval _awk_json_json_key_tmp="$_awk_json_json_key_tmp"
-                fi
-                printf -v _awk_json_json_key_tmp "%b" "${_awk_json_json_key_tmp}"
+
+                awk_json_value_deal _awk_json_json_key_tmp
+
                 # 转换q字符串
                 if [[ "$_awk_json_json_key_tmp" =~ ^[0-9]+$ ]] ; then
                     _awk_json_json_q_key+="$_awk_json_json_key_tmp"

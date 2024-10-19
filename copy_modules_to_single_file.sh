@@ -48,8 +48,9 @@ copy_modules ()
         # 获取它依赖的文件(如果有)
         local -i is_need_check_depend=0
 
-        local -A "$(str_basename_s "$cur_file")"_depend
-        local -n cur_file_ref_hash="$(str_basename_s "$cur_file")"_depend
+        local cur_file_base_name="$cur_file" ; str_basename cur_file_base_name
+        local -A "${cur_file_base_name}"_depend
+        local -n cur_file_ref_hash="${cur_file_base_name}"_depend
 
         ldebug_bp 'show ref hash' all_modules file_have_deal cur_file cur_file_ref_hash
 

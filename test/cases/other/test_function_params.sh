@@ -5,7 +5,6 @@ root_dir="${_test_function_params_old_dir%%/pure_bash*}/pure_bash"
 
 cd "$root_dir"/src
 . ./date/date_log.sh || return 1
-. ./array/array_copy.sh || return 1
 . ./atom/atom_my.sh || return 1
 . ./log/log_dbg.sh || return 1
 

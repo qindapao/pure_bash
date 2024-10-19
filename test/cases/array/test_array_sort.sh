@@ -16,7 +16,7 @@ cd "$_test_array_sort_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
-# set -x
+# set -xv
 
 test_case1 ()
 {

@@ -3,8 +3,9 @@
 
 awk_grep_prefix_after () 
 { 
-    local grep_prefix_str="$1" deal_file="$2"
-    awk -v a="$grep_prefix_str" 'index($0, a) == 1 {flag=1} flag' "$deal_file"
+    # 提供文件就是文件,否则标准输入
+    local grep_prefix_str="$1" deal_file="${2:--}"
+    awk -v a="$grep_prefix_str" 'index($0, a) == 1 {found=1} found' "$deal_file"
 }
 
 return 0

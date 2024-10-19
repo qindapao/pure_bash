@@ -107,7 +107,15 @@ def custom_print(data, indent=0, output=None):
                 custom_print(item, indent + 1, output)
     else:
         spacing = '    ' * (indent - 1)
-        q_data = bash_q_str(data)
+        if data is True:
+            q_data = 1
+        elif data is False:
+            q_data = 0
+        elif data is None:
+            q_data = 'null'
+        else:
+            q_data = bash_q_str(data)
+        # :TODO: 还是没法处理null,因为null和空字符串是两个概念,暂时先不处理吧
         output.append(f"{spacing}{q_data}")
 
     return output

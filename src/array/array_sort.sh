@@ -1,7 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_sort]++)) && return 0
 
-. ./array/array_map_block.sh || return 1
+. ./cntr/cntr_map.sh || return 1
 . ./str/str_split_pure.sh || return 1
 
 # :TODO: 当前的素值排序只支持整形并不支持浮点数,如果要支持浮点数函数的性能会大幅降低
@@ -67,8 +67,8 @@ _array_sort ()
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
         # 后面是完整的参数不能拆行
-        # :TODO: 这里的效率会比较低下
-        array_map_block __array_sort_tmp_arr_filed 'str_split_pure_s "$2" '\"$__array_sort_delimiter\"' '\"$__array_sort_field\"
+        cntr_map __array_sort_tmp_arr_filed \
+            "eval \$1[\\\$2]=\$(str_split_pure_s \"\${3}\" \"$__array_sort_delimiter\" \"$__array_sort_field\")"
     fi
 
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}
@@ -78,7 +78,10 @@ _array_sort ()
 
     for ((__array_sort_i = 0; __array_sort_i < __array_sort_tmp_arr_size; __array_sort_i++)); do
         for ((__array_sort_j = 0; __array_sort_j < __array_sort_tmp_arr_size-$__array_sort_i-1; __array_sort_j++)); do
-            if eval [[ "\"${__array_sort_tmp_arr_filed[__array_sort_j]}\"" "${__array_sort_mark}" "\"${__array_sort_tmp_arr_filed[__array_sort_j+1]}\"" ]] ; then
+            # 比较变量的展开必须在第二步进行,所以\$,符号变量在第一步展开,但是用单引号就可以不加\
+            # 两种语法效果一样
+            # if eval [[ '"${__array_sort_tmp_arr_filed[__array_sort_j]}"' "${__array_sort_mark}" '"${__array_sort_tmp_arr_filed[__array_sort_j+1]}"' ]] ; then
+            if eval [[ "\"\${__array_sort_tmp_arr_filed[__array_sort_j]}\"" "${__array_sort_mark}" "\"\${__array_sort_tmp_arr_filed[__array_sort_j+1]}\"" ]] ; then
                 # filed 数组一样需要更新
                 __array_sort_field_tmp="${__array_sort_tmp_arr_filed[__array_sort_j]}"
                 __array_sort_tmp_arr_filed[__array_sort_j]="${__array_sort_tmp_arr_filed[__array_sort_j+1]}"

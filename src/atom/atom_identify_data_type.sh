@@ -32,27 +32,29 @@
 #             (o)LGB                           (o)
 # 
 
+# :TODO: 这个函数只能bash4.4或者以上才能使用
+# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/cntr# 
 # 判断数据类型(不能判断一个数据是否是引用变量)
 # i: 整数
 # s: 字符串
 # a: 数组
 # A: 关联数组
+
+# 参数说明:
+#   1: 需要判断的数据结构名字
+#   2: 判定标准
+# 返回值说明:
+#   0: 匹配
+#   1: 不匹配
 atom_identify_data_type ()
 {
-    local -n _atom_identify_data_type_var_name=$1
-    local _atom_identify_data_type_verify_type=$2
-    local up_var_name=
-    local real_var_name=
-
-    local attribute=${_atom_identify_data_type_var_name@a}
-
-    if [[ "$attribute" == *"$_atom_identify_data_type_verify_type"* ]] ; then
-        return 0
-    elif [[ -z "$attribute" ]] && [[ "s" == "$_atom_identify_data_type_verify_type" ]] ; then
-        return 0
-    fi
-    
-    return 1
+    eval -- '
+    case "${'$1'@a}" in
+    *"$2"*) return 0 ;;
+    "")     [[ "s" == "$2" ]] && return 0 ;;
+    *)      return 1 ;;
+    esac
+    '
 }
 
 return 0
