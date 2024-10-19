@@ -51,7 +51,7 @@ json_get ()
 
     local -i is_not_first_in=0
     for _json_get_param in "${@:1}" ; do
-        unset _json_get_tmp_var
+        unset -v _json_get_tmp_var
 
         if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
             _json_get_flags="${BASH_REMATCH[2]}"
@@ -83,7 +83,7 @@ json_get ()
         fi
     done
  
-    unset _json_get_tmp_var
+    unset -v _json_get_tmp_var
     if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
         _json_get_flags="${BASH_REMATCH[2]}"
         declare ${BASH_REMATCH[2]} _json_get_tmp_var

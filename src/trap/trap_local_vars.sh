@@ -31,7 +31,7 @@ trap_local_vars ()
         else
             [[ "${TRAP_LOCAL_VARS["$trap_local_vars_var"]+set}" ]] && {
                 # 如果发现hash表中有对应键取消掉
-                unset 'TRAP_LOCAL_VARS[$trap_local_vars_var]'
+                unset -v 'TRAP_LOCAL_VARS[$trap_local_vars_var]'
             }
         fi
     done

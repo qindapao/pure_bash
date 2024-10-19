@@ -95,7 +95,7 @@ copy_modules ()
                 echo "#-----------------" >>"$SINGLE_FILE_NAME"
             fi
             # 移除栈顶元素(这个时候元素一定在栈顶)
-            unset 'all_modules[-1]'
+            unset -v 'all_modules[-1]'
         }
     done
 

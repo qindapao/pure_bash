@@ -15,7 +15,7 @@ file_del_end_pattern ()
         tmp_line=${map_file[-1]}
         # 检查是否匹配模式
         if [[ "$tmp_line" =~ $pattern ]] ; then
-            unset 'map_file[-1]'
+            unset -v 'map_file[-1]'
         else
             break
         fi

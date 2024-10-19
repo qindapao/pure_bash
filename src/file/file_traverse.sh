@@ -16,7 +16,7 @@ file_traverse()
     # 当栈不为空时，处理栈顶的目录
     while ((${#all_dirs[@]})) ; do
         cur_dir="${all_dirs[-1]}"  # 获取栈顶目录（数组的最后一个元素）
-        unset 'all_dirs[-1]'       # 弹出栈顶目录,这里一定要用单引号而不是双引号,这里下标如果是变量也可以支持
+        unset -v 'all_dirs[-1]'       # 弹出栈顶目录,这里一定要用单引号而不是双引号,这里下标如果是变量也可以支持
 
         # 遍历当前目录下的所有文件和目录
         for cur_file in "$cur_dir"/* ; do

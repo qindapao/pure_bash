@@ -21,13 +21,13 @@ json_awk_load ()
 
     for _json_awk_load_item in "${_json_awk_load_json_array[@]}" ; do
         if [[ "$_json_awk_load_item" =~ ^\[(([0-9]+,|\"([^\"]|\\\")*\",)*([0-9]+|\"([^\"]|\\\")*\"))\]$'\t'(.*)$ ]] ; then
-            unset _json_awk_load_json_value ; local _json_awk_load_json_value
+            unset -v _json_awk_load_json_value ; local _json_awk_load_json_value
             _json_awk_load_json_value="${BASH_REMATCH[-1]}"
             awk_json_value_deal _json_awk_load_json_value
             if [[ "$_json_awk_load_json_value" == '[]' ]] ; then
-                unset _json_awk_load_json_value ; local -a _json_awk_load_json_value=()
+                unset -v _json_awk_load_json_value ; local -a _json_awk_load_json_value=()
             elif [[ "$_json_awk_load_json_value" == '{}' ]] ; then
-                unset _json_awk_load_json_value ; local -A _json_awk_load_json_value=()
+                unset -v _json_awk_load_json_value ; local -A _json_awk_load_json_value=()
             fi
 
             _json_awk_load_json_key="${BASH_REMATCH[1]}"

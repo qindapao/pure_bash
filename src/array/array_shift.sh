@@ -13,7 +13,7 @@ array_shift ()
     local _array_shift_first_index=${_array_shift_indexs[0]}
     
     array_shift_shift_element="${_array_shift_ref_arr[_array_shift_first_index]}"
-    unset '_array_shift_ref_arr[_array_shift_first_index]'
+    unset -v '_array_shift_ref_arr[_array_shift_first_index]'
     local -i _array_shift_i
     local -a _array_shift_new_arr=()
     

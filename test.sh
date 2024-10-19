@@ -24,7 +24,7 @@ exec_all_test_case ()
     local test_report="$root_dir"/test_report_$(date_log).txt
     local -a test_case_files_tmp=() test_case_files=() 
     cd "${root_dir}/test/cases"
-    local IFS=$'\n' ; test_case_files_tmp=($(file_traverse '.')) ; unset IFS
+    local IFS=$'\n' ; test_case_files_tmp=($(file_traverse '.')) ; unset -v IFS
     array_grep test_case_files_tmp test_case_files str_endswith '.sh'
 
     local test_case

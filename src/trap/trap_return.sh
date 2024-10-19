@@ -46,7 +46,7 @@ trap_return ()
             for _trap_return_var in "${!TRAP_LOCAL_VARS[@]}" ; do
                 [[ "${TRAP_LOCAL_VARS["$_trap_return_var"]+set}" ]] && {
                     # 如果发现hash表中有对应键取消掉
-                    unset 'TRAP_LOCAL_VARS[$_trap_return_var]'
+                    unset -v 'TRAP_LOCAL_VARS[$_trap_return_var]'
                 }
             done
             ;;

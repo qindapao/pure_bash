@@ -23,7 +23,7 @@ copy_modules ()
     while ((${#all_modules[@]})) ; do
         # 处理栈顶文件
         cur_file="${all_modules[-1]}"
-        unset 'all_modules[-1]'
+        unset -v 'all_modules[-1]'
         des_file="${DIR_NAME}${cur_file:1}"
         des_dir=${des_file%/*}
         mkdir -p "$des_dir"

@@ -25,7 +25,7 @@ trap_global_vars ()
         else
             [[ "${TRAP_GLOBAL_VARS["$trap_global_vars_var"]+set}" ]] && {
                 # 如果发现hash表中有对应键取消掉
-                unset 'TRAP_GLOBAL_VARS[$trap_global_vars_var]'
+                unset -v 'TRAP_GLOBAL_VARS[$trap_global_vars_var]'
             }
         fi
     done

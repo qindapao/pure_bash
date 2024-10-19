@@ -14,7 +14,7 @@ array_pop ()
     
     _array_pop_ref_pop_element="${_array_pop_ref_arr[-1]}"
     # 这个语法bash4.3才支持,数据的负向索引是从4.3才开始引入的
-    unset '_array_pop_ref_arr[-1]'
+    unset -v '_array_pop_ref_arr[-1]'
     _array_pop_ref_ret="$_array_pop_ref_pop_element"
     return 0
 }

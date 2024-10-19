@@ -122,7 +122,7 @@ json_set ()
 
         # 当前数据结果完整的序列化保存到_json_set_tmp_var
         # 这里要先取消变量的属性
-        unset _json_set_tmp_var ; local _json_set_tmp_var=''
+        unset -v _json_set_tmp_var ; local _json_set_tmp_var=''
         # 嵌套太深,字符数量千万级的时候,这里需要0.6秒(这个语法bash4.4以及以后引入)
         # declare -p 的字符串在bash5.2返回引用字符串,在以前的版本是原始字符串
         # 但是这没有关系

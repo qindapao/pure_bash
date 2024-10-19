@@ -35,7 +35,7 @@ json_pop_ke ()
                 json_unpack_o "${_json_pop_ke_json_ref[-1]}" _json_pop_ke_out_var
                 _json_pop_ke_return_code=$?
                 ((_json_pop_ke_return_code)) && return $_json_pop_ke_return_code
-                unset '_json_pop_ke_json_ref[-1]'
+                unset -v '_json_pop_ke_json_ref[-1]'
                 return ${JSON_COMMON_ERR_DEFINE[ok]}
             else
                 # 非数组
@@ -65,7 +65,7 @@ json_pop_ke ()
         json_unpack_o "${_json_pop_ke_get_array[-1]}" _json_pop_ke_out_var
         _json_pop_ke_return_code=$?
         ((_json_pop_ke_return_code)) && return $_json_pop_ke_return_code
-        unset '_json_pop_ke_get_array[-1]'
+        unset -v '_json_pop_ke_get_array[-1]'
     else
         return ${JSON_COMMON_ERR_DEFINE[pop_null_array]}
     fi

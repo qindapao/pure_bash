@@ -92,11 +92,11 @@ json_del ()
             # declare -- c="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
             # 比如上面这个复杂字符串
             # root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash# 
-            unset '_json_del_data_lev_ref[$_json_del_delate_key]'
+            unset -v '_json_del_data_lev_ref[$_json_del_delate_key]'
         else
             # 如果上一级删除的结果导致了空数组或者空hash,那么继续删除
             if [[ -z "$_json_del_top_level_str" ]] ; then
-                unset '_json_del_data_lev_ref[$_json_del_delate_key]'
+                unset -v '_json_del_data_lev_ref[$_json_del_delate_key]'
             else
                 # 如果不是空的,更新索引
                 _json_del_data_lev_ref["$_json_del_delate_key"]="$_json_del_top_level_str"
@@ -114,7 +114,7 @@ json_del ()
     
     # 查看是否需要删除顶级键
     if [[ -z "$_json_del_top_level_str" ]] ; then
-        unset '_json_del_json_ref[$_json_del_index_first]'
+        unset -v '_json_del_json_ref[$_json_del_index_first]'
     else
         # 否则更新顶级键
         _json_del_json_ref["$_json_del_index_first"]="$_json_del_top_level_str"

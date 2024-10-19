@@ -52,7 +52,7 @@ _json_dump ()
         __json_dump_tree_node_value="${__json_dump_tree_nodes[-2]}"
         __json_dump_tree_node_key="${__json_dump_tree_nodes[-3]}"
         __json_dump_tree_node_lev="${__json_dump_tree_nodes[-4]}"
-        eval unset __json_dump_tree_nodes[{-4..-1}]
+        eval unset -v __json_dump_tree_nodes[{-4..-1}]
 
         local __json_dump_node_type='normal'
         local __json_dump_space_str=''
@@ -88,7 +88,7 @@ _json_dump ()
             esac
 
             # 变量类型可能改变,这里必须unset,这里和递归不同,递归只用一次
-            unset __json_dump_var
+            unset -v __json_dump_var
             declare ${BASH_REMATCH[2]} __json_dump_var
             ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
                 eval __json_dump_var="${BASH_REMATCH[3]}" ; } || {
