@@ -3,7 +3,6 @@
 
 . ./cntr/cntr_copy.sh || return 1
 . ./cntr/cntr_common.sh || return 1
-. ./array/array_last_i.sh || return 1
 
 # 处理后的数组是置密的,筛选函数只接受一个参数就是数组元素值
 # 同时支持过滤条件是函数/别名/代码块
@@ -53,14 +52,20 @@ cntr_grep ()
     local _cntr_grep_script$1$4+="${CNTR_TEMPLATE_GENERATE_TEMP_FUNC_AFTER//NAME/$1$4}"
     
     local _cntr_grep_script$1$4+='
-    local i'$1$4' filter_ret'$1$4'=1
+    local i'$1$4' filter_ret'$1$4'=1 is_find'$1$4'=1
     for i'$1$4' in "${!'$1'[@]}" ; do
         if eval "$2" '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' ; then
             case "$3" in
             any) return 0 ;;
             none) return 1 ;;
-            first_k)    '$4'="$i'$1$4'" ; return 0 ;;
-            first_v)    '$4'="${'$1'[$i'$1$4']}" ; return 0 ;;
+            first_k|last_k)
+                '$4'="$i'$1$4'" ; is_find'$1$4'=0 ;;&
+                first_k)    return 0 ;;
+                last_k)     : ;;
+            first_v|last_v)
+                '$4'="${'$1'[$i'$1$4']}" ; is_find'$1$4'=0 ;;&
+                first_v)    return 0 ;;
+                last_v)     : ;;
             *) a'$1$4'[$i'$1$4']="${'$1'[$i'$1$4']}" ; filter_ret'$1$4'=0 ;;
             esac
         else
@@ -76,19 +81,8 @@ cntr_grep ()
     any|first_[kv])  return 1 ;;
     all|none)  return 0 ;;
     # 特别处理下last_k last_v
-    last_[kv])
-        if ((${#a'$1$4'[@]})) ; then
-            case "$3" in
-            last_k) array_last_i a'$1$4' '$4' ;;
-            last_v) '$4'=${a'$1$4'[-1]} ;;
-            esac
-            return 0
-        else
-            return 1
-        fi
-        ;;
+    last_[kv]) return $is_find'$1$4' ;;
     esac
-
 
     ((a_type'$1$4')) && cntr_copy '$1' a'$1$4' || '$1'=("${a'$1$4'[@]}")
     return $filter_ret'$1$4'
