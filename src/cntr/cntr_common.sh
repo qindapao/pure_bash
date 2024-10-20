@@ -1,14 +1,15 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[cntr_common]++)) && return 0
 
-. ./atom/atom_identify_data_type.sh || return 1
+. ./array/array_is_array.sh || return 1
+. ./dict/dict_is_dict.sh || return 1
 
 CNTR_TEMPLATE_CHEKC_TYPE='
     local a_typeNAME
-    if atom_identify_data_type "$1" a ; then
+    if array_is_array "$1" ; then
         local -a aNAME=()
         a_typeNAME=0
-    elif atom_identify_data_type "$1" A ; then
+    elif dict_is_dict "$1" ; then
         local -A aNAME=()
         a_typeNAME=1
     else

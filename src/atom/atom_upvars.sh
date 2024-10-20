@@ -3,10 +3,8 @@
 
 atom_upvars_dict ()
 {
-    local _atom_upvars_script_${1}='
-        NAME=() ; shift
-        while (($#)) ; do NAME[${1}]="${2}" ; shift 2 ; done'
-    eval -- eval -- '"${_atom_upvars_script_'$1'//NAME/$1}"'
+    eval -- ''$1'=() ; shift
+        while (($#)) ; do '$1'[${1}]="${2}" ; shift 2 ; done'
 }
 
 # :TODO: 这种方法并没有在递归中测试过,谨慎使用!

@@ -5,11 +5,13 @@
 # 1: 需要保存到的变量名
 arm_cpu_type ()
 {
-    local -i _arm_cpu_type=$(</sys/devices/system/cpu/cpu0/regs/identification/midr_el1)
-    _arm_cpu_type=${_arm_cpu_type:-0}
-    ((_arm_cpu_type=(_arm_cpu_type>>4)&0xffff))
+    eval -- '
+    local -i _arm_cpu_type'$1'=$(</sys/devices/system/cpu/cpu0/regs/identification/midr_el1)
+    _arm_cpu_type'$1'=${_arm_cpu_type'$1':-0}
+    ((_arm_cpu_type'$1'=(_arm_cpu_type'$1'>>4)&0xffff))
     
-    eval -- "$1=\$_arm_cpu_type"
+    $1=$_arm_cpu_type'$1'
+    '
 }
 
 return 0
