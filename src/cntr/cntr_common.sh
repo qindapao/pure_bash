@@ -4,7 +4,7 @@
 . ./atom/atom_identify_data_type.sh || return 1
 
 CNTR_TEMPLATE_CHEKC_TYPE='
-        local a_typeNAME
+    local a_typeNAME
     if atom_identify_data_type "$1" a ; then
         local -a aNAME=()
         a_typeNAME=0

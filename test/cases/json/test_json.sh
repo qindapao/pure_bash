@@ -10,6 +10,7 @@ cd "$root_dir"/src
 . ./json/json_del_ke.sh || return 1
 . ./json/json_dump.sh || return 1
 . ./json/json_get.sh || return 1
+. ./json/json_attr_get.sh || return 1
 . ./json/json_init.sh || return 1
 . ./json/json_load.sh || return 1
 . ./json/json_overlay.sh || return 1

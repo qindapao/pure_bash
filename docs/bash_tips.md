@@ -659,6 +659,39 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/nfor#
 
 有一个讨论页面讲得比较深入：https://mywiki.wooledge.org/BashFAQ/006
 
+关于`-n`这种形式的间接引用还有一个有意思的情况，先看下面的例子：
+
+```bash
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ unset -v a b c d
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ unset -n a b c d
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -n a=b
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ b=xx00
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -p a b
+declare -n a="b"
+declare -- b="xx00"
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -i a
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -p a b
+declare -n a="b"
+declare -i b="xx00"
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -a a
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -p a b
+declare -n a="b"
+declare -ai b=([0]="xx00")
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -A a
+-bash: declare: a：无法将索引数组转化为关联数组
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ unset a
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -A a
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ declare -p a b
+declare -n a="b"
+declare -A b
+qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$ 
+```
+
+所以通过对引用变量的属性更改，其实是变更了外层的真正的变量的属性，并且`unset`也是对外层变量的操作，如果要删除引用变量自身，那么需要使用`unset -n var_ref`的方式。
+
+
+
+
 #### 检查变量是否设置的另外一种方法
 
 ```bash

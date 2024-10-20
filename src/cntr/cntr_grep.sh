@@ -80,7 +80,6 @@ cntr_grep ()
     case "$3" in
     any|first_[kv])  return 1 ;;
     all|none)  return 0 ;;
-    # 特别处理下last_k last_v
     last_[kv]) return $is_find'$1$4' ;;
     esac
 
