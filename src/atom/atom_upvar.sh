@@ -1,6 +1,8 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[atom_upvar]++)) && return 0
 
+. ./atom/atom_unlocal.sh || return 1
+
 # :TODO: 扩展支持关联数组的返回?
 # 注意: 如果是引用变量就不要用这个函数
 # 用法: 
@@ -10,7 +12,7 @@
 #    f  # Ok: b=bar
 atom_upvar() 
 {
-    if unset -v "$1"; then           # Unset & validate varname
+    if atom_unlocal "$1" ; then           # Unset & validate varname
         if (( $# == 2 )); then
             eval $1=\"\$2\"          # Return single value
         else

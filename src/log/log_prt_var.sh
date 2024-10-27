@@ -17,7 +17,7 @@ log_prt_var ()
     
     if [[ -z "$prt_var_info" ]] ; then
         prt_var_info="${1}="
-    elif [[ "$prt_var_info" =~ ^declare\ [-a-zA-Z]+\ ([^=]+=.+) ]] ; then
+    elif [[ "$prt_var_info" =~ ^declare\ [-a-zA-Z]+\ ([^=]+=.*) ]] ; then
         prt_var_info="${BASH_REMATCH[1]}"
 
         ((is_tr_cr_to_space)) && { 

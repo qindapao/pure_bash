@@ -18,21 +18,24 @@ echo "=========${0} test start in $(date_log)=========="
 
 test_case1 ()
 {
+    local ret=''
     local str='echo hello world'
     local -a b=(echo hello world) c=('(' '(')
 
     str_to_array a "$str"
-    if assert_array a 'a' 'b' ; then
-        echo "${FUNCNAME[0]} pass"
-    else
-        echo "${FUNCNAME[0]} fail"
-    fi
+    assert_array a 'a' 'b' ; ret="$?$ret"
+
     str='( ('
     str_to_array a "$str" ' '
-    if assert_array a 'a' 'c' ; then
+
+    assert_array 'a' a c ; ret="$?$ret"
+
+    if [[ "$ret" == '00' ]] ; then
         echo "${FUNCNAME[0]} pass"
+        return 0
     else
         echo "${FUNCNAME[0]} fail"
+        return 1
     fi
 }
 

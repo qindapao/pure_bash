@@ -3,6 +3,7 @@
 
 . ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # json_attr_get 'field_attr' 'json_name' '4' '0'
 # 获取结构体中某个层级某个字段的属性
@@ -18,6 +19,7 @@
 #   json_get的返回值
 json_attr_get ()
 {
+    meta_var_clear "$1"
     local -n _json_attr_get_out_var_name=$1
     local -n _json_attr_get_json_ref=$2
     local _json_attr_get_tmp_var=''
@@ -26,7 +28,7 @@ json_attr_get ()
     local _json_attr_get_flags=''
 
     [[ -z "${1}" ]] && return ${JSON_COMMON_ERR_DEFINE[get_null_key]}
-    if [[ "${_json_attr_get_json_ref@a}" != *A* ]] && ! [[ "${1}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+    if [[ "${_json_attr_get_json_ref@a}" != *A* ]] && ! [[ "${1}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
         return ${JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]}
     fi
 
@@ -34,8 +36,8 @@ json_attr_get ()
 
     local _json_attr_get_data_lev_ref_last="${_json_attr_get_json_ref["${1}"]}"
 
-    local -i is_not_first_in=0
-    for _json_attr_get_param in "${@:1}" ; do
+    local -i _json_attr_get_is_not_first_in=0
+    for _json_attr_get_param in "${@}" ; do
         unset -v _json_attr_get_tmp_var
 
         if [[ "$_json_attr_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
@@ -46,19 +48,20 @@ json_attr_get ()
                     base64_decode _json_attr_get_tmp_var "${BASH_REMATCH[3]}"
                     eval _json_attr_get_tmp_var="$_json_attr_get_tmp_var" ; }
         else
+            (($#!=1)) && return ${JSON_COMMON_ERR_DEFINE[get_not_fully_traversed]}
             _json_attr_get_flags=''
             # 如果不匹配就是普通变量
             local _json_attr_get_tmp_var="${_json_attr_get_data_lev_ref_last}"
             break
         fi
 
-        if ((is_not_first_in++)) ; then
+        if ((_json_attr_get_is_not_first_in++)) ; then
             if [[ -z "$_json_attr_get_param" ]] ; then
                 # 索引为空值,遇到就返回
                 return ${JSON_COMMON_ERR_DEFINE[get_null_key]}
             fi
             
-            if [[ "$_json_attr_get_flags" != *A* ]] && ! [[ "${_json_attr_get_param}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+            if [[ "$_json_attr_get_flags" != *A* ]] && ! [[ "${_json_attr_get_param}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
                 return ${JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]}
             fi
             [[ ! -v '_json_attr_get_tmp_var["${_json_attr_get_param}"]' ]] && {

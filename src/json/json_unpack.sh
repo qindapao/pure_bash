@@ -23,6 +23,7 @@ json_unpack ()
 {
     local -i _json_unpack_str_type=$1
     local _json_unpack_str=$2
+    meta_var_clear "$3"
     local -n _json_unpack_out_json_ref=$3
 
     # 如果本身是一个Q字符串,先转换成普通字符串

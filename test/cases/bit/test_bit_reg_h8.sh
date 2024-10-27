@@ -21,8 +21,10 @@ test_case1 ()
     xx=$(bit_reg_h8 0xaabb)
     if [[ $xx == 0xaa ]] ; then
        echo "${FUNCNAME[0]} test pass" 
+       return 0
     else
        echo "${FUNCNAME[0]} test fail" 
+       return 1
     fi
 }
 

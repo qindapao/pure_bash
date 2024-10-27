@@ -33,7 +33,7 @@ test_case1 ()
     ret1=$(x1)
     y=x1
     ret2=$(eval -- "$y")
-    declare -p ret1 ret2
+    # declare -p ret1 ret2
     if [[ "$ret1" == 'haha' && "$ret2" == 'haha' ]] ; then
         echo "${FUNCNAME[0]} pass"
     else

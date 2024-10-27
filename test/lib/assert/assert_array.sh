@@ -8,7 +8,7 @@ cd "$_assert_array_old_dir"
 ((TEST_DEFENSE_VARIABLES[assert_array]++)) && return 0
 
 cd "$root_dir"/src/
-. ./log/log_dbg.sh || return 1
+. ./log/log_s_dbg.sh || return 1
 cd "$_assert_array_old_dir"
 
 # 判断参数给出的数组引用对应的数组索引和值是否完全匹配
@@ -19,7 +19,7 @@ cd "$_assert_array_old_dir"
 assert_array ()
 {
     if (($#<3)) ; then
-        log_dbg 0d0 "param num:${#}, need >= 3"
+        log_s_dbg 0d0 "param num:${#}, need >= 3"
         return 1
     fi
 
@@ -27,7 +27,7 @@ assert_array ()
     local _assert_array_param=''
     for _assert_array_param in "${@}" ; do
         if [[ -z "$_assert_array_param" ]] ; then
-            log_dbg 0d0 "param can not be null"
+            log_s_dbg 0d0 "param can not be null"
             return 1
         fi
     done

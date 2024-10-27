@@ -16,8 +16,14 @@ cd "$_test_trap_sort_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
+test_trap_disable ()
+{
+    echo "${FUNCNAME[0]} is disabled."
+    return 0
+}
 
-
+test_trap_disable
+exit $?
 IS_ALLOW_TRAP_SET=1
 eval $(trap_set 1 ERR)
 eval $(trap_set 1 RETURN)

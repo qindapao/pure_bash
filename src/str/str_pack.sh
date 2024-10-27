@@ -1,6 +1,8 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[str_pack]++)) && return 0
 
+. ./regex/regex_common.sh || return 1
+
 # :TODO: $(str_pack ref 0) 当前函数的进程替换方式会导致行尾换行符被丢失
 # 把任何的内置数组结构转换成字符串形式(要求数据结构在外部必须初始化)
 # 数据结构的
@@ -21,10 +23,10 @@ str_pack ()
     # @A的语法是Bash4.4引入的,谨慎使用啊
     local _str_pack_declare_str="${_str_pack_var_ref[@]@A}"
     
-    if [[ "$_str_pack_declare_str" =~ ^declare\ [^\ ]+\ [a-zA-Z_]+[a-zA-Z0-9_]*=(.*) ]] ; then
+    if [[ "$_str_pack_declare_str" =~ $REGEX_COMMON_DECLARE_PACK_STR ]] ; then
         case "$_str_pack_str_type" in
-        0)  printf "%s" "${BASH_REMATCH[1]}" ;;
-        1)  printf "%q" "${BASH_REMATCH[1]}" ;;
+        0)  printf "%s" "${BASH_REMATCH[3]}" ;;
+        1)  printf "%q" "${BASH_REMATCH[3]}" ;;
         esac
     else
         case "$_str_pack_str_type" in

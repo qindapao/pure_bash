@@ -3,6 +3,7 @@
 
 . ./json/json_base64_pack.sh || return 1
 . ./json/json_common.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # :TODO: 是使用进程替换的方式获取安全字符串还是引用的方式？
 # 使用进程替换的方式更直观好用
@@ -22,6 +23,7 @@ json_pack ()
 {
     local -i _json_pack_is_need_q_str=${1:-0}
     local -n _json_pack_json_ref=$2
+    meta_var_clear "$3"
     local -n _json_pack_out_str=$3
     local _json_pack_obj_name=${4:-${JSON_COMMON_MAGIC_STR}2}
     local _json_pack_ori_str=''
@@ -36,7 +38,7 @@ json_pack ()
     _json_pack_ori_str="${_json_pack_json_ref[@]@A}"
 
     # 更换节点结构体的名字
-    if [[ "$_json_pack_ori_str" =~ ^(declare)\ ([^\ ]+)\ [a-zA-Z_]+[a-zA-Z0-9_]*=(.*) ]] ; then
+    if [[ "$_json_pack_ori_str" =~ $REGEX_COMMON_DECLARE_PACK_STR ]] ; then
         ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
             _json_pack_ori_str="${BASH_REMATCH[1]} ${BASH_REMATCH[2]} ${_json_pack_obj_name}=${BASH_REMATCH[3]}" ; } || {
             json_base64_pack '_json_pack_json_ref' '_json_pack_ori_str' "${_json_pack_obj_name}" ; }

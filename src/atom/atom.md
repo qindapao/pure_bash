@@ -266,4 +266,90 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/cntr#
 
 有一个BUG(使用declare或者local声明数组或者关联数组一定要附初始值，不然@a操作符配合!间接操作符无法识别到属性类别), 这个是否给bash的作用反馈下？使用@a操作符直接取变量属性是没问题的，所以函数做了变更,使用eval取原始变量名。
 
+### 关于BASH_ARGV
+
+bash 5.0+的 `shopt -s compat44`，然后`shopt -s extdebug`，就可以让`BASH_ARGV`存储当前函数的参数的反转，但是这个解释没有完全理解，暂时不在正式中实现。
+
+备份的一个实现:
+
+```bash
+alias atom_func_reverse_params='shopt -q extdebug && set -- "${BASH_ARGV[@]}" || {shopt -s extdebug ; set -- "${BASH_ARGV[@]}" ; shopt -u extdebug ; }'
+```
+
+
+还有一些有趣的别名的调用方式，但是感觉并没有多大意义：
+
+```bash
+# 别名调试的方式
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/set# IFS= read -r -d '' xx <<'EOF'
+eval -- eval -- 'eval -- '\''set -- \"\$\{{'$#'..1}\}\"'\'''
+EOF
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/set# declare -p xx
+declare -- xx="eval -- eval -- 'eval -- '\\''set -- \\\"\\\$\\{{'\$#'..1}\\}\\\"'\\'''
+"
+root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/set# 
+```
+
+另外，原始的复杂实现已经大大简化了。不需要嵌套那么多层了，备份下原始实现。
+
+```bash
+# alias atom_func_reverse_params="eval -- eval -- eval -- ''\\''set -- \\\"\\\$\\{{'\$#'..1}\\}\\\"'\\'''"
+```
+## 代码实现的备份
+
+### atom_is_varname_valid
+
+```bash
+# global实现
+atom_is_varname_valid () { [[ "$1" == +([a-zA-Z_])*([a-zA-Z0-9_]) ]] ; }
+```
+
+## 其它的一些想法但是没有实现
+
+```bash
+# :TODO: 可以给高阶函数传递多个数组函数，以及每个都可以正确带上自己的参数
+# 诀窍是使用getopts,同一个字母的参数为一个函数的函数名或者参数
+# 然后传递参数通过-a func_name1 -a 1 -a 2 -a 3 -b func_name2 -b 5 -b 5 -b 7这种方式区分不同函数的参数
+# 可以弄一个公共的函数用于还原每个函数的参数即可
+# 还有更简单的办法是使用q字符串把数组的declare -p展开打包,在函数中重新拆包即可。这样可以传递多个数组。
+# my_func ()
+# {
+# 	local var
+# 	local optind
+# 	while getopts "a:b:c:" var ; do
+# 		case "$var" in
+# 			a)
+# 				declare -p OPTIND
+# 				declare -p OPTARG
+# 				;;
+# 			b)
+# 				declare -p OPTIND
+# 				declare -p OPTARG
+# 				;;
+# 			c)
+# 				declare -p OPTIND
+# 				declare -p OPTARG
+# 				;;
+# 		esac
+# 	done
+# }
+# 
+# mx=(-a "-b" -b "gege geg" -b "12345" -c "-c")
+# 
+# my_func "${mx[@]}"
+# 
+# 
+# [root@localhost ~]# sh test.sh 
+# declare -i OPTIND="3"
+# declare -- OPTARG="-b"
+# declare -i OPTIND="5"
+# declare -- OPTARG="gege geg"
+# declare -i OPTIND="7"
+# declare -- OPTARG="12345"
+# declare -i OPTIND="9"
+# declare -- OPTARG="-c"
+# [root@localhost ~]# 
+```
+
+目前看起来上面的建议并没有什么价值。
 

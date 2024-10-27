@@ -5,6 +5,7 @@
 . ./json/json_set.sh || return 1
 . ./json/json_overlay.sh || return 1
 . ./json/json_awk_load.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # . ./log/log_dbg.sh || return 1
 
@@ -50,7 +51,6 @@ json_load ()
 {
     # 变量的数据类型必须外面定义
     local -n _json_load_json_out_ref=$1
-    
     _json_load_json_out_ref=()
 
     local _json_load_json_input_file_path=$2
@@ -85,7 +85,7 @@ json_load ()
     mapfile -t _json_load_json_file_contents_tmp < "$_json_load_json_input_file_path"
     for _json_load_line_content in "${_json_load_json_file_contents_tmp[@]}" ; do
         # 删除存空行和全是空白字符的行
-        if [[ ! "$_json_load_line_content" =~ ^[[:space:]]*$ ]] ; then
+        if [[ ! "$_json_load_line_content" =~ $REGEX_COMMON_BLANK_LINE ]] ; then
             _json_load_json_file_contents+=("$_json_load_line_content")
         fi
     done
@@ -97,7 +97,7 @@ json_load ()
         _json_load_lev=0
         _json_load_line_content="${_json_load_json_file_contents[_json_load_line_cnt]}"
 
-        [[ "$_json_load_line_content" =~ ^(\ *) ]] && {
+        [[ "$_json_load_line_content" =~ $REGEX_COMMON_SPACE_LINE_CONTENT ]] && {
             _json_load_lev=${#BASH_REMATCH[1]}
             ((_json_load_lev/=4))
             ((_json_load_lev--))

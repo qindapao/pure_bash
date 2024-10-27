@@ -26,14 +26,13 @@ test_case1 ()
     assert_array a a1 a2 ; bool1=$?
     [[ '3' == "$ret" ]] ; bool2=$?
 
-    declare -p a1
-    declare -p ret
-
     # 断言判断测试结果
     if [[ "$bool1" == '0' ]] && [[ "$bool2" == '0' ]] ; then
         echo "${FUNCNAME[0]} test pass"
+        return 0
     else
         echo "${FUNCNAME[0]} test fail"
+        return 1
     fi
 }
 

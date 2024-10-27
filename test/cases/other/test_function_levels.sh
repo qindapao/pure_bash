@@ -181,6 +181,19 @@ test_case158 () { test_case159 ; }
 test_case159 () { test_case160 ; }
 test_case160 () { echo '161' ; }
 
-test_case1
+temp_file=$(mktemp)
 
+test_case1 2>"$temp_file"
+
+if [[ -s "$temp_file" ]] ; then
+    echo "test_case1 test pass"
+    ret=0
+else
+    echo "test_case1 test fail"
+    ret=1
+fi
+
+rm -f "$temp_file"
+
+exit $ret
 

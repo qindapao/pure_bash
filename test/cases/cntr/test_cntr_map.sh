@@ -122,6 +122,32 @@ test_case5 ()
 
 }
 
+func1 ()
+{
+    local array=($3 $3 $3 $3)
+    cntr_map array 'printf -v $1[$2] "%s" "$(($3+1))"' 
+    echo ${array[@]}
+}
+
+
+# 嵌套的情况
+test_case6 ()
+{
+    local array=(1 2 3)
+    local get_str=$(cntr_map array func1)
+    local spec_str='2 2 2 2
+3 3 3 3
+4 4 4 4'
+    if [[ "$get_str" == "$spec_str" ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
+}
+
+
 ret=0
 test_case1
 ((ret|=$?))
@@ -132,6 +158,8 @@ test_case3
 test_case4
 ((ret|=$?))
 test_case5
+((ret|=$?))
+test_case6
 ((ret|=$?))
 
 exit $ret

@@ -1,10 +1,8 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_unshift]++)) && return 0
 
-# 这个函数几乎无用
-# 往数组的头部添加元素(添加的元素可以是数组,不能是稀疏数组)
-# 命令行参数有大小限制，不能太大
-# 可以处理稀疏数组，但是效率不高
+# 可以处理稀疏数组
+# :TODO: 后面要基于eval实现,不用引用变量
 array_unshift ()
 {
     local -n _array_unshift_ref_arr=$1

@@ -10,7 +10,7 @@ array_max ()
     shift
     local i
     for i in "${@}" ; do
-        [[ "$i" -gt "$max_var" ]] && max_var="$i"
+        ((max_var=(i>max_var)?i:max_var))
     done
     printf "%s" "$max_var"
 }

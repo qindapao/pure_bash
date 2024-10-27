@@ -23,16 +23,15 @@ test_case1 ()
     local -a a1=()
     array_egenerator a1 POWER 1 8
     
-    declare -p a1
-
     local -a a2=(POWER1 POWER2 POWER3 POWER4 POWER5 POWER6 POWER7 POWER8)
 
     # 断言判断测试结果
     if assert_array 'a' a1 a2 ; then
-        # :TODO: 打印测试用例的函数名字
         echo "${FUNCNAME[0]} pass"
+        return 0
     else
         echo "${FUNCNAME[0]} fail"
+        return 1
     fi
 }
 

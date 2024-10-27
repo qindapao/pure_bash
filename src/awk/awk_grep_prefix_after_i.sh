@@ -1,7 +1,7 @@
 . ./meta/meta.sh
-((DEFENSE_VARIABLES[awk_grep_prefix_after]++)) && return 0
+((DEFENSE_VARIABLES[awk_grep_prefix_after_i]++)) && return 0
 
-awk_grep_prefix_after () 
+awk_grep_prefix_after_i () 
 { 
     # 提供文件就是文件,否则标准输入
     local grep_prefix_str="$1" deal_file="${2:--}"

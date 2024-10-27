@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[array_rotate]++)) && return 0
 
 
+# :TODO: 尝试使用eval的实现,并且不改变数组的稀疏索引
 # 数组的轮转(不改变索引)
 # 1: 需要操作的数组引用
 # 2: 旋转步长

@@ -103,10 +103,19 @@ test_case3 ()
             echo '1'
         fi
     '
+    
+    local tmp_file=$(mktemp)
+    local ret=0
 
-    eval "$block_str"
-
-    echo 'end'
+    eval "$block_str" 2>"$tmp_file"
+    if ! [[ -s "$tmp_file" ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+    else
+        echo "${FUNCNAME[0]} test fail."
+        ret=1
+    fi
+    rm -f -- "$tmp_file"
+    return $ret
 }
 
 test_case4 ()
@@ -131,9 +140,16 @@ test_case4 ()
         fi
     '
 
-    eval "$block_str"
-
-    echo 'end'
+    local tmp_file=$(mktemp)
+    eval "$block_str" 2>"$tmp_file"
+    if [[ -s "$tmp_file" ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+    else
+        echo "${FUNCNAME[0]} test fail."
+        ret=1
+    fi
+    rm -f -- "$tmp_file"
+    return $ret
 }
 
 test_case1

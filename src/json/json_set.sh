@@ -5,6 +5,7 @@
 . ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
 . ./json/json_pack.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # json_set 'json_name' '4' '0' '[key1]' i "value"
 # json_set 'json_name' '4' '0' '[key1]' - "value"
@@ -46,7 +47,7 @@ json_set ()
 
     [[ -z "$_json_set_set_index_first" ]] && return ${JSON_COMMON_ERR_DEFINE[set_null_key]}
     # 不是关联数组,但是要访问非数字键
-    if [[ "${_json_set_json_ref@a}" != *A* ]] && ! [[ "${_json_set_set_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+    if [[ "${_json_set_json_ref@a}" != *A* ]] && ! [[ "${_json_set_set_index_first}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
         return ${JSON_COMMON_ERR_DEFINE[set_key_but_not_dict]}
     fi
 

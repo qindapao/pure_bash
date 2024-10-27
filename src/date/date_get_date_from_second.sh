@@ -6,7 +6,7 @@
 
 # 从某一年的 01-01 00:00:00 以来经过的秒数计算具体的日期,比如: 1996-01-01 00:00:00
 date_get_date_from_second ()
-(
+{
     # 开始的年份
     local -i cur_year=$1
     # 经过的秒数
@@ -61,7 +61,7 @@ date_get_date_from_second ()
     out_sec=$((left_sec%second_min))
 
     printf "%04d-%02d-%02d-%02d-%02d-%02d" "$out_year" "$out_month" "$out_day" "$out_hour" "$out_min" "$out_sec"
-)
+}
 
 return 0
 

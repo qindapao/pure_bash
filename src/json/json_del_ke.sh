@@ -5,6 +5,7 @@
 . ./json/json_common.sh || return 1
 . ./json/json_pack.sh || return 1
 . ./log/log_dbg.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # LOG_LEVEL=2
 
@@ -30,7 +31,7 @@ json_del_ke ()
     local _json_del_ke_{index,top_level_str="",lev_cnt=1,index_first="$1"}
 
     [[ -z "$_json_del_ke_index_first" ]] && return ${JSON_COMMON_ERR_DEFINE[del_null_key]}
-    if [[ "${_json_del_ke_json_ref@a}" != *A* ]] && ! [[ "${_json_del_ke_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+    if [[ "${_json_del_ke_json_ref@a}" != *A* ]] && ! [[ "${_json_del_ke_index_first}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
         return ${JSON_COMMON_ERR_DEFINE[del_key_but_not_dict]}
     fi
 
@@ -60,7 +61,7 @@ json_del_ke ()
             _json_del_ke_declare_flag=''
         fi
 
-        if [[ "$_json_del_ke_declare_flag" != *A* ]] && ! [[ "${_json_del_ke_index}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+        if [[ "$_json_del_ke_declare_flag" != *A* ]] && ! [[ "${_json_del_ke_index}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
             return ${JSON_COMMON_ERR_DEFINE[del_key_but_not_dict]}
         fi
 
@@ -107,9 +108,13 @@ json_del_ke ()
             json_pack_o '_json_del_ke_data_lev_ref' '_json_del_ke_top_level_str' "${JSON_COMMON_MAGIC_STR}${_json_del_ke_lev_cnt}"
         else
             if [[ "${_json_del_ke_data_lev_ref@a}" == *A* ]] ; then
-                _json_del_ke_top_level_str="declare -A ${JSON_COMMON_MAGIC_STR}1=()"
+                ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                    _json_del_ke_top_level_str="declare -A ${JSON_COMMON_MAGIC_STR}1=()" ; } || {
+                    _json_del_ke_top_level_str="declare -A ${JSON_COMMON_MAGIC_STR}1=${JSON_COMMON_NULL_ARRAY_BASE64}" ; }
             else
-                _json_del_ke_top_level_str="declare -a ${JSON_COMMON_MAGIC_STR}1=()"
+                ((JSON_COMMON_SERIALIZATION_ALGORITHM==JSON_COMMON_SERIALIZATION_ALGORITHM_ENUM[builtin])) && {
+                    _json_del_ke_top_level_str="declare -a ${JSON_COMMON_MAGIC_STR}1=()" ; } || {
+                    _json_del_ke_top_level_str="declare -a ${JSON_COMMON_MAGIC_STR}1=${JSON_COMMON_NULL_ARRAY_BASE64}" ; }
             fi
         fi
         ((_json_del_ke_lev_cnt--))

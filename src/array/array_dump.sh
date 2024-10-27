@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[array_dump]++)) && return 0
 
 . ./array/array_sort.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # 树状打印一个数组或者关联数组或者普通字符串
 # 关联数组键排序
@@ -17,7 +18,7 @@ array_dump ()
     local _array_dump_prt_tmp_str
     
     while true ; do
-        if [[ "$_array_dump_declare_str" =~ ^declare\ [^\ ]*n[^\ ]*\ [^=]+=[\"\'](.+)[\"\']$ ]] ; then
+        if [[ "$_array_dump_declare_str" =~ $REGEX_COMMON_DECLARE_REF ]] ; then
             _array_dump_declare_str="$(declare -p "${BASH_REMATCH[1]}" 2>/dev/null)"
             _array_dump_prt_str+="->${BASH_REMATCH[1]}"
         else
@@ -25,7 +26,7 @@ array_dump ()
                 if [[ "${_array_dump_ref_arr@a}" == *[aA]* ]] ; then
 
                     # 加上数组的属性
-                    if [[ "$_array_dump_declare_str" =~ ^declare\ ([^\ ]*[aA][^\ ]*)\ [^=]+=?.* ]] ; then
+                    if [[ "$_array_dump_declare_str" =~ $REGEX_COMMON_DECLARE_CONTAINER ]] ; then
                         _array_dump_prt_str+="(${BASH_REMATCH[1]})"
                     fi
 

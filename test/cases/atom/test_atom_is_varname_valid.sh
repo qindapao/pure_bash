@@ -18,20 +18,30 @@ echo "=========${0} test start in $(date_log)=========="
 
 test_case1 () 
 {
+    local ret='0'
+    local success_str='1010010'
     atom_is_varname_valid 'abc0'   
-    echo $?
+    ret=$?
     atom_is_varname_valid '0abc0'   
-    echo $?
+    ret="$?$ret"
     atom_is_varname_valid '_abc0'   
-    echo $?
+    ret="$?$ret"
     atom_is_varname_valid 'A__abc0'   
-    echo $?
+    ret="$?$ret"
     atom_is_varname_valid 'A*_abc0'   
-    echo $?
+    ret="$?$ret"
     atom_is_varname_valid 'A'   
-    echo $?
+    ret="$?$ret"
     atom_is_varname_valid '~'   
-    echo $?
+    ret="$?$ret"
+
+    if [[ "$ret" == "$success_str" ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail.ret:${ret};"
+        return 1
+    fi
 }
 test_case1
 

@@ -13,13 +13,13 @@ bit_num_to_binary ()
     local filed_length=$2
     local filed_char=$3
     local -i value_decimal
-    if [[ "${value:0:2}" == 0[xX] ]] ; then
+    if [[ "${value:0:2}" == '0x' ]] ; then
         printf -v value_decimal "%d" "$value"
-    elif [[ "${value:0:2}" == "0b" ]] ; then
+    elif [[ "${value:0:2}" == '0b' ]] ; then
         printf -v value_decimal "%d" "$((2#${value:2}))"
     elif [[ "$value" =~ ^[0-9]+$ ]]; then
         # 删除前导0
-        str_ltrim_zeros_s "$value" value
+        str_ltrim_zeros value
         printf -v value_decimal "%s" "$value"
     fi
 

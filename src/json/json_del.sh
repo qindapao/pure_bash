@@ -5,6 +5,7 @@
 . ./json/json_common.sh || return 1
 . ./json/json_pack.sh || return 1
 . ./log/log_dbg.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # LOG_LEVEL=2
 
@@ -31,7 +32,7 @@ json_del ()
     local _json_del_{index,top_level_str="",lev_cnt=1,index_first="$1"}
 
     [[ -z "$_json_del_index_first" ]] && return ${JSON_COMMON_ERR_DEFINE[del_null_key]}
-    if [[ "${_json_del_json_ref@a}" != *A* ]] && ! [[ "${_json_del_index_first}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+    if [[ "${_json_del_json_ref@a}" != *A* ]] && ! [[ "${_json_del_index_first}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
         return ${JSON_COMMON_ERR_DEFINE[del_key_but_not_dict]}
     fi
 
@@ -61,7 +62,7 @@ json_del ()
             _json_del_declare_flag=''
         fi
 
-        if [[ "$_json_del_declare_flag" != *A* ]] && ! [[ "${_json_del_index}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+        if [[ "$_json_del_declare_flag" != *A* ]] && ! [[ "${_json_del_index}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
             return ${JSON_COMMON_ERR_DEFINE[del_key_but_not_dict]}
         fi
 

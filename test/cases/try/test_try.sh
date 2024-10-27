@@ -19,6 +19,14 @@ cd "$_test_trap_try_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
+test_case_disable ()
+{
+    echo "${FUNCNAME[0]} is disabled."
+}
+
+test_case_disable
+exit $?
+
 
 IS_ALLOW_TRAP_SET=1
 eval $(trap_set 1 ERR)

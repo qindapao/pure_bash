@@ -16,7 +16,7 @@ cd "$_test_str_count_str_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
-set -vx
+# set -vx
 test_case1 ()
 {
     local a='12345sabsabsaxs' b='sa'

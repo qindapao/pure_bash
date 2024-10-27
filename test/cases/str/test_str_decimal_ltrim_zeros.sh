@@ -6,8 +6,8 @@ root_dir="${PWD%%/pure_bash*}/pure_bash"
 cd "$root_dir"/src
 . ./log/log_dbg.sh || return 1
 . ./date/date_log.sh || return 1
-. ./str/str_to_array.sh || return 1
 . ./str/str_decimal_ltrim_zeros.sh || return 1
+. ./cntr/cntr_map.sh || return 1
 
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
@@ -25,15 +25,15 @@ test_case1 ()
     local x2='-0000340045'
     local x3='+0000340045'
 
-    str_decimal_ltrim_zeros_s "$a" a
-    str_decimal_ltrim_zeros_s "$b" b
-    str_decimal_ltrim_zeros_s "$c" c
-    str_decimal_ltrim_zeros_s "$d" d
-    str_decimal_ltrim_zeros_s "$e" e
-    str_decimal_ltrim_zeros_s "$f" f
-    str_decimal_ltrim_zeros_s "$x1" x1
-    str_decimal_ltrim_zeros_s "$x2" x2
-    str_decimal_ltrim_zeros_s "$x3" x3
+    str_decimal_ltrim_zeros  a
+    str_decimal_ltrim_zeros  b
+    str_decimal_ltrim_zeros  c
+    str_decimal_ltrim_zeros  d
+    str_decimal_ltrim_zeros  e
+    str_decimal_ltrim_zeros  f
+    str_decimal_ltrim_zeros x1
+    str_decimal_ltrim_zeros x2
+    str_decimal_ltrim_zeros x3
     if [[ "$a" == 435 ]] \
         && [[ "$b" == -456 ]] \
         && [[ "$c" == 788 ]] \
@@ -58,15 +58,15 @@ test_case2 ()
     local x2='-0000340045'
     local x3='+0000340045'
 
-    a=$(str_decimal_ltrim_zeros_s "$a")
-    b=$(str_decimal_ltrim_zeros_s "$b")
-    c=$(str_decimal_ltrim_zeros_s "$c")
-    d=$(str_decimal_ltrim_zeros_s "$d")
-    e=$(str_decimal_ltrim_zeros_s "$e")
-    f=$(str_decimal_ltrim_zeros_s "$f")
-    x1=$(str_decimal_ltrim_zeros_s "$x1")
-    x2=$(str_decimal_ltrim_zeros_s "$x2")
-    x3=$(str_decimal_ltrim_zeros_s "$x3")
+    a=$(echo "$a" | str_decimal_ltrim_zeros)
+    b=$(echo "$b" | str_decimal_ltrim_zeros)
+    c=$(echo "$c" | str_decimal_ltrim_zeros)
+    d=$(echo "$d" | str_decimal_ltrim_zeros)
+    e=$(echo "$e" | str_decimal_ltrim_zeros)
+    f=$(echo "$f" | str_decimal_ltrim_zeros)
+    x1=$(echo "$x1" | str_decimal_ltrim_zeros)
+    x2=$(echo "$x2" | str_decimal_ltrim_zeros)
+    x3=$(echo "$x3" | str_decimal_ltrim_zeros)
     if [[ "$a" == 435 ]] \
         && [[ "$b" == -456 ]] \
         && [[ "$c" == 788 ]] \
@@ -82,10 +82,27 @@ test_case2 ()
     fi
 }
 
+test_case3 ()
+{
+    local -a array=(-0000233 +00323 000999 765)
+    local -a array_after=(-233 323 999 765)
+    cntr_map array str_decimal_ltrim_zeros
+    if assert_array 'a' array array_after ; then
+        echo "${FUNCNAME[0]} pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} fail."
+        return 1
+    fi
+}
+
+
 test_case1
 ret1=$?
 test_case2
 ret2=$?
+test_case3
+ret3=$?
 
-! ((ret1|ret2))
+! ((ret1|ret2|ret3))
 

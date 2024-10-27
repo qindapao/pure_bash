@@ -11,7 +11,7 @@ array_min ()
     shift
     local i
     for i in "${@}" ; do
-        [[ "$i" -lt "$min_var" ]] && min_var="$i"
+        ((min_var=(i<min_var)?i:min_var))
     done
     printf "%s" "$min_var"
 }

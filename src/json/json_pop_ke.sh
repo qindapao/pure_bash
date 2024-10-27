@@ -23,6 +23,7 @@
 #   json_get 的返回值
 json_pop_ke ()
 {
+    meta_var_clear "$1"
     local -n _json_pop_ke_out_var=$1 _json_pop_ke_json_ref=$2
     shift 2
 

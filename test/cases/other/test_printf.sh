@@ -35,3 +35,40 @@ printf -- "$a"
 # 这样任何情况都能打印
 printf "%s" "$a"
 
+test_case1 ()
+{
+    local -A dict
+    dict['xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+geg']=' xy'
+    local i='xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+geg'
+    local j=dict
+
+    local -A dict_after
+    dict_after['xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+geg']=' 4 56'
+
+    if ((__META_BASH_VERSION>=5000000)) ; then
+        if shopt -q assoc_expand_once ; then
+            printf -v "$j[$i]" "%s" ' 4 56'
+        else
+            shopt -s assoc_expand_once
+            printf -v "$j[$i]" "%s" ' 4 56'
+            shopt -u assoc_expand_once
+        fi
+    else
+        eval -- ''$j'[$i]="4 56"'
+    fi
+
+    declare -p dict dict_after
+
+    if assert_array 'A' dict dict_after ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
+}
+test_case1
+

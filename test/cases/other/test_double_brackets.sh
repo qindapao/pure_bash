@@ -24,8 +24,10 @@ test_case1 ()
     if (($?)) ; then
         # 假
         echo "${FUNCNAME[0]} pass"
+        return 0
     else
         echo "${FUNCNAME[0]} fail"
+        return 1
     fi
 }
 
@@ -37,6 +39,6 @@ test_case2 ()
 }
 
 
-test_case1
+test_case1 &&
 test_case2
 

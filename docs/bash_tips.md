@@ -317,11 +317,10 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json#
 
 见上面的例子，可以通过赋值语句隐式的把字符串转换成了数组，所以字符串其实就是只有`0`号索引的特殊数组而已。
 
-下面的两行关键字的下面加上：
+
 上面的例子是间接引用和`${!var}`取值嵌套的情况，会找到真正的变量。
 
 有一个讨论页面讲得比较深入：https://mywiki.wooledge.org/BashFAQ/006
-
 
 还有一个页面，讲解如果通过引用往上层传参的: https://fvue.nl/wiki/Bash:_Passing_variables_by_reference。
 
@@ -332,6 +331,23 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/json#
 1. 如果在函数中`unset`一个局部变量，那么局部变量的残影还在，后续直接操作这个变量名，依然是操作的这个局部变量。
 2. 如果在函数的下一个作用域，也就是一个子函数中`unset`这个函数的一个局部变量，那么局部变量会被测底移除，不会保留残影，但是这个行为可以被一个选项改变，就是`localvar_unset`。如果这个选项被设置，那么在下一个作用域中使用`unset`依然像在当前函数中使用`unset`一个效果，变量的残影还在。
 3. 关于`unset`这一特性的一些说明和资料，[upvar](https://fvue.nl/wiki/Bash:_Passing_variables_by_reference)，[unset行为说明1](https://unix.stackexchange.com/questions/382391/what-does-unset-do)，[unset行为说明2]()，[一些讨论](https://www.mail-archive.com/bug-bash@gnu.org/msg19445.html)。
+4. 使用这种方法分配多个变量不能调用多次`upvar`，因为在某次调用中可能会破坏掉函数中的局部变量，导致后面获取不到值，要使用`upvars`，一次性把参数全部给函数处理。下面是文章中的例子：
+
+```bash
+f() { local b a; g b a; echo $b $a; }
+g() {
+    local a=A b=B
+    # ...
+    if local "$1" "$2"; then
+        upvar $1 $a           # (1a)
+        upvar $2 $b           # (1b)
+    fi
+}
+f  # Error; got "A A", expected: "A B"
+```
+
+第一次调用`upvar $1 $a`的时候，由于`$1`是`b`，所以在函数中把`b`给`unset`掉了。那么第二次调用`upvar`的时候，`$2`的`a`就无法拿到局部变量`b`的值了，因为已经在前一次调用中被`unset`掉了。解决办法就是使用`upvars`。
+
 
 ### 关于bash的兼容级别
 
@@ -1058,6 +1074,88 @@ Match must occur at the beginning of the value.
 ${var/%pat/repl} Use value of var, with match of pat replaced with repl.
 Match must occur at the end of the value.
 
+还有一个`BUG`要注意下。
+
+在`bash`的版本，小于`bash4.3`和大于`bash4.3`中，替换语法的效果有点不同。
+
+```bash
+When using the pattern substitution word expansion, bash now runs the replacement string through quote removal, since it allows quotes in that string to act as escape characters. This is not backwards compatible, so it can be disabled by setting the bash compatibility mode to 4.2.
+```
+
+有一个`bash`的兼容级别。
+
+```bash
+compat42
+If set, bash does not process the replacement string in the pattern substitution word expansion using quote removal.
+```
+
+用一个例子来说明下：
+
+1. 首先生成一个字符串。
+
+```bash
+text="$(printf -- "%b%s%b" "\[\e[31m\]" "hello" "\[\e[0m\]")"
+```
+
+2. 打印这个字符串的内容
+
+```bash
+$ declare -p text
+declare -- text=$'\\[\E[31m\\]hello\\[\E[0m\\]'
+$ 
+```
+
+3. 打开`compat42`兼容级别
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ shopt -s compat42
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ xxxm="${text//$'\[\e'\[/}"
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ declare -p xxxm
+declare -- xxxm="\\31m\\]hello\\0m\\]"
+```
+
+4. 如果关闭`compat42`兼容级别
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ shopt -u compat42
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ xxxm="${text//$'\[\e'\[/}"
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ declare -p xxxm
+declare -- xxxm="31m\\]hello0m\\]"
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$  
+```
+
+解释：在`4.2`中反引号并没有被完全移除，看下面：
+
+```bash
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ xm=$'\[\e'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ declare -p xm
+declare -- xm=$'\\[\E'
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/array
+$ 
+```
+
+本来是应该完全被替换掉，但是多余出来一个斜杠`\`。所以后续的版本才是正确的，可以正确处理转义的情况。详细的例子解释可以看这个[链接](https://stackoverflow.com/questions/70586643/why-does-this-parameter-expansion-replacement-fail-in-bash-4-2-but-work-in-5-1)。
+
+
+
+
+
 
 ### 变量修饰
 
@@ -1206,8 +1304,6 @@ function ble/encoding:UTF-8/c2b {
 }
 ```
 
-看上面例子中的用法。
-
 在`return`语句中也可以使用三目运算符，不过好像作用并不是很大
 
 ```bash
@@ -1227,7 +1323,6 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/cntr#
 ```
 
 可以参考上面的这个例子。
-
 
 ### 条件判断
 
@@ -1851,6 +1946,48 @@ func1 yy
 echo $yy
 xxxx
 ```
+
+但是要特别小心下，要安全的打印到关联数组，有些情况下需要开启`assoc_expand_once`选项(bash5.0版本添加)。可以参考下面的测试用例。
+
+```bash
+test_case1 ()
+{
+    local -A dict
+    dict['xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+geg']=' xy'
+    local i='xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+geg'
+    local j=dict
+
+    local -A dict_after
+    dict_after['xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+geg']=' 4 56'
+
+    if ((__META_BASH_VERSION>=5000000)) ; then
+        if shopt -q assoc_expand_once ; then
+            printf -v "$j[$i]" "%s" ' 4 56'
+        else
+            shopt -s assoc_expand_once
+            printf -v "$j[$i]" "%s" ' 4 56'
+            shopt -u assoc_expand_once
+        fi
+    else
+        eval -- ''$j'[$i]="4 56"'
+    fi
+
+    declare -p dict dict_after
+
+    if assert_array 'A' dict dict_after ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
+}
+test_case1
+```
+
 
 ##### 关于安全的打印
 
@@ -2499,6 +2636,29 @@ echo "alarm_$((alarm_cnt++))]" | tee -a "log.txt"
 ```
 
 由于使用了管道，变成了子`shell`，上面的`alarm_cnt`变量不会自增。
+
+#### 后台进程
+
+获取后台进程的退出码，非常简单，参考下面的代码：
+
+```bash
+#!/bin/bash
+
+# 启动后台进程
+your_command &
+
+# 获取后台进程PID
+pid=$!
+
+# 等待后台进程结束，并获取退出码
+wait $pid
+exit_code=$?
+
+# 输出退出码
+echo "后台进程的退出码是: $exit_code"
+```
+
+
 
 
 ### HEAR DOCS

@@ -4,6 +4,7 @@
 . ./date/date_log.sh || return 1
 . ./date/date_prt_t.sh || return 1
 . ./array/array_dump.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 
 # 日志函数的简化版本(不支持json数据的打印功能)
@@ -52,7 +53,7 @@ log_s_dbg ()
         _log_s_dbg_msg+=$'\n-  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -'
 
         # 如果传入的变量不是合法标识符,直接忽略
-        [[ "${!_log_s_dbg_i}" =~ ^[a-zA-Z_]+[a-zA-Z0-9_]*$ ]] || {
+        [[ "${!_log_s_dbg_i}" =~ $REGEX_COMMON_VALID_VAR_NAME ]] || {
             _log_s_dbg_msg+=$'\n'
             _log_s_dbg_msg+="${!_log_s_dbg_i} is not a valid variable name!"
             continue
@@ -78,13 +79,28 @@ log_s_dbg ()
     printf "%s\n" "$_log_s_dbg_log_info" >>"$LOG_FILE_NAME"
 
     if [[ "$_log_s_dbg_log_type" == [ew] ]] ; then
+        local -i _log_s_dbg_is_logger_exist=0 ; which logger &>/dev/null && _log_s_dbg_is_logger_exist=1
+        ((_log_s_dbg_is_logger_exist)) && {
+            local _log_s_dbg_log_tag_for_sys="[${_log_s_dbg_log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)]"
+            local _log_s_dbg_log_value_for_sys="$_log_dbg_msg"
+            _log_s_dbg_log_value_for_sys+=$'\n'
+            local _log_s_dbg_log_value_for_sys_tmp=''
+        }
+
         local -i _log_s_dbg_func_index=1
         for((_log_s_dbg_func_index=1;_log_s_dbg_func_index<${#FUNCNAME[@]};_log_s_dbg_func_index++)) ; do
             if ((_log_s_dbg_is_need_print_to_std_out)) ; then
                 printf "%s\n" $'\t'"${FUNCNAME[_log_s_dbg_func_index]}(${BASH_SOURCE[_log_s_dbg_func_index]}:${BASH_LINENO[_log_s_dbg_func_index-1]})"
             fi
             printf "%s\n" $'\t'"${FUNCNAME[_log_s_dbg_func_index]}(${BASH_SOURCE[_log_s_dbg_func_index]}:${BASH_LINENO[_log_s_dbg_func_index-1]})" >>"$LOG_FILE_NAME"
+            ((_log_s_dbg_is_logger_exist)) && {
+                printf -v _log_s_dbg_log_value_for_sys_tmp "%s\n" $'\t'"${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})"
+                _log_s_dbg_log_value_for_sys+="$_log_s_dbg_log_value_for_sys_tmp"
+            }
         done
+        ((_log_s_dbg_is_logger_exist)) && {
+            logger --tag "$_log_s_dbg_log_tag_for_sys" "$_log_s_dbg_log_value_for_sys"
+        }
     fi
 
     if ((LOG_ALLOW_BREAK&_log_s_dbg_is_need_break)) ; then

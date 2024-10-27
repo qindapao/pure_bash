@@ -2,7 +2,7 @@
 ((DEFENSE_VARIABLES[array_sort]++)) && return 0
 
 . ./cntr/cntr_map.sh || return 1
-. ./str/str_split_pure.sh || return 1
+. ./str/str_split.sh || return 1
 
 # :TODO: 当前的素值排序只支持整形并不支持浮点数,如果要支持浮点数函数的性能会大幅降低
 # :TODO: 为了支持稳定排序(多域段优先级排序),当前的函数和后面需要实现的qsort函数需要支持
@@ -68,7 +68,7 @@ _array_sort ()
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
         # 后面是完整的参数不能拆行
         cntr_map __array_sort_tmp_arr_filed \
-            "eval \$1[\\\$2]=\$(str_split_pure_s \"\${3}\" \"$__array_sort_delimiter\" \"$__array_sort_field\")"
+            "eval \$1[\\\$2]=\$(str_split_s \"\${3}\" \"$__array_sort_delimiter\" \"$__array_sort_field\")"
     fi
 
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}

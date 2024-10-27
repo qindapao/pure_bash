@@ -11,8 +11,5 @@ atom_is_varname_valid ()
     return 0
 }
 
-# global实现
-# atom_is_varname_valid () { [[ "$1" == +([a-zA-Z_])*([a-zA-Z0-9_]) ]] ; }
-
 return 0
 

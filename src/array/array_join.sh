@@ -3,6 +3,7 @@
 
 # 把数组通过分隔符链接成一个字符串
 # :TODO: 和str_join重复?
+# :TODO: 使用引用传递方式更好
 array_join ()
 {
     local separator=$1

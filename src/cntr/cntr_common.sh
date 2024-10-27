@@ -32,3 +32,5 @@ CNTR_TEMPLATE_DEL_TEMP_FUNC='
     ((is_blockNAME)) && unset -f _cntr_temp_funcNAME
 '
 
+return 0
+

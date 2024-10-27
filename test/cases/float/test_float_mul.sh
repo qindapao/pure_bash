@@ -18,8 +18,14 @@ echo "=========${0} test start in $(date_log)=========="
 
 test_case1 ()
 {
-    time float_mul '' '-10.1' -10.2 -5
-    declare -p _FLOAT_MUL
+    float_mul '' '-10.1' -10.2 -5
+    if [[ "$_FLOAT_MUL" == '-515.1' ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
 }
 
 test_case1

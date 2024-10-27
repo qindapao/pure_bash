@@ -18,7 +18,7 @@ echo "=========${0} test start in $(date_log)=========="
 
 test_case1 ()
 {
-    :
+    echo "${FUNCNAME[0]} test disabled."
 }
 
 test_case1

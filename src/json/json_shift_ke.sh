@@ -25,6 +25,7 @@
 #   json_get 的返回值
 json_shift_ke ()
 {
+    meta_var_clear "$1"
     local -n _json_shift_ke_json_{ret="$1",ref="$2"}
     shift 2
 

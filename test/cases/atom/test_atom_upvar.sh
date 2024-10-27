@@ -18,12 +18,24 @@ echo "=========${0} test start in $(date_log)=========="
 
 test_case1 () 
 {
+    local ret=0
     local a=inner
     local -n a1="$1"
     a1=x
-    declare -p a
+    if [[ "$a" != 'x' ]] ; then
+        ret=1
+    fi
     test_case2 "a1"
-    declare -p a
+    if [[ "$a" != 'xb' ]] ; then
+        ret=1
+    fi
+    if ((ret)) ; then
+        echo "${FUNCNAME[0]} test fail."
+    else
+        echo "${FUNCNAME[0]} test pass."
+    fi
+    return $ret
+
 }
 
 test_case2 ()
@@ -33,5 +45,4 @@ test_case2 ()
 
 a=out
 test_case1 'a'
-declare -p a
 

@@ -1,5 +1,24 @@
+# Copyright (c) 
+# 作者: qindapao northisland2017@gmail.com
+# 当前库只能适用于bash4.4或者以上版本,低于bash4.4某些语法不兼容
+
 # 所有操作依赖,比atom.sh更底层
 ((__META++)) && return 0
+
+# 主版本号.次版本号.补丁版本号.发布日志
+PURE_BASH_LIB_VERSION='1.0.0.2024.10.26'
+
+meta_get_lib_version ()
+{
+    case "$#" in
+    0)
+    printf "%s" "$PURE_BASH_LIB_VERSION"
+    ;;
+    *)
+    printf -v "$1" "%s" "$PURE_BASH_LIB_VERSION"
+    ;;
+    esac
+}
 
 # 别名的使用要注意,如果作为参数传给高阶函数,要么需要在高阶函数中手动展开,常规使用会自动展开
 # 并且高阶函数调用常规函数的时候不能加引号,不然如果别名带参数,会被当作整体处理
@@ -67,21 +86,47 @@ meta_get_bash_version ()
 {
     # 1: 主版本号
     # 2: 次版本号
-    local part1= part2= part3=
     if [[ "$BASH_VERSION" =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
         # 这和使用引用变量是一个效果
         # 5000017
-        part1="${BASH_REMATCH[1]}" ; part2="${BASH_REMATCH[2]}" ; part3="${BASH_REMATCH[3]}"
-        printf -v "$1" "%s%03d%03d" "${part1}" "$((10#$part2))" "$((10#$part3))"
+        printf -v "$1" "%s%03d%03d" "${BASH_REMATCH[1]}" "$((10#${BASH_REMATCH[2]}))" "$((10#${BASH_REMATCH[3]}))"
     fi
 }
 
 meta_get_bash_version __META_BASH_VERSION
+if ((__META_BASH_VERSION<4004000)) ; then
+    echo "The bash version must be 4.4 or later!" >&2
+    return 1
+fi
 
 declare -g PURE_STDIN='/dev/stdin'
 # :TODO: 具体部署的时候这里要改变
 # ibase64 工具的部署也放到统一的目录来
-declare -g PURE_BASH_TOOLS_DIR='./tools'
+case "$(uname -a)" in
+*[xX]86_64\ [cC][yY][gG][wW][iI][nN]*)
+    declare -g PURE_BASH_TOOLS_DIR='/cygdrive/d/my_code/pure_bash/src/tools' ;;
+*)  declare -g PURE_BASH_TOOLS_DIR='/mnt/d/my_code/pure_bash/src/tools' ;;
+esac
+
+# 变量赋值为空
+meta_var_clear ()
+{
+    while(($#)) ; do
+        eval -- '
+        case "${'$1'@a}" in
+        *[aA]*) '$1'=() ;;
+            *)  '$1'="" ;;
+        esac
+        '
+        shift
+    done
+}
+
+# 空数组对象
+declare -ga PURE_BASH_NULL_ARRAY=()
+# 空字典对象
+declare -gA PURE_BASH_NULL_DICT=()
+
 
 return 0
 

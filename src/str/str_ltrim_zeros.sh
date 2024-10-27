@@ -2,32 +2,39 @@
 ((DEFENSE_VARIABLES[str_ltrim_zeros]++)) && return 0
 
 # 去掉前导0(如果单纯只有一个0需要保留)
-# 1: 高阶函数的索引
-# 2: 需要操作的字符串值
-# 3: 需要操作的字符串的变量名(如果不传默认打印到标准输出)
 str_ltrim_zeros ()
 {
-    local _str_ltrim_zeros_out_str=''
-    printf -v _str_ltrim_zeros_out_str "%s" "${2#"${2%%[!0]*}"}" 
     # extglob实现
     # shopt -s extglob ; printf -v _str_ltrim_zeros_out_str "%s" "${2##+(0)}"
-
-    if [[ -n "$3" ]] ; then
-        if [[ -z "$_str_ltrim_zeros_out_str" ]] ; then
-            printf -v "$3" "%s" "${2:0:1}"
-        else
-            printf -v "$3" "%s" "$_str_ltrim_zeros_out_str"
-        fi
+    case "$#" in
+    0)
+    local ori_str= cnv_str=
+    IFS= read -d '' -r ori_str || true
+    printf -v cnv_str "%s" "${ori_str#"${ori_str%%[!0]*}"}"
+    if [[ -z "$cnv_str" ]] ; then
+        printf "%s" "${ori_str:0:1}"
     else
-        if [[ -z "$_str_ltrim_zeros_out_str" ]] ; then
-            printf "%s" "${2:0:1}"
-        else
-            printf "%s" "$_str_ltrim_zeros_out_str"
-        fi
+        printf "%s" "${cnv_str}"
     fi
+    ;;
+    1)
+    set -- "$1" "${!1#"${!1%%[!0]*}"}"
+    if [[ -z "$2" ]] ; then
+        eval -- $1='${!1:0:1}'
+    else
+        eval -- $1='$2'
+    fi
+    ;;
+    *)
+    set -- "$1" "$2" "$3" "${3#"${3%%[!0]*}"}"
+    if [[ -z "$4" ]] ; then
+        eval -- $1[\$2]='${3:0:1}'
+    else
+        eval -- $1[\$2]='${4}'
+    fi
+    ;;
+    esac
 }
-
-alias str_ltrim_zeros_s='str_ltrim_zeros ""'
 
 return 0
 

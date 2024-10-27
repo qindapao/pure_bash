@@ -24,7 +24,18 @@ test_case1 ()
         echo "$i"
     done
     '
-    eval -- "$for_loop"
+    local get_data=$(eval -- "$for_loop")
+    if [[ "$get_data" == '0
+1
+2
+3
+4' ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
 }
 
 test_case1

@@ -16,47 +16,65 @@ cd "$_test_atom_bashopts_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
+# set -xv
+
 test_case1 ()
 {
-    local bashopt_recover=''
-    atom_bashopts 'sourcepath' bashopt_recover
+    local bashopt_recover1=''
+    local bashopt_recover2=''
 
-    shopt -u sourcepath
-    shopt | grep -w sourcepath
+    local assert_flag=
+    assert_flag=$(shopt | grep 'sourcepath' | awk '{print $2}')
+    case "$assert_flag" in
+    on) assert_flag='-s' ;;
+    off) assert_flag='-u' ;;
+    esac
 
+    atom_bashopts 'sourcepath' bashopt_recover1 '-s'
+    shopt "$bashopt_recover1" sourcepath
 
-    shopt "$bashopt_recover" sourcepath
+    atom_bashopts 'sourcepath' bashopt_recover2 '-u'
+    shopt "$bashopt_recover2" sourcepath
 
-    if [[ "$bashopt_recover" == '-s' ]] ; then
+    if [[ "$bashopt_recover1" == "$assert_flag" ]] &&
+       [[ "$bashopt_recover2" == "$assert_flag" ]] ; then
         echo "${FUNCNAME[0]} pass"
+        return 0
     else
         echo "${FUNCNAME[0]} fail"
+        return 1
     fi
 }
 
 test_case2 ()
 {
-    local bashopt_recover
-    atom_bashopts 'nocasematch' bashopt_recover
+    local bashopt_recover1=''
+    local bashopt_recover2=''
 
-    shopt -s nocasematch
-    shopt | grep -w nocasematch
+    local assert_flag=
+    assert_flag=$(shopt | grep 'nocasematch' | awk '{print $2}')
+    case "$assert_flag" in
+    on) assert_flag='-s' ;;
+    off) assert_flag='-u' ;;
+    esac
 
-    shopt "$bashopt_recover" nocasematch
-    
-    if [[ "$bashopt_recover" == '-u' ]] ; then
+    atom_bashopts 'nocasematch' bashopt_recover1 '-s'
+    shopt "$bashopt_recover1" nocasematch
+
+    atom_bashopts 'nocasematch' bashopt_recover2 '-u'
+    shopt "$bashopt_recover2" nocasematch
+
+    if [[ "$bashopt_recover1" == "$assert_flag" ]] &&
+       [[ "$bashopt_recover2" == "$assert_flag" ]] ; then
         echo "${FUNCNAME[0]} pass"
+        return 0
     else
         echo "${FUNCNAME[0]} fail"
+        return 1
     fi
 }
 
-
-shopt | grep sourcepath
-test_case1
-shopt | grep sourcepath
-
-shopt | grep nocasematch
+# 这样一个用例失败后面的就不会执行
+test_case1 &&
 test_case2
-shopt | grep nocasematch
 

@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[json_set_params_check]++)) && return 0
 
 . ./json/json_common.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 # 结构体设置类参数检查
 # :TODO: 返回值的错误类型是否还需要细化?
@@ -20,7 +21,7 @@ json_set_params_check ()
             [[ -z "${_json_set_params_check_elment:1:-1}" ]] && return ${JSON_COMMON_ERR_DEFINE[set_null_key]}
         else
             # 必须是严格10进制数
-            [[ "$_json_set_params_check_elment" =~ ^[1-9][0-9]*$|^0$ ]] || return ${JSON_COMMON_ERR_DEFINE[set_key_index_not_decimal]}
+            [[ "$_json_set_params_check_elment" =~ $REGEX_COMMON_UINT_DECIMAL ]] || return ${JSON_COMMON_ERR_DEFINE[set_key_index_not_decimal]}
         fi
     done
     

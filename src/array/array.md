@@ -1,5 +1,19 @@
 # array
 
+## 关于数组模块的一些备忘
+
+```bash
+# :TODO: 一种利用参数扩展连续给数组赋值的方法,不知道有什么用
+# let 'a['{1..4}']=2'
+# eval let 'a['{1.."$x"}']=2'
+# eval "declare -a a[{1..$x}]=xxxgege"
+
+# :TODO: 数组是否需要实现集合的4种操作?
+
+# :TODO: 这里有个参考库,https://cfajohnson.com/shell/arrays/
+# 并不是所有的函数都有价值实现,可以先保存
+```
+
 ## 废弃的实现
 
 一些淘汰的实现保存下，以供以后参考。
@@ -283,6 +297,93 @@ array_copy ()
     # 需要确保字符串中的空格不会被解释为分隔符。因此，设置 IFS='' 
     # 可以避免潜在的问题。
     eval -- eval -- "$"_array_copy_script_${1}${2}""
+}
+```
+### array_same_sitem
+
+一个非常奇怪的实现，已经废弃，只做记录。
+
+```bash
+# 效率比array_same_item差多了
+# 尽量不要使用这个函数,这里只是为了暂时某种可能的实现
+# 往一个数组中填充指定数量相同元素
+# 1: 需要填充的数组
+# 2: 需要填充的数据内容
+# 3: 填充元素个数
+array_same_sitem () 
+{ 
+    local s_index
+    printf -v s_index "%0${#3}d" "1"
+    # ${3}${s_index}..${3}${3} 改成 4${s_index}..4${3}
+    # 因为参数只有3个,所以这里的参数一定是未设定状态
+    eval -- "eval -- 'eval -- '$1'[\\\${#'$1'[@]}]=\\\"\\\$\\{{${3}${s_index}..${3}${3}}-\\\"\\\$2\\\"\\}\\\"'"
+
+    return 0
+}
+
+# 只支持不含空格元素的简洁版本(效率并不高,没必要使用)
+# array_same_item () { eval "$1=(\$(printf \"%0.s${2}\n\" {1..${3}}))" ; }
+```
+
+### array_uniq
+
+当前的实现很不好，重新实现，当前实现备份。
+
+```bash
+# 去重一个数组中的元素,最后返回一个新的去重后的数组
+# 1: 需要去重的数组的引用名
+# 2: 去重后保存的数组名(如果这个参数为空表示直接更新原数组)
+# 3: 是否保留原始的index(默认不保留为1,传0表示要保留,只对普通数组有意义)
+# 注意:linux下的uniq和其它语言的都是针对相邻重复行的去重,但是这里不是
+array_uniq ()
+{
+    local -n _array_uniq_ref_arr=$1
+    if [[ -n "$2" ]] ; then
+        local -n _array_uniq_ref_out_arr=$2
+    else
+        local -a _array_uniq_ref_out_arr=()
+    fi
+    local -i _array_uniq_is_not_keep_index=${3:-1}
+
+    local -A _array_uniq_element_hash=()
+    local _array_uniq_i
+
+    for _array_uniq_i in "${!_array_uniq_ref_arr[@]}" ; do
+        local _array_uniq_tmp_key="${_array_uniq_ref_arr["$_array_uniq_i"]}"
+        # :TODO: 这里空元素被直接干掉了是否合理？
+        [[ -z "$_array_uniq_tmp_key" ]] && continue
+        
+        # 方括号中用-v和双圆括号中要特别小心参数扩展的问题
+        # 当前hash判断键是很危险的,使用单引号才能防止以外解释
+        # :TODO: 这个问题要去社区求助下
+        # 验证字符串
+        # xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)
+        # 下面这种写法和[[ -v _array_uniq_element_hash['$_array_uniq_tmp_key'] ]] 这里单双引号嵌套环境不一样表现不太一样，最好别用
+        # if ((_array_uniq_element_hash['$_array_uniq_tmp_key']++)) ; then
+        #     _array_uniq_ref_out_arr["$_array_uniq_i"]="${_array_uniq_tmp_key}"
+        # fi
+        # 
+        # 可以使用下面的代码验证
+        # declare -A k=(["(xx:yy)"]="6" ["xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx->xxx->xx:xx.x-/dev/fd/61-/dev/fd/60"]="1" ["xxx xxx->xxx
+        # ->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"]="2" )
+        # tmp_key="xxx xxx->xxx->xxx->xx:xx.x->(xxx:xx)->(xxxxx:xxxx)"
+        # if [[ -v k['$tmp_key'] ]] ; then echo xx; fi
+        # if ((k['$tmp_key']++)) ; then echo xx; fi
+
+        if [[ -z "${_array_uniq_element_hash["${_array_uniq_tmp_key}"]}" ]] ; then
+            _array_uniq_element_hash["${_array_uniq_tmp_key}"]=1
+            _array_uniq_ref_out_arr["$_array_uniq_i"]="${_array_uniq_tmp_key}"
+        fi
+    done
+
+    if((_array_uniq_is_not_keep_index)) ; then
+        _array_uniq_ref_out_arr=("${_array_uniq_ref_out_arr[@]}")
+    fi
+
+    # 更新原数组
+    if [[ -z "$2" ]] ; then
+        _array_uniq_ref_arr=("${_array_uniq_ref_out_arr[@]}")
+    fi
 }
 ```
 

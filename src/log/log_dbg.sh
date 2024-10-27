@@ -4,6 +4,7 @@
 . ./date/date_log.sh || return 1
 . ./date/date_prt_t.sh || return 1
 . ./json/json_dump.sh || return 1
+. ./regex/regex_common.sh || return 1
 
 
 # :TODO: 打印变量的功能暂时屏蔽掉
@@ -56,7 +57,7 @@ log_dbg ()
         _log_dbg_msg+=$'\n-  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -'
 
         # 如果传入的变量不是合法标识符,直接忽略
-        [[ "${!_log_dbg_i}" =~ ^[a-zA-Z_]+[a-zA-Z0-9_]*$ ]] || {
+        [[ "${!_log_dbg_i}" =~ $REGEX_COMMON_VALID_VAR_NAME ]] || {
             _log_dbg_msg+=$'\n'
             _log_dbg_msg+="${!_log_dbg_i} is not a valid variable name!"
             continue
@@ -69,7 +70,7 @@ log_dbg ()
 
         while true ; do
             # :TODO: 确认后面的双引号或者单引号一定会出现
-            if [[ "$_log_dbg_declare_str" =~ ^declare\ [^\ ]*n[^\ ]*\ [^=]+=[\"\'](.+)[\"\']$ ]] ; then
+            if [[ "$_log_dbg_declare_str" =~ $REGEX_COMMON_DECLARE_REF ]] ; then
                 _log_dbg_declare_str="$(declare -p "${BASH_REMATCH[1]}" 2>/dev/null)"
                 _log_dbg_prt_str+="->${BASH_REMATCH[1]}"
             else
@@ -116,31 +117,28 @@ log_dbg ()
     printf "%s\n" "$_log_dbg_log_info" >>"$LOG_FILE_NAME"
 
     if [[ "$_log_dbg_log_type" == [ew] ]] ; then
+        local -i _log_dbg_is_logger_exist=0 ; which logger &>/dev/null && _log_dbg_is_logger_exist=1
+        ((_log_dbg_is_logger_exist)) && {
+            local _log_dbg_log_tag_for_sys="[${_log_dbg_log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)]"
+            local _log_dbg_log_value_for_sys="$_log_dbg_msg"
+            _log_dbg_log_value_for_sys+=$'\n'
+            local _log_dbg_log_value_for_sys_tmp=''
+        }
+
         local -i _log_dbg_func_index=1
         for((_log_dbg_func_index=1;_log_dbg_func_index<${#FUNCNAME[@]};_log_dbg_func_index++)) ; do
             if ((_log_dbg_is_need_print_to_std_out)) ; then
                 printf "%s\n" $'\t'"${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})"
             fi
             printf "%s\n" $'\t'"${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})" >>"$LOG_FILE_NAME"
+            ((_log_dbg_is_logger_exist)) && {
+                printf -v _log_dbg_log_value_for_sys_tmp "%s\n" $'\t'"${FUNCNAME[_log_dbg_func_index]}(${BASH_SOURCE[_log_dbg_func_index]}:${BASH_LINENO[_log_dbg_func_index-1]})"
+                _log_dbg_log_value_for_sys+="$_log_dbg_log_value_for_sys_tmp"
+            }
         done
-
-        # # 把当前环境中所有变量的值记录到日志文件中(不打印)
-        # local -a _log_dbg_all_vars_name_list
-        # mapfile -t _log_dbg_all_vars_name_list < <(compgen -A variable)
-        # array_del_elements_dense _log_dbg_all_vars_name_list "${_LOG_INIT_VARIABLES_NAME[@]}" '_log_dbg_log_type' '_log_dbg_is_need_break' '_log_dbg_msg' \
-        #     '_log_dbg_i' '_log_dbg_declare_str' '_log_dbg_prt_str' '_log_dbg_log_info' '_log_dbg_func_index' '_LOG_INIT_VARIABLES_NAME' 'LOG_ALLOW_BREAK' \
-        #     'LOG_LEVEL' 'LOG_LEVEL_KIND'  '__META_BASH_VERSION' 'DEFENSE_VARIABLES' '__META' '_log_dbg_color' '_log_dbg_other_effect'
-        
-        # echo "==============ALL VARIABLE===================" >>"$LOG_FILE_NAME"
-        # for _log_dbg_i in "${_log_dbg_all_vars_name_list[@]}" ; do
-        #     :TODO: 下面这个写法有风险,调用函数 atom_identify_data_type 保险
-        #     if [[ "${!_log_dbg_i@a}" == *[aA]* ]] ; then
-        #         json_dump_hq "${_log_dbg_i}" >> "$LOG_FILE_NAME" 
-        #     else
-        #         declare -p "$_log_dbg_i" >> "$LOG_FILE_NAME"
-        #     fi
-        #     echo '-  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -' >>"$LOG_FILE_NAME"
-        # done
+        ((_log_dbg_is_logger_exist)) && {
+            logger --tag "$_log_dbg_log_tag_for_sys" "$_log_dbg_log_value_for_sys"
+        }
     fi
 
     if ((LOG_ALLOW_BREAK&_log_dbg_is_need_break)) ; then

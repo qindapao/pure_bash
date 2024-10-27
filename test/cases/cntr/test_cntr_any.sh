@@ -69,11 +69,11 @@ test_case4 ()
     local -a array=()
     if cntr_any array '[[ "${1}" == " 4 5" ]]' ; then
         echo "${FUNCNAME[0]} test fail."
-        return 0
+        return 1
     else
         # 空数组返回假
         echo "${FUNCNAME[0]} test pass."
-        return 1
+        return 0
     fi
 }
 

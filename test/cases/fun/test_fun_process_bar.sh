@@ -19,13 +19,23 @@ echo "=========${0} test start in $(date_log)=========="
 test_case1 ()
 {
     fun_process_bar 5
+    return 0
 }
 
 test_case2 ()
 {
     fun_process_bar 10 "wait 10 s"
+    return 0
 }
 
-test_case1
+test_case3 ()
+{
+    echo "${FUNCNAME[0]} is disabled."
+}
+
+test_case3
+exit 0
+
+test_case1 &&
 test_case2
 

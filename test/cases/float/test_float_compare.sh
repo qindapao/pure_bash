@@ -20,30 +20,51 @@ test_case1 ()
 {
     local a=1.1
     local b=1.1
+    local ret=''
 
-    float_compare "$a" "$b"
-    echo "\$?: $?"
+    float_compare "$a" "$b" ; ret=$?
+    if ((ret==1)) ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
 }
 
 test_case2 ()
 {
     local a=1.2
     local b=1.1
+    local ret=''
 
-    float_compare "$a" "$b"
-    echo "\$?: $?"
+    float_compare "$a" "$b" ; ret=$?
+    if ((ret==0)) ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
 }
 
 test_case3 ()
 {
     local a=1.0
     local b=1.1
+    local ret=''
 
-    float_compare "$a" "$b"
-    echo "\$?: $?"
+    float_compare "$a" "$b" ; ret=$?
+    if ((ret==2)) ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
 }
 
-test_case1
-test_case2
+test_case1 &&
+test_case2 &&
 test_case3
 

@@ -65,8 +65,7 @@ json_o_push ()
     ((_json_push_get_array_max_index++))
 
     # 往最大索引+1写入值
-    delcare -p _json_push_get_params _json_push_get_array_max_index
-    json_overlay _json_push_json_ref _json_push_json_son_ref "${_json_push_get_params[@]}" "$_json_push_get_array_max_index"
+    json_overlay _json_push_json_ref _json_push_json_son_ref "${@}" "$_json_push_get_array_max_index"
 }
 
 return 0

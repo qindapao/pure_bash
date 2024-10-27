@@ -1,6 +1,8 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[atom_upvars]++)) && return 0
 
+. ./atom/atom_unlocal.sh || return 1
+
 atom_upvars_dict ()
 {
     eval -- ''$1'=() ; shift
@@ -34,19 +36,19 @@ atom_upvars()
         case $1 in
         -a*)
         # Assign array of -aN elements
-        [[ "$2" ]] && unset -v "$2" &&
+        [[ "$2" ]] && atom_unlocal "$2" &&
         eval $2=\(\"\${@:3:${1#-a}}\"\) && 
         shift $((${1#-a}+2))
         ;;
         -v)
         # Assign single value
-        [[ "$2" ]] && unset -v "$2" &&
+        [[ "$2" ]] && atom_unlocal "$2" &&
         eval $2=\"\$3\" &&
         shift 3
         ;;
         -A*)
         # Assign association array of -AN elements
-        [[ "$2" ]] && unset -v "$2" && {
+        [[ "$2" ]] && atom_unlocal "$2" && {
             atom_upvars_dict "$2" "${@:3:${1#-A}*2}"
             shift $((${1#-A}*2+2))
         }

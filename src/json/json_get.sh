@@ -4,6 +4,8 @@
 . ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
 . ./array/array_sort.sh || return 1
+. ./regex/regex_common.sh || return 1
+. ./cntr/cntr_copy.sh || return 1
 
 # json_get 'field_name' 'json_name' '4' '0'
 # 下面可以用于获取索引或者判断字段是否存在
@@ -31,6 +33,7 @@ json_get ()
     local -i _json_get_filed_is_index=1
     if [[ -n "${1}" ]] ; then
         _json_get_filed_is_index=0
+        meta_var_clear "$1"
         local -n _json_get_out_var_name=$1
     fi
     local -n _json_get_json_ref=$2
@@ -41,7 +44,7 @@ json_get ()
     local -i _json_get_ret_code=0
 
     [[ -z "${1}" ]] && return ${JSON_COMMON_ERR_DEFINE[get_null_key]}
-    if [[ "${_json_get_json_ref@a}" != *A* ]] && ! [[ "${1}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+    if [[ "${_json_get_json_ref@a}" != *A* ]] && ! [[ "${1}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
         return ${JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]}
     fi
 
@@ -49,8 +52,8 @@ json_get ()
 
     local _json_get_data_lev_ref_last="${_json_get_json_ref["${1}"]}"
 
-    local -i is_not_first_in=0
-    for _json_get_param in "${@:1}" ; do
+    local -i _json_get_is_not_first_in=0
+    for _json_get_param in "${@}" ; do
         unset -v _json_get_tmp_var
 
         if [[ "$_json_get_data_lev_ref_last" =~ ^(declare)\ ([^\ ]+)\ ${JSON_COMMON_MAGIC_STR}[0-9]+=(.*) ]] ; then
@@ -61,19 +64,20 @@ json_get ()
                     base64_decode _json_get_tmp_var "${BASH_REMATCH[3]}"
                     eval _json_get_tmp_var="$_json_get_tmp_var" ; }
         else
+            (($#!=1)) && return ${JSON_COMMON_ERR_DEFINE[get_not_fully_traversed]}
             _json_get_flags=''
             # 如果不匹配就是普通变量
             local _json_get_tmp_var="${_json_get_data_lev_ref_last}"
             break
         fi
 
-        if ((is_not_first_in++)) ; then
+        if ((_json_get_is_not_first_in++)) ; then
             if [[ -z "$_json_get_param" ]] ; then
                 # 索引为空值,遇到就返回
                 return ${JSON_COMMON_ERR_DEFINE[get_null_key]}
             fi
             
-            if [[ "$_json_get_flags" != *A* ]] && ! [[ "${_json_get_param}" =~ ^[1-9][0-9]*$|^0$ ]] ; then
+            if [[ "$_json_get_flags" != *A* ]] && ! [[ "${_json_get_param}" =~ $REGEX_COMMON_UINT_DECIMAL ]] ; then
                 return ${JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]}
             fi
             [[ ! -v '_json_get_tmp_var["${_json_get_param}"]' ]] && {
@@ -123,15 +127,12 @@ json_get ()
     # 需要在函数外部指定${_json_get_out_var_name}引用的变量的属性
     if [[ "$_json_get_flags" == *[aA]* ]] ; then
         local _json_get_iter_index
-        _json_get_out_var_name=()
 
         # 如果获取到的数据结构是关联数组但是外部没有声明,那么报错
         if [[ "$_json_get_flags" == *A* ]] && [[ "${_json_get_out_var_name@a}" != *A* ]] ; then
             _json_get_ret_code=${JSON_COMMON_ERR_DEFINE[get_dict_but_not_declare_outside]}
         else
-            for _json_get_iter_index in "${!_json_get_tmp_var[@]}" ; do
-                _json_get_out_var_name["$_json_get_iter_index"]="${_json_get_tmp_var["$_json_get_iter_index"]}"
-            done
+            cntr_copy _json_get_out_var_name _json_get_tmp_var
         fi
     else
         # 获取获取到的是字符串,但是外部声明为数组,报错

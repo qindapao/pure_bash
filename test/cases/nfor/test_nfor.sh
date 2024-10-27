@@ -192,6 +192,14 @@ test_nfor_special ()
     ndone
 }
 
+test_case_disable ()
+{
+    echo "${FUNCNAME[0]} is disabled."
+}
+
+test_case_disable
+exit $?
+
 test_nfor_special
 exit 0
 

@@ -15,23 +15,23 @@ cd "$_test_str_slice_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
-a="我是谁"
 
-echo "${a:0:1}"
-echo "${a:1:1}"
-echo "${a:2:1}"
-echo "${a#?}"
-echo "${a#??}"
-echo "${a#???}"
+test_case1 ()
+{
+    a="我是谁"
+    if [[ "${a:0:1}" == '我' ]] &&
+        [[ "${a:1:1}" == '是' ]] &&
+        [[ "${a:2:1}" == '谁' ]] &&
+        [[ "${a#?}" == '是谁' ]] &&
+        [[ "${a#??}" == '谁' ]] &&
+        [[ "${a#???}" == '' ]] ; then
+           echo "${FUNCNAME[0]} test pass."
+           return 0
+       else
+           echo "${FUNCNAME[0]} test fail."
+           return 1
+    fi
+}
 
-# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# bash test_str_slice.sh 
-# =========test_str_slice.sh test start in 2024_07_04_09_24_30==========
-# 我
-# 是
-# 谁
-# 是谁
-# 谁
+test_case1
 
-# root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/other# 
-#
-#

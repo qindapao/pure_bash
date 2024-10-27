@@ -8,6 +8,7 @@
 
 json_awk_load ()
 {
+    meta_var_clear "$1"
     local -n _json_awk_load_json_ref=$1
     local _json_awk_load_json_in_file=$2
     local _json_awk_load_json_out_file="${2%.*}_out.txt"

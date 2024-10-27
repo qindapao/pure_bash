@@ -9,6 +9,7 @@
 # 2: 打包后返回的字符串
 json_base64_pack ()
 {
+    meta_var_clear "$2"
     local -n _json_base64_pack_{json_ref=$1,out_str=$2}
     local _json_base64_pack_obj_name=${3:-${JSON_COMMON_MAGIC_STR}2}
     local _json_base64_pack_{attribute_all=,base64_str=,other_str=}

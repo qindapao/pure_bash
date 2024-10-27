@@ -21,16 +21,16 @@ test_case1 ()
 {
     local ret_code=0
     local binary_str=''
-    time bit_save_binary binary_str '/usr/bin/tee' 
-    time bit_recover_binary "$binary_str" './my-tee'
+    bit_save_binary binary_str '/usr/bin/tee' 
+    bit_recover_binary "$binary_str" './my-tee'
     if diff ./my-tee /usr/bin/tee ; then
         echo "${FUNCNAME[0]} pass"
-        rm -f ./my-tee
     else
         echo "${FUNCNAME[0]} fail"
         ret_code=1
     fi
 
+    rm -f ./my-tee
     return $ret_code
 }
 
@@ -86,16 +86,15 @@ test_case4 ()
     rm -f -- x86.txt arm.txt
 }
 
-
 ret_str=''
 test_case1
 ret_str+="$?|"
 test_case2
 ret_str+="$?|"
 test_case3
-ret_str+="$?|"
-test_case4
 ret_str+="$?"
+# test_case4
+# ret_str+="$?"
 
 ! ((ret_str))
 

@@ -38,6 +38,7 @@ JSON_COMMON_ERR_DEFINE[get_key_but_not_dict]=17
 JSON_COMMON_ERR_DEFINE[get_key_not_found]=18
 JSON_COMMON_ERR_DEFINE[get_dict_but_not_declare_outside]=19
 JSON_COMMON_ERR_DEFINE[get_str_but_declare_not_str_outside]=20
+JSON_COMMON_ERR_DEFINE[get_not_fully_traversed]=21
 
 # del
 JSON_COMMON_ERR_DEFINE[del_null_key]=24

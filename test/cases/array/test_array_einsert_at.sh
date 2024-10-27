@@ -22,13 +22,13 @@ test_case1 ()
     array_einsert_at a1 1 "xx oo" "11 22"
     local a2=(5 'xx oo' '11 22' 4 3)
 
-    declare -p a1
-
     # 断言判断测试结果
     if assert_array a a1 a2 ; then
         echo "${FUNCNAME[0]} test pass"
+        return 0
     else
         echo "${FUNCNAME[0]} test fail"
+        return 1
     fi
 }
 

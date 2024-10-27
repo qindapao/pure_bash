@@ -57,13 +57,29 @@ test_case2 ()
         echo "${FUNCNAME[0]} test fail."
         return 1
     fi
-
 }
+
+test_case3 ()
+{
+    local str='       g g          gge 223 xx       xyy   '
+    local str_after='g g gge 223 xx xyy'
+    local str_conv=$(printf "%s" "$str" | str_trim_all)
+    if [[ "$str_after" == "$str_conv" ]] ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
+}
+
 
 ret=0
 test_case1
 ((ret|=$?))
 test_case2
+((ret|=$?))
+test_case3
 ((ret|=$?))
 
 exit $ret

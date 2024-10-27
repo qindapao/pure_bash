@@ -29,7 +29,7 @@ test_case1 ()
 ['x12
 34']=1 [x03]=1 [xdfx]=1
 )
-    declare -p dict_ret dest_dict
+    # declare -p dict_ret dest_dict
 
     # 断言判断测试结果
     if assert_array 'A' dict_ret dest_dict ; then
