@@ -7,10 +7,8 @@
 str_is_int ()
 {
     # 这个函数认可10进制前的前导0
-    str_is_hex_s "$2" || str_is_decimal_s "$2"
+    str_is_hex "$1" || str_is_decimal "$1"
 }
-
-alias str_is_int_s='str_is_int ""'
 
 return 0
 

@@ -1,0 +1,58 @@
+#!/usr/bin/env -S expect -f
+
+# 获取参数或设置默认值
+set host [lindex $argv 0]
+set src_path [lindex $argv 1]
+set dest_path [lindex $argv 2]
+set timeout [lindex $argv 3]
+set username [lindex $argv 4]
+set password [lindex $argv 5]
+
+# 设置默认值
+if {![info exists timeout] || $timeout == ""} { set timeout 60 }
+if {![info exists username] || $username == ""} { set username xx }
+if {![info exists password] || $password == ""} { set password xx }
+
+# 构建命令
+# 判断src_path是文件还是目录
+if {[file isdirectory $src_path]} {
+    # 构建命令，递归拷贝目录
+    set command [list scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $username@$host:$src_path $dest_path ]
+} else {
+    # 构建命令，拷贝文件
+    set command [list scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $username@$host:$src_path $dest_path ]
+}
+
+# log_user 0
+# 启动SSH并运行命令，同时捕获标准输出和标准错误
+spawn {*}$command
+
+expect {
+    eof {}
+    timeout {
+        send_user "expect timeout\n"
+        exit 3
+    }
+    "*assword:" {
+        send "$password\n"
+        # log_user 1
+        expect {
+            eof {}
+            timeout {
+                send_user "expect timeout\n"
+                exit 3
+            }
+        }
+    }
+    "(yes/no*)?" {
+        send "yes\n"
+        exp_continue
+    }
+}
+
+set result [wait]
+# result [ PID     PROC     EXIT               EXIT_CODE ]
+#          进程ID  进程名称 包含退出状态的类型 具体的退出码，表示命令的退出状态
+set exit_code [lindex $result 3]
+exit $exit_code
+

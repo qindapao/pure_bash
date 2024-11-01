@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_init]++)) && return 0
 
+. ./base64/base64_common.sh || return 1
 . ./json/json_common.sh || return 1
 . ./awk/awk_json.sh || return 1
 
@@ -38,8 +39,13 @@ json_init_check_python3 ()
 # 2: 魔法字符串
 json_init ()
 {
+    base64_common
     local root_dir
     root_dir="${PWD%%/pure_bash*}/pure_bash"
+    local tool_exec_dir=
+
+    mata_get_tool_dir tool_exec_dir
+
     local -a cp_cmd=('cp') chmod_cmd=('chmod')
     which sudo 2>/dev/null && {
         cp_cmd=('sudo' 'cp')
@@ -47,7 +53,7 @@ json_init ()
     }
 
     # 实际部署的时候路径一定要改
-    "${cp_cmd[@]}" -f "${PURE_BASH_TOOLS_DIR}/json_common_load.py" /usr/bin/
+    "${cp_cmd[@]}" -f "${PURE_BASH_TOOLS_DIR}/json_common_load.py" "$tool_exec_dir"
     "${chmod_cmd[@]}" +x /usr/bin/json_common_load.py
 
     # 指定当前使用的json算法(不能混用,只能指定一个)

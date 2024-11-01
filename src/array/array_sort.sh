@@ -67,8 +67,10 @@ _array_sort ()
     # 如果有分隔符和域段,那么取它们作为子数组来排序
     if [[ -n "$__array_sort_delimiter" && -n "$__array_sort_field" ]] ; then
         # 后面是完整的参数不能拆行
-        cntr_map __array_sort_tmp_arr_filed \
-            "eval \$1[\\\$2]=\$(str_split_s \"\${3}\" \"$__array_sort_delimiter\" \"$__array_sort_field\")"
+        # cntr_map __array_sort_tmp_arr_filed \
+        #     "eval \$1[\\\$2]=\$(str_split_s \"\${3}\" \"$__array_sort_delimiter\" \"$__array_sort_field\")"
+        # 现在可以以下面这种更高效可读的方式来拆分
+        cntr_map __array_sort_tmp_arr_filed str_split_a "$__array_sort_delimiter" "$__array_sort_field"
     fi
 
     local -i __array_sort_tmp_arr_size=${#__array_sort_tmp_arr[@]}

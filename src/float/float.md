@@ -1,6 +1,8 @@
-. ./meta/meta.sh
-((DEFENSE_VARIABLES[float_todo]++)) && return 0
+# float
 
+## 关于浮点实现的一些疯狂的想法(没多大实际意义)
+
+```bash
 # :TODO: 定点法
 # :TODO: 通过python的算法出现浮点有一定的挑战
 # :TODO: python第三方库的浮点实现
@@ -40,12 +42,5 @@
 # 这样的分数。对于科学计算和工程应用，你还可以使用NumPy包，它提供了更广泛的数学和
 # 统计运算功能。 总的来说，Python通过内置的浮点数和提供decimal、fractions以及NumPy
 # 等模块，能够满足不同精度和性能要求的浮点数运算需求。希望这些信息对您有所帮助！
-
-
-float_todo ()
-{
-    :
-}
-
-return 0
+```
 

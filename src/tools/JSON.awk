@@ -1,4 +1,6 @@
 #!/usr/bin/awk -f
+# shabang 用下面这种语法是否更好
+# #!/usr/bin/env -S awk -f
 #
 # Software: JSON.awk - a practical JSON parser written in awk
 # Version: 1.4.2

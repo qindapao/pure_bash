@@ -1,4 +1,4 @@
-# Copyright (c) 
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.#
 # 作者: qindapao northisland2017@gmail.com
 # 当前库只能适用于bash4.4或者以上版本,低于bash4.4某些语法不兼容
 
@@ -6,16 +6,16 @@
 ((__META++)) && return 0
 
 # 主版本号.次版本号.补丁版本号.发布日志
-PURE_BASH_LIB_VERSION='1.0.0.2024.10.26'
+BASH_UTILS_LIB_VERSION='1.0.0.2024.10.26'
 
 meta_get_lib_version ()
 {
     case "$#" in
     0)
-    printf "%s" "$PURE_BASH_LIB_VERSION"
+    printf "%s" "$BASH_UTILS_LIB_VERSION"
     ;;
     *)
-    printf -v "$1" "%s" "$PURE_BASH_LIB_VERSION"
+    printf -v "$1" "%s" "$BASH_UTILS_LIB_VERSION"
     ;;
     esac
 }
@@ -48,13 +48,13 @@ unalias -a
 # local -=hB这种写法是错误的
 # 目前验证了这种语法在bash4.4.23(1)上是支持的
 alias disable_xv='local - ; set +xv'
-
-# :TODO: LC_COLLATE=C
-#           强制使用C语言环境的字符排序规则，从而确保 [a-z] 和 [A-Z] 按预期工作
-#       globasciiranges
-#           bash5.2引入了这个，不会有匹配问题
-#       locale
-#           命令查看和所有环境变量相关
+# 强制使用C语言环境的字符排序规则，从而确保 [a-z] 和 [A-Z] 按预期工作
+export LC_COLLATE=C
+# LC_COLLATE=C
+#   globasciiranges
+#       bash5.2引入了这个，不会有匹配问题
+#   locale
+#       命令查看和所有环境变量相关
 #
 # :TODO: 给函数传递多个数组的方法
 # -a1 xx -a1 yy -a1 zz -a2 kk -a2 uu ... ...
@@ -107,6 +107,31 @@ case "$(uname -a)" in
     declare -g PURE_BASH_TOOLS_DIR='/cygdrive/d/my_code/pure_bash/src/tools' ;;
 *)  declare -g PURE_BASH_TOOLS_DIR='/mnt/d/my_code/pure_bash/src/tools' ;;
 esac
+
+# case ":$PATH:" in
+#     *":/usr/bin:"*) PURE_BASH_TOOLS_DIR='/usr/bin' ;;
+#     *":/usr/sbin:"*) PURE_BASH_TOOLS_DIR='/usr/sbin' ;;
+#     *":/usr/local/bin:"*) PURE_BASH_TOOLS_DIR='/usr/local/bin' ;;
+#     *":/usr/local/sbin:"*) PURE_BASH_TOOLS_DIR='/usr/local/sbin' ;;
+#     *":/bin:"*) PURE_BASH_TOOLS_DIR='/bin' ;;
+#     *":/sbin:"*) PURE_BASH_TOOLS_DIR='/sbin' ;;
+#     *":/opt/bin:"*) PURE_BASH_TOOLS_DIR='/opt/bin' ;;
+#     *)  echo "can not find exec dir!" >&2 ; return 1 ;;
+# esac
+
+mata_get_tool_dir ()
+{
+    case ":$PATH:" in
+    *":/usr/bin:"*) printf -v "$1" "%s" '/usr/bin' ;;
+    *":/usr/sbin:"*) printf -v "$1" "%s" '/usr/sbin' ;;
+    *":/usr/local/bin:"*) printf -v "$1" "%s" '/usr/local/bin' ;;
+    *":/usr/local/sbin:"*) printf -v "$1" "%s" '/usr/local/sbin' ;;
+    *":/bin:"*) printf -v "$1" "%s" '/bin' ;;
+    *":/sbin:"*) printf -v "$1" "%s" '/sbin' ;;
+    *":/opt/bin:"*) printf -v "$1" "%s" '/opt/bin' ;;
+    *)  echo "can not find exec dir!" >&2 ; return 1 ;;
+    esac
+}
 
 # 变量赋值为空
 meta_var_clear ()

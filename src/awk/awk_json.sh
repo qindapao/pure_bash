@@ -4,9 +4,11 @@
 # https://github.com/step-/JSON.awk
 awk_json_init ()
 {
-    [[ -s /usr/bin/JSON.awk ]] || {  
-        cp -f "$PURE_BASH_TOOLS_DIR"/JSON.awk /usr/bin/
-        chmod +x /usr/bin/JSON.awk
+    local tool_exec_dir=
+    mata_get_tool_dir tool_exec_dir
+    [[ -s ${tool_exec_dir}/JSON.awk ]] || {  
+        cp -f "$PURE_BASH_TOOLS_DIR"/JSON.awk "${tool_exec_dir}"
+        chmod +x ${tool_exec_dir}/JSON.awk
     }
 }
 
@@ -72,8 +74,10 @@ awk_json_init ()
 # :TODO: 错误处理?
 awk_json_files ()
 {
+    local tool_exec_dir=
+    mata_get_tool_dir tool_exec_dir
     # BRIEF=7 启动打印所有空对象,但是屏蔽非叶子节点打印(0:打开所有 默认是1:不打印空字典和数组)
-    awk -f /usr/bin/JSON.awk -v BRIEF=7 "${@:2}" > "$1"
+    awk -f ${tool_exec_dir}/JSON.awk -v BRIEF=7 "${@:2}" > "$1"
 }
 
 awk_json_value_deal ()

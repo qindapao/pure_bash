@@ -54,7 +54,5 @@ base64_common ()
     fi
 }
 
-base64_common
-
 return 0
 

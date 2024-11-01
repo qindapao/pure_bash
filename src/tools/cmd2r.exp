@@ -1,0 +1,59 @@
+#!/usr/bin/env -S expect -f
+
+# 获取参数或设置默认值
+set host [lindex $argv 0]
+set timeout [lindex $argv 1]
+set username [lindex $argv 2]
+set password [lindex $argv 3]
+set cmd [lrange $argv 4 end]
+
+# 设置默认值
+if {![info exists timeout] || $timeout == ""} { set timeout 60 }
+if {![info exists username] || $username == ""} { set username xx }
+if {![info exists password] || $password == ""} { set password xx }
+
+# 禁用spawn命令的日志
+log_user 0
+# 构建命令
+set command [list ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${username}@${host} ]
+
+# 将命令和参数合并
+foreach e $cmd {
+    lappend command $e
+}
+
+# 启动SSH并运行命令，同时捕获标准输出和标准错误
+spawn -noecho {*}$command
+
+expect {
+    timeout {
+        send_user "expect timeout\n"
+        exit 3
+    }
+    "*assword:" {
+        # :TODO: 免密的场景下永远不会进入这里,日志不会开启,如果外部需要命令的输出
+        # 那么会有问题
+        # 到时候需要支持免密场景再来升级吧
+        log_user 1
+        send "$password\n"
+        expect {
+            timeout {
+                send_user "expect timeout\n"
+                exit 3
+            }
+            eof {}
+        }
+    }
+    "(yes/no*)?" {
+        send "yes\n"
+        exp_continue
+    }
+    eof {}
+}
+
+set result [wait]
+# result [ PID     PROC     EXIT               EXIT_CODE ]
+#          进程ID  进程名称 包含退出状态的类型 具体的退出码，表示命令的退出状态
+set exit_code [lindex $result 3]
+exit $exit_code
+

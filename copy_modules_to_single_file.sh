@@ -33,7 +33,7 @@ copy_modules ()
     # 使用动态关联数组记录每一个文件所依赖的文件,如果所有依赖的文件都已经被处理,那么
     # 它才可以拷贝
 
-    # meta是一定要拷贝的,先处理
+    # meta是一定要拷贝的,先处理(所以后面不能的列表中不能包含它)
     cat ./meta/meta.sh | grep -v '^((__META++))' |\
                          file_del_end_pattern_pipe '^[[:space:]]*$' |\
                          file_del_end_pattern_pipe '^[[:space:]]*return[[:space:]]*0[[:space:]]*$' >>"$SINGLE_FILE_NAME"

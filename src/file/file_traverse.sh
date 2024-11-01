@@ -7,7 +7,7 @@
 # 如果要遍历当前文件夹,下面这样传参
 # file_traverse '.'
 # 函数支持遍历多个目录
-file_traverse() 
+file_traverse () 
 {
     local all_dirs=("${@}")  # 初始化包含起始目录的栈
     local cur_dir            # 当前正在处理的目录

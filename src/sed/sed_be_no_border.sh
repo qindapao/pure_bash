@@ -1,5 +1,3 @@
-# PCI相关的命令函数封装
-
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[sed_be_no_border]++)) && return 0
 

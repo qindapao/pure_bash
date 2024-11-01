@@ -1,5 +1,3 @@
-# PCI相关的命令函数封装
-
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[pci_check_off]++)) && return 0
 

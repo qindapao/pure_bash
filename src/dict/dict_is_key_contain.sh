@@ -4,7 +4,7 @@
 # 判断关联数组的键是否包含一个字符串
 dict_is_key_contain ()
 {
-    local _script_i${1}='
+    eval -- '
         local i'$1'
         local -i i'$1'_contain=0
         for i'$1' in "${!'$1'[@]}"; do
@@ -15,7 +15,6 @@ dict_is_key_contain ()
         done
         ((i'$1'_contain))
     '
-    eval -- eval -- \"\$"_script_i${1}"\"
 }
 
 return 0
