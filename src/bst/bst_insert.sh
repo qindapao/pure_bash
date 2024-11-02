@@ -11,16 +11,14 @@ bst_insert ()
     local _bst_insert_direction=$4
     local _bst_insert_value=$5
     local _bst_insert_node_id=
-    local -a _bst_insert_recycle_ids=()
+    local _bst_insert_recycle_ids
     
     # 插入一个新节点
-    if [[ "${_bst_insert_tree_ref[recycle_ids]}" != '()' ]] ; then
-        eval _bst_insert_recycle_ids=${_bst_insert_tree_ref[recycle_ids]}
-        _bst_insert_node_id=${_bst_insert_recycle_ids[-1]}
-        unset -v _bst_insert_recycle_ids[-1]
-        # 这是更防呆的写法,不过当前场景简单处理即可(当前场景下都是数字值)
+    if [[ -n "${_bst_insert_tree_ref[recycle_ids]}" ]] ; then
+        _bst_insert_node_id=${_bst_insert_recycle_ids##* }
+        _bst_insert_recycle_ids=${_bst_insert_recycle_ids% *}
+        # 重新生成数组的方法
         # printf -v m "(%s)" "${a[*]@Q}"
-        _bst_insert_tree_ref[recycle_ids]="(${_bst_insert_recycle_ids[*]})"
     else
         _bst_insert_node_id=$((_bst_insert_tree_ref[idcount]++))
     fi

@@ -18,8 +18,8 @@ bst_init ()
     # id计数,用于记录树节点ID,每增加一个就加1
     _bst_init_tree_ref[idcount]=1
     # 回收的ID列表,如果有节点被删除,那么它的ID被回收
-    # 10 20 
-    _bst_init_tree_ref[recycle_ids]='()'
+    #  10 20 
+    _bst_init_tree_ref[recycle_ids]=''
 }
 
 return 0
