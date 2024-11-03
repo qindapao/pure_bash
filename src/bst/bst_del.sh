@@ -112,7 +112,92 @@ return 0                                                                 #      
 
 
 
+# 参考代码
+class TreeNode:
+    def __init__(self, key):
+        self.left = None
+        self.right = None
+        self.val = key
 
+def minValueNode(node):
+    current = node
+    while current.left is not None:
+        current = current.left
+    return current
+
+def deleteNode(root, key):
+    current = root
+    parent = None
+    is_left_child = True
+
+    while current and current.val != key:
+        parent = current
+        if key < current.val:
+            current = current.left
+            is_left_child = True
+        else:
+            current = current.right
+            is_left_child = False
+
+    if current is None:  # 未找到节点
+        return root
+
+    if current.left is None and current.right is None:  # 叶子节点
+        if current == root:
+            return None
+        if is_left_child:
+            parent.left = None
+        else:
+            parent.right = None
+    elif current.left is None:  # 只有一个右子节点
+        if current == root:
+            return current.right
+        if is_left_child:
+            parent.left = current.right
+        else:
+            parent.right = current.right
+    elif current.right is None:  # 只有一个左子节点
+        if current == root:
+            return current.left
+        if is_left_child:
+            parent.left = current.left
+        else:
+            parent.right = current.left
+    else:  # 有两个子节点
+        # 找到右子树中最小的节点
+        successor = minValueNode(current.right)
+        successor_val = successor.val
+
+        # 用后继节点值替换当前节点值
+        current.val = successor_val
+        
+        # 删除后继节点
+        parent_of_successor = current
+        child = current.right
+        while child.left is not None:
+            parent_of_successor = child
+            child = child.left
+
+        # 修正后继节点位置
+        if parent_of_successor != current:
+            parent_of_successor.left = child.right
+        else:
+            current.right = child.right
+
+    return root
+
+# 示例用法
+root = TreeNode(50)
+root = insert(root, 30)
+root = insert(root, 20)
+root = insert(root, 40)
+root = insert(root, 70)
+root = insert(root, 60)
+root = insert(root, 80)
+
+root = deleteNode(root, 20)  # 删除叶子节点
+root = deleteNode(root, 30)  # 删除只有一个子节点的节点
+root = deleteNode(root, 50)  # 删除有两个子节点的节点
 
 
 
