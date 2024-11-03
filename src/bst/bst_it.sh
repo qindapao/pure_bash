@@ -77,11 +77,11 @@ bst_it ()
         # 状态切换
         let '_bst_it_stack[-1]++'
         if ((_bst_it_is_left==1)) ; then
-            printf "%s%s%s(%q)\n" "$_bst_it_pre" "$_bst_it_u_r_arraw" "$_bst_it_node" "${_bst_it_tree_ref[${_bst_it_node}.value]}"
+            printf "%s%s%q(%s)\n" "$_bst_it_pre" "$_bst_it_u_r_arraw" "${_bst_it_tree_ref[${_bst_it_node}.value]}" "$_bst_it_node"
         elif ((_bst_it_is_left==0)) ; then
-            printf "%s%s%s(%q)\n" "$_bst_it_pre" "$_bst_it_d_r_arraw" "$_bst_it_node" "${_bst_it_tree_ref[${_bst_it_node}.value]}"
+            printf "%s%s%q(%s)\n" "$_bst_it_pre" "$_bst_it_d_r_arraw" "${_bst_it_tree_ref[${_bst_it_node}.value]}" "$_bst_it_node"
         else
-            printf "%s%s(%q)\n" "$_bst_it_r_sign" "$_bst_it_node" "${_bst_it_tree_ref[${_bst_it_node}.value]}"
+            printf "%s%q(%s)\n" "$_bst_it_r_sign" "${_bst_it_tree_ref[${_bst_it_node}.value]}" "$_bst_it_node"
         fi
         ;;
         2)

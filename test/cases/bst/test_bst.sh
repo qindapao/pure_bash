@@ -24,56 +24,19 @@ echo "=========${0} test start in $(date_log)=========="
 test_case1 ()
 {
     local -A bst
-    local node_id node_id2
-    bst_init bst "value1"
-    
+    local root_id out_id
 
-    bst_insert bst node_id 'root' 'left' '1'
-    bst_insert bst node_id2 "$node_id" 'left' '2'
-    bst_insert bst node_id2 "$node_id" 'right' '3'
-    bst_insert bst node_id 'root' 'right' '4'
-    bst_insert bst node_id2 "$node_id" 'left' '5'
-    bst_insert bst node_id2 "$node_id" 'right' '6'
+    bst_init bst root_id '20'
+    bst_insert bst $root_id out_id 21
+    bst_insert bst $root_id out_id 5
+    bst_insert bst $root_id out_id 3
+    bst_insert bst $root_id out_id 2
+    bst_insert bst $root_id out_id 25
+    bst_insert bst $root_id out_id 24
+    bst_insert bst $root_id out_id 30
 
-    bst_insert bst xx "$node_id2" 'left' '7'
-    bst_insert bst xx "$node_id2" 'right' '8'
-
-
-    bst_insert bst node_id2 "$node_id" 'left' '9'
-    bst_insert bst node_id "$node_id2" 'right' '10'
-    bst_insert bst node_id "$node_id2" 'left' '11'
-    bst_insert bst node_id2 "$node_id" 'right' '12'
-    bst_insert bst node_id2 "$node_id" 'left' '13'
-    bst_insert bst node_id "$node_id2" 'right' '14'
-    bst_insert bst node_id "$node_id2" 'left' '15'
-
-    bst_insert bst node_id '15' 'left' '16'
-    bst_insert bst node_id '12' 'right' '17'
-
-    bst_insert bst node_id '2' 'right' '18' 
-    bst_insert bst node_id '3' 'left' '19' 
-    bst_insert bst node_id '19' 'left' '20' 
-    bst_insert bst node_id '19' 'right' '21' 
-    bst_insert bst node_id '20' 'right' '22' 
-    bst_insert bst node_id '20' 'left' '23' 
-    bst_insert bst node_id '18' 'left' '24' 
-    bst_insert bst node_id '18' 'right' '25' 
-    bst_insert bst node_id '3' 'right' '26' 
-
-    # lsdebug_bp 'show bst' bst
-    bst_lot bst 'root'
-    bst_it bst 'root'
-    bst_it bst 'root' 0
-    bst_it bst 'root' 1
-    bst_it bst 'root' 1 1
-
-    local -A bst2
-    bst_init bst2 '0'
-    bst_insert bst2 node_id 'root' 'right' '1' 
-    bst_it bst2 'root'
-
-
-    return
+    bst_it bst $root_id
+    bst_lot bst $root_id
 }
 
 test_case1
