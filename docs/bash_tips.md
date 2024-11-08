@@ -1833,6 +1833,67 @@ Copilot
 被视为选项。
 ```
 
+##### 使用eval的函数的注意事项
+
+使用`eval`调用函数，进行模板的替换只能进行一次，如果进行多次，可能会有无法预期的情况  
+
+举个例子来说明下:
+
+```bash
+func ()
+{
+    local s$1$2='
+    iNAME1NAME2=""
+    for iNAME1NAME2 in "${NAME1[@]}" ; do
+        echo "$iNAME1NAME2"
+    done
+    for iNAME1NAME2 in "${NAME2[@]}" ; do
+        echo "$iNAME1NAME2"
+    done
+    '
+    eval -- 's'$1$2'="${s'$1$2'//NAME1/$1}"'
+    eval -- 's'$1$2'="${s'$1$2'//NAME2/$2}"'
+    declare -p s$1$2
+}
+```
+
+如果使用`func a1 a2`的方式调用函数，看起来没有什么问题。  
+代码是下面这样:
+
+```bash
+sa1a2='
+    ia1a2=""
+    for ia1a2 in "${a1[@]}" ; do
+        echo "$ia1a2"
+    done
+    for ia1a2 in "${a2[@]}" ; do
+        echo "$ia1a2"
+    done
+    '
+```
+
+代码字符串是轮询两个数组。
+
+
+但是如果使用`func NAME2 NAME1`的方式调用，最终的代码变成了:
+
+```bash
+sNAME2NAME1='
+    iNAME1NAME1=""
+    for iNAME1NAME1 in "${NAME1[@]}" ; do
+        echo "$iNAME1NAME1"
+    done
+    for iNAME1NAME1 in "${NAME1[@]}" ; do
+        echo "$iNAME1NAME1"
+    done
+    '
+```
+
+可以看到，生成的代码字符串不符合我们的预期，根本原因是第二次替换的时候更改了第一次  
+替换生成的字符串，导致结果不符合预期。要改变这种情况，可以使用正则匹配的方式，  
+用一个新字符串来记录结果，然后把原字符串从前往后匹配我们需要的模式，遇到任何一个   
+就替换成对应的值，不进行重复替换。从前往后只轮询一次！
+
 
 #### unset
 

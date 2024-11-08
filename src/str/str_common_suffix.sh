@@ -1,20 +1,20 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[str_common_suffix]++)) && return 0
 
-# 返回值: 上层作用域的ret_str_common_suffix变量
+# 返回值: 上层作用域的ret变量
 # 寻找两个字符串的最长公共前缀
 # 返回值
 # 0: 找到后缀
 # 1: 没有找到后缀
 str_common_suffix ()
 {
-    meta_var_clear ret_str_common_suffix
+    meta_var_clear ret
     local a=$1 b=$2
     ((${#a}>${#b})) && local a=$b b=$a
     b=${b:${#b}-${#a}}
     if [[ $a == "$b" ]]; then
-        ret_str_common_suffix=$a
-        [[ "$ret_str_common_suffix" ]]
+        ret=$a
+        [[ "$ret" ]]
         return $?
     fi
 
@@ -28,8 +28,8 @@ str_common_suffix ()
         fi
     done
 
-    ret_str_common_suffix=${a:u}
-    [[ "$ret_str_common_suffix" ]]
+    ret=${a:u}
+    [[ "$ret" ]]
 }
 
 return 0

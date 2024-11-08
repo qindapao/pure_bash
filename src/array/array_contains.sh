@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_contains]++)) && return 0
 
+# :TODO: 使用eval的实现
 # 判断数组中是否包含某些元素
 # 1:    数组的引用名字
 # 2~$:  需要检查包含的元素(需要都包含才返回为真)

@@ -64,9 +64,9 @@ test_case4 ()
 {
     local str1=" xxoo223ooxx"
     local str_get=$(str_split_s "$str1" oo 2)
-    local ret_str_split
+    local ret
     str_split_sv "$str1" oo 2
-    if [[ "$ret_str_split" == '223' ]] ; then
+    if [[ "$ret" == '223' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else

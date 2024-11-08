@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 _test_bst_old_dir="$PWD"
 root_dir="${_test_bst_old_dir%%/pure_bash*}/pure_bash"
 

@@ -5,7 +5,7 @@
 
 # 预留字符串原型(保证原型字符串的长度足够)
 # 返回
-# ret_str_last_index_of 外层变量
+# ret 外层变量
 # | $1   | $2   | result |
 # |------|------|--------|
 # | null | null | -1     |
@@ -15,15 +15,15 @@
 
 str_last_index_of ()
 {
-    local haystack=$1 needle=$2 count=${3:-1} ret_str_common_repeat
-    str_common_repeat '"$needle"*' "$count"; local pattern=$ret_str_common_repeat
+    local haystack=$1 needle=$2 count=${3:-1}
+    str_common_repeat '"$needle"*' "$count"; local pattern=$ret
     eval -- "local transformed=\${haystack%$pattern}"
     if [[ $transformed == "$haystack" ]]; then
-        ret_str_last_index_of=-1
+        ret=-1
     else
-        ret_str_last_index_of=${#transformed}
+        ret=${#transformed}
     fi
-    ((ret_str_last_index_of>=0))
+    ((ret>=0))
 }
 
 return 0

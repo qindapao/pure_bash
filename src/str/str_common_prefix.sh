@@ -1,17 +1,17 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[str_common_prefix]++)) && return 0
 
-# 返回值: 上层作用域的ret_str_common_prefix变量
+# 返回值: 上层作用域的ret变量
 # 寻找两个字符串的最长公共前缀
 str_common_prefix ()
 {
-    meta_var_clear ret_str_common_prefix
+    meta_var_clear ret
     local a=$1 b=$2
     ((${#a}>${#b})) && local a=$b b=$a
     b=${b::${#a}}
     if [[ $a == "$b" ]]; then
-        ret_str_common_prefix=$a
-        [[ "$ret_str_common_prefix" ]]
+        ret=$a
+        [[ "$ret" ]]
         return $?
     fi
 
@@ -25,8 +25,8 @@ str_common_prefix ()
       fi
     done
 
-    ret_str_common_prefix=${a::l}
-    [[ "$ret_str_common_prefix" ]]
+    ret=${a::l}
+    [[ "$ret" ]]
 }
 
 return 0

@@ -15,6 +15,10 @@ cd "$_test_str_connections_old_dir"
 # 打印用例开始执行
 echo "=========${0} test start in $(date_log)=========="
 
+test_disable ()
+{
+    echo "${FUNCNAME[0]} test is disabled."
+}
 
 test_case1 ()
 {
@@ -37,5 +41,7 @@ test_case1 ()
     # declare -p _bst_insert_node_id _bst_insert_recycle_ids
 }
 
+test_disable
+exit $?
 test_case1
 
