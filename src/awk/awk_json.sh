@@ -7,8 +7,15 @@ awk_json_init ()
     local tool_exec_dir=
     mata_get_tool_dir tool_exec_dir
     [[ -s ${tool_exec_dir}/JSON.awk ]] || {  
-        cp -f "$PURE_BASH_TOOLS_DIR"/JSON.awk "${tool_exec_dir}"
-        chmod +x ${tool_exec_dir}/JSON.awk
+        local exec_cp=(cp)
+        local exec_chmod=(chmod)
+
+        which sudo && {
+            exec_cp=('sudo' 'cp')
+            exec_chmod=('sudo' 'chmode')
+        }
+        "${exec_cp[@]}" -f "$PURE_BASH_TOOLS_DIR"/JSON.awk "${tool_exec_dir}"
+        "${exec_chmod[@]}" +x ${tool_exec_dir}/JSON.awk
     }
 }
 

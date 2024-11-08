@@ -104,8 +104,8 @@ declare -g PURE_STDIN='/dev/stdin'
 # ibase64 工具的部署也放到统一的目录来
 case "$(uname -a)" in
 *[xX]86_64\ [cC][yY][gG][wW][iI][nN]*)
-    declare -g PURE_BASH_TOOLS_DIR='/cygdrive/d/my_code/pure_bash/src/tools' ;;
-*)  declare -g PURE_BASH_TOOLS_DIR='/mnt/d/my_code/pure_bash/src/tools' ;;
+    declare -g PURE_BASH_TOOLS_DIR='/cygdrive/e/code/pure_bash/src/tools' ;;
+*)  declare -g PURE_BASH_TOOLS_DIR='/mnt/e/code/pure_bash/src/tools' ;;
 esac
 
 # case ":$PATH:" in
