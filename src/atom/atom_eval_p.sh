@@ -15,7 +15,7 @@ atom_eval_p ()
     shift
     local -A params_S1=()
     local -a indexs_keys_S1=()
-    local word_S1 min_index_S1 min_key_S1 ret
+    local word_S1 min_index_S1 min_key_S1 ret_str
 
     while (($#)) ; do
         params_S1[$1]=$2 ; indexs_keys_S1+=("$1")
@@ -33,8 +33,8 @@ atom_eval_p ()
                 continue
             fi
 
-            if (((min_index_S1==-1)||(ret<min_index_S1))) ; then
-                min_index_S1=$ret
+            if (((min_index_S1==-1)||(ret_str<min_index_S1))) ; then
+                min_index_S1=$ret_str
                 min_key_S1=$word_S1
             fi
         done

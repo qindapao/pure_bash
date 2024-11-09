@@ -17,12 +17,12 @@ str_common_reserve_prototype ()
 # 1: 重复内容
 # 2: 字符串重复次数
 # 返回:
-# ret 上层变量
+# ret_str 上层变量
 str_common_repeat ()
 {
     str_common_reserve_prototype "$2"
-    ret=${STR_PROTOTYPE::$2}
-    ret=${ret// /"$1"}
+    ret_str=${STR_PROTOTYPE::$2}
+    ret_str=${ret_str// /"$1"}
 }
 
 return 0

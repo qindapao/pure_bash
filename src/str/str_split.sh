@@ -15,7 +15,7 @@
 #
 str_split ()
 {
-    ret=''
+    ret_str=''
     local tmp_str old_str
     declare -i index cnt i_index
     local input_str
@@ -46,7 +46,7 @@ str_split ()
         input_str=$4
         out_method=2
         set -- "${2}" "${3}" "${@:5}"
-        local ret=''
+        local ret_str=''
         break
         ;;
         esac
@@ -74,16 +74,16 @@ str_split ()
             tmp_str=${tmp_str%%"${!index}"*}
         done
         if ((out_method)) ; then
-            ret+="${tmp_str}"$'\n'
+            ret_str+="${tmp_str}"$'\n'
         else
             printf "%s\n" "$tmp_str"
         fi
     done
-    [[ -n "$ret" ]] && ret=${ret%?}
+    [[ -n "$ret_str" ]] && ret_str=${ret_str%?}
     ((out_method==2)) && {
         # 更新外部数组变量
         local "$1" && atom_unlocal "$1"
-        eval -- $1[\$2]='${ret}'
+        eval -- $1[\$2]='${ret_str}'
     }
 }
 

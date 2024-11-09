@@ -11,16 +11,17 @@
 # 如果截取失败,最终的结果是输入字符串
 str_splits ()
 {
-    ret=()
+    ret_arr=()
+    local ret_str=
     local in_str=$1
     local delim=$2
     local is_ignorecase=${3:-0}
 
     [[ "$delim" ]] || {
         if [[ -o noglob ]]; then
-            ret=($in_str)
+            ret_arr=($in_str)
         else
-            local - ; set -f ; ret=($in_str) ; set +f
+            local - ; set -f ; ret_arr=($in_str) ; set +f
         fi
         return
     }
@@ -32,22 +33,22 @@ str_splits ()
         local -a out_ret=()
         while [[ "$in_str_i" ]] ; do
             if str_index_of "$in_str_i" "$delim_i" ; then
-                out_ret+=("${in_str:0:ret}")
-                in_str=${in_str:ret+delim_len}
-                in_str_i=${in_str_i:ret+delim_len}
+                out_ret+=("${in_str:0:ret_str}")
+                in_str=${in_str:ret_str+delim_len}
+                in_str_i=${in_str_i:ret_str+delim_len}
             else
                 out_ret+=("$in_str")
                 break
             fi
         done
-        ret=("${out_ret[@]}")
+        ret_arr=("${out_ret[@]}")
     else
         while [[ "$in_str" ]] ; do
             if [[ "$in_str" == *"$delim"* ]] ; then
-                ret+=("${in_str%%"$delim"*}")
+                ret_arr+=("${in_str%%"$delim"*}")
                 in_str=${in_str#*"$delim"}
             else
-                ret+=("$in_str")
+                ret_arr+=("$in_str")
                 break
             fi
         done

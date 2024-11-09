@@ -121,6 +121,7 @@ test_case3 ()
 test_case4 ()
 {
     local a=1
+    local ret=0
 
     local block_str='elif [[ "2" == "$a" ]] ; then
         echo "2"

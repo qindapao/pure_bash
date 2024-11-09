@@ -20,9 +20,9 @@ echo "=========${0} test start in $(date_log)=========="
 test_case1 ()
 {
     local a='是谁' b=我是谁不重要
-    local ret
+    local ret_str
     str_last_index_of "$b" "$a"
-    if [[ "$ret" == '1' ]] ; then
+    if [[ "$ret_str" == '1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -33,10 +33,10 @@ test_case1 ()
 
 test_case2 ()
 {
-    local ret
+    local ret_str
     local a='xzyk17829ew829lexx1' b=829
     str_last_index_of "$a" "$b"
-    if [[ "$ret" == '11' ]] ; then
+    if [[ "$ret_str" == '11' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -48,9 +48,9 @@ test_case2 ()
 test_case3 ()
 {
     local a='' b=xzyk1xx1
-    local ret
+    local ret_str
     str_last_index_of "$b" "$a"
-    if [[ "$ret" == '-1' ]] ; then
+    if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -62,9 +62,9 @@ test_case3 ()
 test_case4 ()
 {
     local a='12399405' b=xzyk1xx1
-    local ret
+    local ret_str
     str_last_index_of "$a" "$b"
-    if [[ "$ret" == '-1' ]] ; then
+    if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -76,9 +76,9 @@ test_case4 ()
 test_case5 ()
 {
     local a='x1239940123邓恩给1235' b=123
-    local ret
+    local ret_str
     str_last_index_of "$a" "$b" 3
-    if [[ "$ret" == '1' ]] ; then
+    if [[ "$ret_str" == '1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -91,9 +91,9 @@ test_case5 ()
 test_case6 ()
 {
     local a='' b=
-    local ret
+    local ret_str
     str_last_index_of "$a" "$b"
-    if [[ "$ret" == '-1' ]] ; then
+    if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -106,9 +106,9 @@ test_case6 ()
 test_case7 ()
 {
     local a='' b=xx
-    local ret
+    local ret_str
     str_last_index_of "$a" "$b"
-    if [[ "$ret" == '-1' ]] ; then
+    if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -121,9 +121,9 @@ test_case7 ()
 test_case8 ()
 {
     local a='xx' b=
-    local ret
+    local ret_str
     str_last_index_of "$a" "$b"
-    if [[ "$ret" == '-1' ]] ; then
+    if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else

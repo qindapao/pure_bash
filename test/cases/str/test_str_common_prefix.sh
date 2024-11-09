@@ -20,9 +20,9 @@ echo "=========${0} test start in $(date_log)=========="
 test_case1 ()
 {
     local a='xzy' b=xzyxx1
-    local ret
+    local ret_str
     str_common_prefix "$a" "$b"
-    if [[ "$ret" == 'xzy' ]] ; then
+    if [[ "$ret_str" == 'xzy' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -34,9 +34,9 @@ test_case1 ()
 test_case2 ()
 {
     local a='xzyk17829' b=xzyk1xx1
-    local ret
+    local ret_str
     str_common_prefix "$a" "$b"
-    if [[ "$ret" == 'xzyk1' ]] ; then
+    if [[ "$ret_str" == 'xzyk1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -48,9 +48,9 @@ test_case2 ()
 test_case3 ()
 {
     local a='' b=xzyk1xx1
-    local ret
+    local ret_str
     str_common_prefix "$a" "$b"
-    if [[ "$ret" == '' ]] ; then
+    if [[ "$ret_str" == '' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
@@ -62,9 +62,9 @@ test_case3 ()
 test_case4 ()
 {
     local a='12399405' b=xzyk1xx1
-    local ret
+    local ret_str
     str_common_prefix "$a" "$b"
-    if [[ "$ret" == '' ]] ; then
+    if [[ "$ret_str" == '' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
     else
