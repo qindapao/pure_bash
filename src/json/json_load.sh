@@ -1,6 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[json_load]++)) && return 0
 
+. ./str/str_trim.sh || return 1
 . ./json/json_common.sh || return 1
 . ./json/json_set.sh || return 1
 . ./json/json_overlay.sh || return 1
@@ -55,7 +56,11 @@ json_load ()
 
     local _json_load_json_input_file_path=$2
 
-    if [[ "$(<${_json_load_json_input_file_path})" != *[⇒⩦]* ]] ; then
+    # 判断一个字符串是一个标准的json字符串
+    local _json_load_json_str=$(<${_json_load_json_input_file_path})
+    str_trim _json_load_json_str
+
+    if [[ "${_json_load_json_str:0:1}" == '{' ]] ; then
         case "$JSON_COMMON_STANDARD_JSON_PARSER" in
         python3)
             json_common_load.py -a "$JSON_COMMON_SERIALIZATION_ALGORITHM" \
@@ -81,7 +86,7 @@ json_load ()
     local _json_load_line_{last_char=,cnt=,content=}
     local _json_load_leaf_set_key=''
     local -i _json_load_lev=0 _json_load_pop_cnt=0
-
+    
     mapfile -t _json_load_json_file_contents_tmp < "$_json_load_json_input_file_path"
     for _json_load_line_content in "${_json_load_json_file_contents_tmp[@]}" ; do
         # 删除存空行和全是空白字符的行
@@ -113,15 +118,15 @@ json_load ()
         # 判断最后一个字符是否是空格确定是否是叶子节点
         _json_load_line_last_char="${_json_load_line_content: -1}"
         local -i _json_load_space_num=0
-        if [[ "$_json_load_key" =~ ([⇒⩦])([[:space:]]*) ]] ; then
+        if [[ "$_json_load_key" =~ ([>=])([[:space:]]*)$ ]] ; then
             _json_load_space_num=${#BASH_REMATCH[2]}
             _json_load_leaf_set_key=${BASH_REMATCH[1]}
         fi
 
-        # key和value都要从Q字符串转换成常规字符串(最后3~5个字符不能转,它们不属于Q字符串 ⇒ )
+        # key和value都要从Q字符串转换成常规字符串(最后3~5个字符不能转,它们不属于Q字符串 > )
         eval "_json_load_ori_str=${_json_load_key:0:-2-_json_load_space_num}"
         if ((_json_load_space_num)) ; then
-            if [[ "${_json_load_leaf_set_key}" == '⇒' ]] ; then
+            if [[ "${_json_load_leaf_set_key}" == '>' ]] ; then
                 _json_load_leaf_set_key="[${_json_load_ori_str}]"
             else
                 _json_load_leaf_set_key="${_json_load_ori_str}"
@@ -148,7 +153,7 @@ json_load ()
 
             ((_json_load_line_cnt+=2))
         else
-            if [[ "${_json_load_key: -1}" == '⇒' ]] ; then
+            if [[ "${_json_load_key: -1}" == '>' ]] ; then
                 _json_load_key_stack+=("[${_json_load_ori_str}]")
             else
                 _json_load_key_stack+=("${_json_load_ori_str}")

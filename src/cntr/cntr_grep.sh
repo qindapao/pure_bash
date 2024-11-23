@@ -49,6 +49,8 @@
 #   注意: 在eval的代码模板生成的最终字符串中最多只能进行一次替换,
 #         再进行一次替换无法预知已经替换后的字符串中是否包含下次要替换
 #         的字符串,会有风险!
+#
+#   2024.11.15 支持bash4.4的手动别名解析,因为bash4.4不支持在函数中展开别名
 cntr_grep ()
 {
     local _cntr_grep_script$1$4="${CNTR_TEMPLATE_CHEKC_TYPE//NAME/$1$4}"
@@ -58,8 +60,20 @@ cntr_grep ()
     
     local _cntr_grep_script$1$4+='
     local i'$1$4' filter_ret'$1$4'=1 is_find'$1$4'=1
+    local alias_arr'$1$4'
     for i'$1$4' in "${!'$1'[@]}" ; do
-        if eval "$2" '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' '\''"${@:5}"'\'' ; then
+        if [[ "${BASH_ALIASES[$2]:+set}" ]] ; then
+            if [[ -o noglob ]] ; then
+                eval alias_arr'$1$4'=(${BASH_ALIASES[$2]})
+            else
+                local - ; set -f ; eval alias_arr'$1$4'=(${BASH_ALIASES[$2]}) ; set +f
+            fi
+            eval "${alias_arr'$1$4'[@]}" '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' '\''"${@:5}"'\''
+        else
+            eval "$2" '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' '\''"${@:5}"'\''
+        fi
+
+        if ! (($?)) ; then
             case "$3" in
             any) return 0 ;;
             none) return 1 ;;

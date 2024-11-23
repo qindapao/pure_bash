@@ -98,11 +98,11 @@ _json_dump ()
             
             if [[ "${BASH_REMATCH[2]}" == *A* ]] ; then
                 # 如果是用递归函数,那么用-gt <
-                __json_dump_printf_mark='⇒'
+                __json_dump_printf_mark='>'
                 # :TODO: 这里冒泡排序的效率比较低,后续可以优化
                 array_sort __json_dump_var_indexs '<'
             else
-                __json_dump_printf_mark='⩦'
+                __json_dump_printf_mark='='
                 array_revert __json_dump_var_indexs
             fi
 
@@ -210,11 +210,11 @@ json_dump ()
     fi
 
     # 不使用默认的等号和胖箭头是因为防止键和值都有这些字符
-    local _json_dump_index='' _json_dump_printf_mark='⩦'
+    local _json_dump_index='' _json_dump_printf_mark='='
     local _json_dump_indexs=("${!_json_dump_json_ref[@]}")
     [[ "${_json_dump_json_ref@a}" == *A* ]] && {
         # 如果是关联数组按照字典排序,数组的顺序本来就是对的
-        _json_dump_printf_mark='⇒'
+        _json_dump_printf_mark='>'
         # :TODO: 这里冒泡排序效率比较低,后续可以优化
         array_sort _json_dump_indexs '>'
     }

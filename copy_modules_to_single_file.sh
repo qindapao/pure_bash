@@ -87,12 +87,15 @@ copy_modules ()
             if ! [[ "${file_have_deal["$cur_file"]+set}" ]] ; then
                 file_have_deal["$cur_file"]=1
                 
-                cat "$cur_file" | grep -v '^. ./meta/meta.sh' |\
-                                  grep -v '^((DEFENSE_VARIABLES' |\
-                                  file_del_end_pattern_pipe '^[[:space:]]*$' |\
-                                  file_del_end_pattern_pipe '^[[:space:]]*return[[:space:]]*0[[:space:]]*$' |\
-                                  file_del_pattern_pipe '^\.\ +([^| ]+)\ +\|\|\ +return\ +1[[:space:]]*$' >>"$SINGLE_FILE_NAME"
-                echo "#-----------------" >>"$SINGLE_FILE_NAME"
+                if (((${#ONLY_COPY_MODULES[@]})) && [[ "${ONLY_COPY_MODULES[$cur_file]:+set}" ]]) ||
+                    ! ((${#ONLY_COPY_MODULES[@]})) ; then
+                    cat "$cur_file" | grep -v '^. ./meta/meta.sh' |\
+                                      grep -v '^((DEFENSE_VARIABLES' |\
+                                      file_del_end_pattern_pipe '^[[:space:]]*$' |\
+                                      file_del_end_pattern_pipe '^[[:space:]]*return[[:space:]]*0[[:space:]]*$' |\
+                                      file_del_pattern_pipe '^\.\ +([^| ]+)\ +\|\|\ +return\ +1[[:space:]]*$' >>"$SINGLE_FILE_NAME"
+                    echo "#-----------------" >>"$SINGLE_FILE_NAME"
+                fi
             fi
             # 移除栈顶元素(这个时候元素一定在栈顶)
             unset -v 'all_modules[-1]'

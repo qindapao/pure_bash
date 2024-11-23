@@ -10,7 +10,7 @@ arm_cpu_type ()
     _arm_cpu_type'$1'=${_arm_cpu_type'$1':-0}
     ((_arm_cpu_type'$1'=(_arm_cpu_type'$1'>>4)&0xffff))
     
-    $1=$_arm_cpu_type'$1'
+    '$1'=$_arm_cpu_type'$1'
     '
 }
 

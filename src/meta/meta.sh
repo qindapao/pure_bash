@@ -50,6 +50,12 @@ unalias -a
 alias disable_xv='local - ; set +xv'
 # 强制使用C语言环境的字符排序规则，从而确保 [a-z] 和 [A-Z] 按预期工作
 export LC_COLLATE=C
+
+# # 强制设置语言环境为UTF-8(支持中文)
+# export LANG=en_US.UTF-8
+# # 设置时间的显示格式为英文
+# export LC_TIME=en_US.UTF-8
+
 # LC_COLLATE=C
 #   globasciiranges
 #       bash5.2引入了这个，不会有匹配问题
@@ -119,7 +125,7 @@ esac
 #     *)  echo "can not find exec dir!" >&2 ; return 1 ;;
 # esac
 
-mata_get_tool_dir ()
+meta_get_tool_dir ()
 {
     case ":$PATH:" in
     *":/usr/bin:"*) printf -v "$1" "%s" '/usr/bin' ;;
@@ -129,7 +135,7 @@ mata_get_tool_dir ()
     *":/bin:"*) printf -v "$1" "%s" '/bin' ;;
     *":/sbin:"*) printf -v "$1" "%s" '/sbin' ;;
     *":/opt/bin:"*) printf -v "$1" "%s" '/opt/bin' ;;
-    *)  echo "can not find exec dir!" >&2 ; return 1 ;;
+    *)  echo "can not find exec dir!" >&2 ; exit 1 ;;
     esac
 }
 

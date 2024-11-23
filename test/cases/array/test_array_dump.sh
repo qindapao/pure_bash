@@ -17,7 +17,7 @@ cd "$_test_array_dump_old_dir"
 echo "=========${0} test start in $(date_log)=========="
 
 # set -vx
-
+# bash4.4有BUG,数组初始化的时候如果不local -a arr3=()看不到声明
 test_case1 ()
 {
     local -a arr1=(5 6 1 "ab cd" "12 34")

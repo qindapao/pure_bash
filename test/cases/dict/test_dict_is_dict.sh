@@ -17,7 +17,14 @@ cd "$_test_dict_is_dict_old_dir"
 echo "=========${0} test start in $(date_log)=========="
 
 # set -xv
+#
+# bash4.4上这里有差异
+# Storage:~/qinqing/pure_bash/test/cases/dict # declare -A dict
+# Storage:~/qinqing/pure_bash/test/cases/dict # declare -p dict
+# declare -A dict
+# Storage:~/qinqing/pure_bash/test/cases/dict # echo ${dict@a}
 
+# Storage:~/qinqing/pure_bash/test/cases/dict # 
 test_case1 ()
 {
     local -a array1

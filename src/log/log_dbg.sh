@@ -7,6 +7,7 @@
 . ./regex/regex_common.sh || return 1
 
 
+# :TODO: 打印到系统日志的功能待验证
 # :TODO: 打印变量的功能暂时屏蔽掉
 # :TODO: BASH_COMMAND 变量和 trap 结合使用?
 # # 第一次进来的时候记录当前环境中的所有变量名
@@ -34,6 +35,12 @@ LOG_FILE_NAME="test_log_$(date_log).log"
 # 2: 需要直接打印的字符串
 # 3~@:
 #    需要打印的变量
+#    -d var1 var2
+#    -d 后面的两个变量用于显示两个变量的差异,如果 -d var1 var1,那么显示变量在两次
+#       调用上下文中的差异
+#    全局变量 _log_dbg_bake_up_var_ 前缀用于保存变量的副本
+#    :TODO: _log_dbg_bake_up_var_ 前缀的全局变量后续是否需要清理?
+#
 log_dbg ()
 {
     disable_xv
@@ -48,20 +55,42 @@ log_dbg ()
     fi
     [[ "${LOG_LEVEL_KIND[LOG_LEVEL]}" != *"$_log_dbg_log_type"* ]] && return
     local _log_dbg_msg="${2} " _log_dbg_i _log_dbg_declare_str _log_dbg_prt_str
+    local -i _log_dbg_is_need_diff_var=0
+    local -a _log_dbg_diff_var_values=()
+    local -a _log_dbg_diff_var_name=()
+    local -A _log_dbg_has_printed_vars=()
 
     for((_log_dbg_i=3;_log_dbg_i<=$#;_log_dbg_i++)) ; do
         # 如果是引用变量那么找到真正变量
         # 这里不使用@a是因为,通过declare -p可以找到引用传递关系,@a只能显示最终真正变量的属性
         # 并且@a也只能bash4.4以及以上版本才能使用
         
-        _log_dbg_msg+=$'\n-  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -'
-
         # 如果传入的变量不是合法标识符,直接忽略
-        [[ "${!_log_dbg_i}" =~ $REGEX_COMMON_VALID_VAR_NAME ]] || {
-            _log_dbg_msg+=$'\n'
-            _log_dbg_msg+="${!_log_dbg_i} is not a valid variable name!"
+        if [[ "${!_log_dbg_i}" =~ $REGEX_COMMON_VALID_VAR_NAME ]] ; then
+            [[ "${_log_dbg_has_printed_vars[${!_log_dbg_i}]}" ]] || {
+                _log_dbg_msg+=$'\n-  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - -'
+            }
+            # 记录完对比的变量后就需要清空
+            ((${#_log_dbg_diff_var_values[@]}==2)) && {
+                _log_dbg_is_need_diff_var=0
+                _log_dbg_diff_var_values=()
+                _log_dbg_diff_var_name=()
+            }
+        else
+            # 这里有一个特殊情况,如果是'-d'那么代表后面的变量需要开启比较
+            if [[ "${!_log_dbg_i}" == '-d' ]] ; then
+                _log_dbg_is_need_diff_var=1
+                _log_dbg_diff_var_values=()
+                _log_dbg_diff_var_name=()
+            else
+                [[ "${_log_dbg_has_printed_vars[${!_log_dbg_i}]}" ]] || {
+                    _log_dbg_msg+=$'\n------------------------------------------------------------------'
+                }
+                _log_dbg_msg+=$'\n'
+                _log_dbg_msg+="${!_log_dbg_i} is not a valid variable name!"
+            fi
             continue
-        }
+        fi
 
         _log_dbg_declare_str="$(declare -p "${!_log_dbg_i}" 2>/dev/null)"
         _log_dbg_prt_str="${!_log_dbg_i}"
@@ -100,11 +129,52 @@ log_dbg ()
         done
 
         # 读取变量的类型,如果发现是数组或者关联数组,使用结构体打印函数
-        _log_dbg_msg+=$'\n'
-        _log_dbg_msg+="$_log_dbg_declare_str"
+        [[ "${_log_dbg_has_printed_vars[${!_log_dbg_i}]}" ]] || {
+            _log_dbg_msg+=$'\n'
+            _log_dbg_msg+="$_log_dbg_declare_str"
+        }
+
+        # 记录已经被打印过的变量名防止重复打印
+        _log_dbg_has_printed_vars[${!_log_dbg_i}]=1
+
+        # 判断是否要打印变量比对
+        ((_log_dbg_is_need_diff_var)) && {
+            _log_dbg_diff_var_values+=("$_log_dbg_declare_str")
+            _log_dbg_diff_var_name+=("${!_log_dbg_i}") 
+
+
+            if ((${#_log_dbg_diff_var_values[@]} == 2)) ; then
+                if [[ "${_log_dbg_diff_var_name[0]}" == "${_log_dbg_diff_var_name[1]}" ]] &&
+                   [[ ! -v "_log_dbg_bake_up_var_${_log_dbg_diff_var_name[0]}" ]] ; then
+                    declare -g _log_dbg_bake_up_var_${_log_dbg_diff_var_name[0]}="${_log_dbg_diff_var_values[0]}"
+                    continue
+                fi
+
+                # 显示两个变量的差异
+                local _log_dbg_diff_file1=$(mktemp)
+                local _log_dbg_diff_file2=$(mktemp)
+                if [[ "${_log_dbg_diff_var_name[0]}" == "${_log_dbg_diff_var_name[1]}" ]] ; then
+                    # 把上一次记录的值打印到这里来
+                    local -n _log_dbg_last_var="_log_dbg_bake_up_var_${_log_dbg_diff_var_name[0]}"
+                    printf "%s\n" "${_log_dbg_last_var}" > "$_log_dbg_diff_file1"
+                    # 更新变量的值
+                    _log_dbg_last_var=${_log_dbg_diff_var_values[0]}
+                else
+                    printf "%s\n" "${_log_dbg_diff_var_values[0]}" > "$_log_dbg_diff_file1"
+                fi
+                printf "%s\n" "${_log_dbg_diff_var_values[1]}" > "$_log_dbg_diff_file2"
+                diff -y --color=auto "$_log_dbg_diff_file1" "$_log_dbg_diff_file2"
+                _log_dbg_msg+=$'\n'
+                _log_dbg_msg+='~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+                _log_dbg_msg+=$'\n'
+                # 直接打印到标准输出可以看到颜色
+                _log_dbg_msg+=$(diff -y "$_log_dbg_diff_file1" "$_log_dbg_diff_file2")
+                rm -f "$_log_dbg_diff_file1" "$_log_dbg_diff_file2"
+            fi
+        }
     done
 
-    _log_dbg_msg+=$'\n----------------------------------------------------------------------------------'
+    _log_dbg_msg+=$'\n=================================================================================='
 
     local _log_dbg_log_info
     _log_dbg_log_info="[${_log_dbg_log_type} ${BASH_SOURCE[1]} ${FUNCNAME[1]}(${BASH_LINENO[0]}):${FUNCNAME[2]}(${BASH_LINENO[1]}):${FUNCNAME[3]}(${BASH_LINENO[2]}) $(date_prt_t)] ${_log_dbg_msg}"

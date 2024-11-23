@@ -12,7 +12,7 @@
 str_splits ()
 {
     ret_arr=()
-    local ret_str=
+    local ret_str
     local in_str=$1
     local delim=$2
     local is_ignorecase=${3:-0}
@@ -30,18 +30,16 @@ str_splits ()
         # 大小写不敏感拆分
         local in_str_i=${in_str,,} delim_i=${delim,,} 
         local -i delim_len=${#delim}
-        local -a out_ret=()
         while [[ "$in_str_i" ]] ; do
             if str_index_of "$in_str_i" "$delim_i" ; then
-                out_ret+=("${in_str:0:ret_str}")
+                ret_arr+=("${in_str:0:ret_str}")
                 in_str=${in_str:ret_str+delim_len}
                 in_str_i=${in_str_i:ret_str+delim_len}
             else
-                out_ret+=("$in_str")
+                ret_arr+=("$in_str")
                 break
             fi
         done
-        ret_arr=("${out_ret[@]}")
     else
         while [[ "$in_str" ]] ; do
             if [[ "$in_str" == *"$delim"* ]] ; then

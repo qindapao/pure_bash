@@ -44,7 +44,7 @@ json_init ()
     root_dir="${PWD%%/pure_bash*}/pure_bash"
     local tool_exec_dir=
 
-    mata_get_tool_dir tool_exec_dir
+    meta_get_tool_dir tool_exec_dir
 
     local -a cp_cmd=('cp') chmod_cmd=('chmod')
     which sudo 2>/dev/null && {

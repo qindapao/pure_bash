@@ -92,7 +92,7 @@ def custom_print(data, indent=0, output=None):
         else:
             for key, value in sorted(data.items()):
                 q_key = bash_q_str(key)
-                output.append(f"{spacing}{q_key} ⇒{end_char(value)}")
+                output.append(f"{spacing}{q_key} >{end_char(value)}")
                 custom_print(value, indent + 1, output)
     elif isinstance(data, list):
         if not data:
@@ -103,7 +103,7 @@ def custom_print(data, indent=0, output=None):
                 output.append(spacing + r'declare\ -a\ ' + JSON_COMMON_MAGIC_STR + r'1=' + str_to_base64(r'()'))
         else:
             for index, item in enumerate(data):
-                output.append(f"{spacing}{index} ⩦{end_char(item)}")
+                output.append(f"{spacing}{index} ={end_char(item)}")
                 custom_print(item, indent + 1, output)
     else:
         spacing = '    ' * (indent - 1)
@@ -162,7 +162,7 @@ def bash_q_str(ori_str):
 def json_load(json_str):
     json_lines = json_str.split(os.linesep)
 
-    json_out = {} if '⇒' in json_lines[1] else []
+    json_out = {} if '>' in json_lines[1] else []
 
     json_key, json_value, json_leaf_key = None, None, None
     json_ori_str, json_key_stack, json_line_cnt = None, [], 1
@@ -189,7 +189,7 @@ def json_load(json_str):
         json_key = json_line_content.lstrip()
         # 获取箭头后面空格数量
         space_num = 0
-        match = re.search(r'([⇒⩦])(\s*)', json_line_content)
+        match = re.search(r'([>=])(\s*)$', json_line_content)
         if match:
             space_num, json_leaf_key = len(match.group(2)), match.group(1)
 
@@ -199,12 +199,12 @@ def json_load(json_str):
             json_value = json_lines[json_line_cnt+1].lstrip()
             # key和value需要从Q字符串转换成常规字符串
             json_value = bash_eval_str(json_value) if space_num == 1 else leaf_node_map[space_num]
-            json_leaf_key = (1 if json_leaf_key == '⇒' else 0, json_ori_str)
+            json_leaf_key = (1 if json_leaf_key == '>' else 0, json_ori_str)
             set_value(json_out, json_key_stack + [json_leaf_key], json_value)
             json_line_cnt += 2
         else:
             # key从Q字符串转换成常规字符串(最后两个字符不能转它们不属于Q字符串)
-            json_key_stack.append((1 if json_key[-1:] == '⇒' else 0, json_ori_str))
+            json_key_stack.append((1 if json_key[-1:] == '>' else 0, json_ori_str))
             json_line_cnt += 1
 
     return json_out

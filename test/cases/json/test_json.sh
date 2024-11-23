@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+# :TODO: 中文的用例删除了,但是其实支持中文的,只是有些环境可能不支持中文
+# 后面把中文的用例单独做出来
 # :TODO: 用例中的递归删除json的逻辑都没做
 # 都验证的是keep empty的动作
 
@@ -71,14 +73,15 @@ test_case_all ()
 
     {
     IFS= read -r -d '' json_str <<'    EOF'
-{
+
+     {
     "person": {
         "n:am,[]{}e": "John",
         "ag\n \t\"e": "30",
-        "爱好": ["打\"乒乓球", "打羽毛,.{}[]/\\,/球", "发呆"],
-        "其它": [],
+        "habbit": ["xxoo", "ccccccccccccccc", "kkyy"],
+        "other": [],
         "other": {},
-        "别的": [[], {},
+        "otheragain": [[], {},
                 "\b\f\n\r\t/\\,\"agegg123344",
                 true,
                 "\\",
@@ -96,13 +99,16 @@ test_case_all ()
                 "",
                 ""
                 ],
-        "部门": "测试与装备部",
-        "进行中的项目": {
-            "项目1": {"名字": "自动化测试", "进度": "10%"},
-            "项目2": {"名字": "性能优化", "进度": "40%"}
+        "paart": "part2",
+        "project_in_process": {
+            "project1": {"name": "auto test", "proc essdatay> ": "10%"},
+            "pr > oject2": {"name": "good", "proc essdatay> ": "40%"}
         }
     }
-}
+}     
+
+
+     
     EOF
     } || true
     
@@ -120,26 +126,26 @@ test_case_all ()
 
     #4. json_get
     local project_name=
-    json_get project_name bash_json 进行中的项目 项目2 名字
+    json_get project_name bash_json project_in_process "pr > oject2" name
 
     local -A ret=()
-    [[ "$project_name" == '性能优化' ]] && {
+    [[ "$project_name" == 'good' ]] && {
         ret[json_get]=0
     } || ret[json_get]=1
 
     #5. json_set
-    json_set bash_json [进行中的项目] [项目2] [例外] - 'no expect'
+    json_set bash_json [project_in_process] "[pr > oject2]" [extra] - 'no expect'
     local get_new
-    json_get get_new bash_json 进行中的项目 项目2 例外
+    json_get get_new bash_json project_in_process "pr > oject2" extra
 
     [[ "$get_new" == 'no expect' ]] && {
         ret[json_set]=0
     } || ret[json_set]=1
 
     #6. json_del
-    json_del bash_json 进行中的项目 项目1
+    json_del bash_json project_in_process project1
     local -A get_after_del=()
-    json_get get_after_del bash_json 进行中的项目 项目1
+    json_get get_after_del bash_json project_in_process project1
 
     if ((${#get_after_del[@]})) ; then
         ret[json_del]=1
@@ -148,9 +154,9 @@ test_case_all ()
     fi
 
     #7. json_del_de
-    json_del_de bash_json [爱好] 1
-    local -a get_after_del_de get_after_del_de_spec=('打"乒乓球' 发呆)
-    json_get get_after_del_de bash_json 爱好
+    json_del_de bash_json [habbit] 1
+    local -a get_after_del_de get_after_del_de_spec=(xxoo kkyy)
+    json_get get_after_del_de bash_json habbit
 
     if assert_array 'a' get_after_del_de get_after_del_de_spec ; then
         ret[json_del_de]=0
@@ -159,16 +165,16 @@ test_case_all ()
     fi
 
     #8. json_del_de_ke
-    json_del_de_ke bash_json [别的] 15
-    json_del_de_ke bash_json [爱好] 0
-    json_del_de_ke bash_json [爱好] 0
+    json_del_de_ke bash_json [otheragain] 15
+    json_del_de_ke bash_json [habbit] 0
+    json_del_de_ke bash_json [habbit] 0
     # json_dump_ho bash_json
     
     local -a other_indexs=({0..16})
     local -a other
     local -a habit=() habit_spec=()
-    json_get habit bash_json 爱好
-    json_get other bash_json 别的
+    json_get habit bash_json habbit
+    json_get other bash_json otheragain
 
     if [[ "${!other[*]}" == "${other_indexs[*]}" ]] &&
         assert_array 'a' habit habit_spec ; then
@@ -178,23 +184,23 @@ test_case_all ()
     fi
     
     #9. json_del_ke
-    json_set bash_json [职业] [主要] 0 - 教师
-    json_set bash_json [职业] [主要] 1 - 外卖员
-    json_set bash_json [职业] [主要] 2 - '动物园
-管理员'
-    json_del_ke bash_json 职业 主要 1
-    local -a get_main=() main_spec=([0]=教师 [2]='动物园
-管理员') 
-    json_get get_main bash_json 职业 主要
+    json_set bash_json [work] [main] 0 - teaher
+    json_set bash_json [work] [main] 1 - seller
+    json_set bash_json [work] [main] 2 - 'animal
+main'
+    json_del_ke bash_json work main 1
+    local -a get_main=() main_spec=([0]=teaher [2]='animal
+main') 
+    json_get get_main bash_json work main
     if ! assert_array 'a' get_main main_spec ; then
         ret[json_del_ke]=1
     fi
 
-    json_del_ke bash_json 职业 主要 0
-    json_del_ke bash_json 职业 主要 2
+    json_del_ke bash_json work main 0
+    json_del_ke bash_json work main 2
     # json_dump_ho bash_json
     local main_spec=()
-    json_get get_main bash_json 职业 主要
+    json_get get_main bash_json work main
     if assert_array 'a' get_main main_spec ; then
         ret[json_del_ke]=0
     else
@@ -206,8 +212,8 @@ test_case_all ()
     local json_extract_str
     local indexs=({0..15})
     local -a json_extract_str_after=()
-    json_extract_de json_extract_str bash_json [别的] 9
-    json_get json_extract_str_after bash_json 别的
+    json_extract_de json_extract_str bash_json [otheragain] 9
+    json_get json_extract_str_after bash_json otheragain
 
     # declare -p json_extract_str json_extract_str_after
     if [[ "$json_extract_str" == 'null' ]] &&
@@ -218,24 +224,24 @@ test_case_all ()
     fi
 
     #11. json_extract_de_ke
-    json_set bash_json [例外] 0 - 待删除1
-    json_set bash_json [例外] 1 - 待删除2
-    json_set bash_json [例外] 2 - 待删除3
-    json_set bash_json [例外] 3 - 待删除4
+    json_set bash_json [extra] 0 - tobedelete1
+    json_set bash_json [extra] 1 - tobedelete2
+    json_set bash_json [extra] 2 - tobedelete3
+    json_set bash_json [extra] 3 - tobedelete4
     # json_dump_ho bash_json
     local get_exp
-    json_extract_de_ke get_exp bash_json [例外] 2
+    json_extract_de_ke get_exp bash_json [extra] 2
     # json_dump_ho bash_json
-    local -a get_array=() get_array_spec=(待删除1 待删除2 待删除4)
-    json_get get_array bash_json 例外
-    if [[ "$get_exp" != "待删除3" ]] || ! assert_array 'a' get_array get_array_spec ; then
+    local -a get_array=() get_array_spec=(tobedelete1 tobedelete2 tobedelete4)
+    json_get get_array bash_json extra
+    if [[ "$get_exp" != "tobedelete3" ]] || ! assert_array 'a' get_array get_array_spec ; then
         ret[json_extract_de_ke]=1
     fi
-    json_extract_de_ke get_exp bash_json [例外] 2
-    json_extract_de_ke get_exp bash_json [例外] 1
-    json_extract_de_ke get_exp bash_json [例外] 0
+    json_extract_de_ke get_exp bash_json [extra] 2
+    json_extract_de_ke get_exp bash_json [extra] 1
+    json_extract_de_ke get_exp bash_json [extra] 0
     # json_dump_ho bash_json
-    json_get get_array bash_json 例外
+    json_get get_array bash_json extra
     local get_array_spec=()
     if assert_array 'a' get_array get_array_spec ; then
         ret[json_extract_de_ke]=0
@@ -245,13 +251,13 @@ test_case_all ()
 
     #12. json_insert
     # 先挂接一个空数组
-    json_overlay bash_json PURE_BASH_NULL_ARRAY [例外] [高兴]
-    json_insert bash_json [例外] [高兴] 0 - haha
-    json_insert bash_json [例外] [高兴] 1 - 嘿嘿
-    json_insert bash_json [例外] [高兴] 1 - xx
-    local -a liwai_after=(haha xx 嘿嘿)
+    json_overlay bash_json PURE_BASH_NULL_ARRAY [extra] [happy]
+    json_insert bash_json [extra] [happy] 0 - haha
+    json_insert bash_json [extra] [happy] 1 - heihei
+    json_insert bash_json [extra] [happy] 1 - xx
+    local -a liwai_after=(haha xx heihei)
     local -a liwai
-    json_get liwai bash_json 例外 高兴
+    json_get liwai bash_json extra happy
     if assert_array 'a' liwai liwai_after ; then
         ret[json_insert]=0
     else
@@ -260,9 +266,9 @@ test_case_all ()
 
     #13. json_o_insert
     local -A insert_dict=([hah]=1 [kaixk]=2)
-    json_o_insert bash_json insert_dict [例外] [高兴] 3
+    json_o_insert bash_json insert_dict [extra] [happy] 3
     local -A get_dict=()
-    json_get get_dict bash_json 例外 高兴 3
+    json_get get_dict bash_json extra happy 3
     if assert_array 'A' get_dict insert_dict ; then
         ret[json_o_insert]=0
     else
@@ -272,10 +278,10 @@ test_case_all ()
 
     #14. json_o_push
     local my_array=(1 2 34)
-    json_o_push bash_json my_array [例外] [高兴]
+    json_o_push bash_json my_array [extra] [happy]
     # json_dump_ho bash_json
     local -a get_array=()
-    json_get get_array bash_json 例外 高兴 4
+    json_get get_array bash_json extra happy 4
     if assert_array 'a' get_array my_array ; then
         ret[json_o_push]=0
     else
@@ -283,10 +289,10 @@ test_case_all ()
     fi
     #15 json_o_unshift
     local my_array=(1 2 34)
-    json_o_unshift bash_json my_array [例外] [高兴]
+    json_o_unshift bash_json my_array [extra] [happy]
     # json_dump_ho bash_json
     local -a get_array=()
-    json_get get_array bash_json 例外 高兴 0
+    json_get get_array bash_json extra happy 0
     if assert_array 'a' get_array my_array ; then
         ret[json_o_push]=0
     else
@@ -294,7 +300,7 @@ test_case_all ()
     fi
     #16. json_pop
     local -a pop_array=() pop_array_spec=(1 2 34)
-    json_pop pop_array bash_json [例外] [高兴]
+    json_pop pop_array bash_json [extra] [happy]
     if assert_array 'a' pop_array pop_array_spec ; then
         ret[json_pop]=0
     else
@@ -304,10 +310,10 @@ test_case_all ()
 
     #17. json_attr_get
     local attr attr1 attr2 attr3
-    json_attr_get attr bash_json 进行中的项目 项目2
-    json_attr_get attr1 bash_json 别的
-    json_attr_get attr2 bash_json 别的 2
-    json_attr_get attr3 bash_json 别的 2 3
+    json_attr_get attr bash_json project_in_process "pr > oject2"
+    json_attr_get attr1 bash_json otheragain
+    json_attr_get attr2 bash_json otheragain 2
+    json_attr_get attr3 bash_json otheragain 2 3
 
     if [[ "$attr" == 'A' ]] && [[ "$attr1" == 'a' ]] && [[ "$attr2" == 's' ]] &&
         [[ -z "$attr3" ]]; then
@@ -319,11 +325,11 @@ test_case_all ()
     #18. json_pop_ke
     local pop_e
     local null_array=()
-    json_pop_ke pop_e bash_json [例外] [高兴] 0
-    json_pop_ke pop_e bash_json [例外] [高兴] 0
-    json_pop_ke pop_e bash_json [例外] [高兴] 0
+    json_pop_ke pop_e bash_json [extra] [happy] 0
+    json_pop_ke pop_e bash_json [extra] [happy] 0
+    json_pop_ke pop_e bash_json [extra] [happy] 0
     # json_dump_ho bash_json
-    json_get null_array bash_json 例外 高兴 0
+    json_get null_array bash_json extra happy 0
     if assert_array 'a' null_array PURE_BASH_NULL_ARRAY && 
         [[ "$pop_e" == '1' ]] ; then
         ret[json_pop_ke]=0
@@ -333,9 +339,9 @@ test_case_all ()
     # json_dump_ho bash_json
 
     #19. json_push
-    json_push bash_json [别的] - 'new value'
+    json_push bash_json [otheragain] - 'new value'
     local new_value=
-    json_get new_value bash_json 别的 16
+    json_get new_value bash_json otheragain 16
     if [[ "$new_value" == 'new value' ]] ; then
         ret[json_push]=0
     else
@@ -345,9 +351,9 @@ test_case_all ()
     
     #20. json_shift
     local -a shift_e
-    json_shift shift_e bash_json [例外] [高兴]
+    json_shift shift_e bash_json [extra] [happy]
     unset shift_e ; local shift_e
-    json_shift shift_e bash_json [例外] [高兴]
+    json_shift shift_e bash_json [extra] [happy]
 
     if [[ "$shift_e" == 'haha' ]] ; then
         ret[json_shift]=0
@@ -358,10 +364,10 @@ test_case_all ()
     
     #21. json_shift_ke
     local shift_e
-    json_shift_ke shift_e bash_json [例外] [高兴]
-    json_shift_ke shift_e bash_json [例外] [高兴]
+    json_shift_ke shift_e bash_json [extra] [happy]
+    json_shift_ke shift_e bash_json [extra] [happy]
     local -A shift_e shift_e_spec=([hah]=1 [kaixk]=2)
-    json_shift_ke shift_e bash_json [例外] [高兴]
+    json_shift_ke shift_e bash_json [extra] [happy]
     if assert_array 'A' shift_e shift_e_spec ; then
         ret[json_shift_ke]=0
     else
@@ -370,10 +376,10 @@ test_case_all ()
     # json_dump_ho bash_json
 
     #22. json_unshift
-    json_unshift bash_json [例外] [高兴] - '1'
-    json_unshift bash_json [例外] [高兴] - '2'
+    json_unshift bash_json [extra] [happy] - '1'
+    json_unshift bash_json [extra] [happy] - '2'
     local get_array=()
-    json_get get_array bash_json 例外 高兴
+    json_get get_array bash_json extra happy
     local -a spec=(2 1)
     if assert_array 'a' spec get_array ; then
         ret[json_unshift]=0
@@ -384,12 +390,12 @@ test_case_all ()
     # json_dump_ho bash_json
     #23. json_has_key
     local ret_v=''
-    json_has_key bash_json 进行中的项目 项目2 进度 4 ; ret_v="$?$ret_v"
-    json_has_key bash_json 进行中的项目 项目2 进度 ; ret_v="$?$ret_v"
-    json_has_key bash_json 别的 ; ret_v="$?$ret_v"
-    json_has_key bash_json 别的 8 ; ret_v="$?$ret_v"
-    json_has_key bash_json 别的 8 12 13 ; ret_v="$?$ret_v"
-    json_has_key bash_json 部门 ; ret_v="$?$ret_v"
+    json_has_key bash_json project_in_process "pr > oject2" "proc essdatay> " 4 ; ret_v="$?$ret_v"
+    json_has_key bash_json project_in_process "pr > oject2" "proc essdatay> " ; ret_v="$?$ret_v"
+    json_has_key bash_json otheragain ; ret_v="$?$ret_v"
+    json_has_key bash_json otheragain 8 ; ret_v="$?$ret_v"
+    json_has_key bash_json otheragain 8 12 13 ; ret_v="$?$ret_v"
+    json_has_key bash_json paart ; ret_v="$?$ret_v"
     
     if [[ "$ret_v" == '02100021' ]] ; then
         ret[json_has_key]=0

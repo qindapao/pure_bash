@@ -10,7 +10,7 @@ cd ./src
 . ./array/array_read_file.sh || return 1
 
 # set -xv
-
+# BUG: :TODO: 受不同bash版本键的顺序的影响,所以有问题
 detect_rings ()
 {
     local -A func_graph

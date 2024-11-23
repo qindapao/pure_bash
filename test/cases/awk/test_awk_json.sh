@@ -27,10 +27,10 @@ test_case1 ()
     "person": {
         "n:am,[]{}e": "John",
         "ag\n \t\"e": "30",
-        "爱好": ["打\"乒乓球", "打羽毛,.{}[]/\\,/球", "发呆"],
-        "其它": [],
+        "X1": ["hit\"pingpang", "hityumao,.{}[]/\\,/qiu", "fadai"],
+        "X2": [],
         "other": {},
-        "别的": [[], {},
+        "X3": [[], {},
                 "\b\f\n\r\t/\\,\"agegg123344",
                 true,
                 "\\",
@@ -48,10 +48,10 @@ test_case1 ()
                 "",
                 ""
                 ],
-        "部门": "测试与装备部",
-        "进行中的项目": {
-            "项目1": {"名字": "自动化测试", "进度": "10%"},
-            "项目2": {"名字": "性能优化", "进度": "40%"}
+        "X4": "X5",
+        "X6": {
+            "X\"7": {"X9": "X10", "X12": "10%"},
+            "X8": {"X9": "X11", "X12": "40%"}
         }
     }
 }
@@ -65,11 +65,11 @@ test_case1 ()
     local -A awk_json_dict=()
     awk_json awk_json_dict "$tmp_out_file" "$tmp_file"
     
-    # lsdebug_bp '' awk_json_dict
-
-    declare -A awk_json_dict_after=(["'person','进行中的项目','项目2','进度'"]="40%" ["'person','进行中的项目','项目1','进度'"]="10%" ["'person','别的',9"]="null" ["'person','别的',8"]="" ["'person','别的',5"]="0" ["'person','别的',4"]="\\" ["'person','别的',7"]=" x" ["'person','别的',6"]="" ["'person','别的',1"]="{}" ["'person','别的',0"]="[]" ["'person','别的',3"]="1" ["'person','别的',2"]=$'\b\f\n\r\t/\\,"agegg123344' ["'person','进行中的项目','项目2','名字'"]="性能优化" ["'person','爱好',2"]="发呆" ["'person','爱好',1"]="打羽毛,.{}[]/\\,/球" ["'person','爱好',0"]="打\"乒乓球" ["'person','部门'"]="测试与装备部" ["'person','进行中的项目','项目1','名字'"]="自动化测试" ["'person','other'"]="{}" ["'person','n:am,[]{}e'"]="John" ["'person','别的',14"]="" ["'person','其它'"]="[]" ["'person','别的',15"]="" ["'person','别的',16"]="" ["'person','别的',17"]="" ["'person','别的',10"]="" ["'person','别的',11"]="" ["'person',\$'ag\\n \\t\"e'"]="30" ["'person','别的',12"]="" ["'person','别的',13"]="" )
+    declare -A awk_json_dict_after=(["'person','X6','X8','X12'"]="40%" [''\''person'\'','\''X6'\'','\''X"7'\'','\''X12'\''']="10%" ["'person','X3',9"]="null" ["'person','X3',8"]="" ["'person','X3',5"]="0" ["'person','X3',4"]="\\" ["'person','X3',7"]=" x" ["'person','X3',6"]="" ["'person','X3',1"]="{}" ["'person','X3',0"]="[]" ["'person','X3',3"]="1" ["'person','X3',2"]=$'\b\f\n\r\t/\\,"agegg123344' ["'person','X6','X8','X9'"]="X11" ["'person','X1',2"]="fadai" ["'person','X1',1"]="hityumao,.{}[]/\\,/qiu" ["'person','X1',0"]="hit\"pingpang" ["'person','X4'"]="X5" [''\''person'\'','\''X6'\'','\''X"7'\'','\''X9'\''']="X10" ["'person','other'"]="{}" ["'person','n:am,[]{}e'"]="John" ["'person','X3',14"]="" ["'person','X2'"]="[]" ["'person','X3',15"]="" ["'person','X3',16"]="" ["'person','X3',17"]="" ["'person','X3',10"]="" ["'person','X3',11"]="" ["'person',\$'ag\\n \\t\"e'"]="30" ["'person','X3',12"]="" ["'person','X3',13"]="" )
     
     rm -f "$tmp_file" "$tmp_out_file"
+
+    lsdebug_bp '' awk_json_dict awk_json_dict_after
 
     if assert_array 'A' awk_json_dict awk_json_dict_after ; then
         echo "${FUNCNAME[0]} test pass."

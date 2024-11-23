@@ -9,9 +9,9 @@
 bit_num_to_dec ()
 {
     local value=${1,,}
-    if [[ "${value:0:2}" == 0[xX] ]] ; then
+    if [[ "${value:0:2}" == '0x' ]] ; then
         printf "%d" "$value"
-    elif [[ "${value:0:2}" == "0b" ]] ; then
+    elif [[ "${value:0:2}" == '0b' ]] ; then
         printf "%d" "$((2#${value:2}))"
     elif [[ "$value" =~ ^[0-9]+$ ]]; then
         # 删除前导0

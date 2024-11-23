@@ -3,32 +3,55 @@
 
 BASE64_USE_BUILTIN_TOOL=0
 
-base64_common_test ()
-{
-    local test_var=
-    local -n test_var_ref1=test_var
-    local -n test_var_ref2=test_var_ref1
-    local -n test_var_ref3=test_var_ref2
-    local test_ret=0
+# :TODO: 目前bash4.4环境下无法正常把结果输出到变量,只能打印到标准输出
+# :TODO: 4.4后面的版本也没有完全验证,工具可能需要优化升级
+if ((__META_BASH_VERSION<=4004023)) ; then
+    base64_common_test ()
+    {
+        local encode_str
+        local decode_str
+        local test_ret=0
+        encode_str=$(ibase64 encode "hello world!")
 
-    ibase64 -v test_var_ref3 encode "hello world!"
-    if [[ "$test_var_ref3" != 'aGVsbG8gd29ybGQh' ]] ||
-        [[ "$test_var_ref2" != 'aGVsbG8gd29ybGQh' ]] ||
-        [[ "$test_var_ref1" != 'aGVsbG8gd29ybGQh' ]] ||
-        [[ "$test_var" != 'aGVsbG8gd29ybGQh' ]] ; then
-        test_ret=1
-    fi
+        if [[ "$encode_str" != 'aGVsbG8gd29ybGQh' ]] ; then
+            test_ret=1
+        fi
 
-    ibase64 -v test_var_ref3 decode 'aGVsbG8gd29ybGQh'
-    if [[ "$test_var_ref3" != 'hello world!' ]] ||
-        [[ "$test_var_ref2" != 'hello world!' ]] ||
-        [[ "$test_var_ref1" != 'hello world!' ]] ||
-        [[ "$test_var" != 'hello world!' ]] ; then
-        test_ret=1
-    fi
-    
-    return $test_ret
-}
+        decode_str=$(ibase64 decode 'aGVsbG8gd29ybGQh')
+        if [[ "$decode_str" != 'hello world!' ]] ; then
+            test_ret=1
+        fi
+        
+        return $test_ret
+    }
+else
+    base64_common_test ()
+    {
+        local test_var=
+        local -n test_var_ref1=test_var
+        local -n test_var_ref2=test_var_ref1
+        local -n test_var_ref3=test_var_ref2
+        local test_ret=0
+
+        ibase64 -v test_var_ref3 encode "hello world!"
+        if [[ "$test_var_ref3" != 'aGVsbG8gd29ybGQh' ]] ||
+            [[ "$test_var_ref2" != 'aGVsbG8gd29ybGQh' ]] ||
+            [[ "$test_var_ref1" != 'aGVsbG8gd29ybGQh' ]] ||
+            [[ "$test_var" != 'aGVsbG8gd29ybGQh' ]] ; then
+            test_ret=1
+        fi
+
+        ibase64 -v test_var_ref3 decode 'aGVsbG8gd29ybGQh'
+        if [[ "$test_var_ref3" != 'hello world!' ]] ||
+            [[ "$test_var_ref2" != 'hello world!' ]] ||
+            [[ "$test_var_ref1" != 'hello world!' ]] ||
+            [[ "$test_var" != 'hello world!' ]] ; then
+            test_ret=1
+        fi
+        
+        return $test_ret
+    }
+fi
 
 base64_common ()
 {
@@ -53,6 +76,8 @@ base64_common ()
         fi
     fi
 }
+
+base64_common
 
 return 0
 
