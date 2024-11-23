@@ -3,7 +3,7 @@
 
 . ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
-. ./array/array_sort.sh || return 1
+. ./array/array_qsort.sh || return 1
 . ./array/array_revert.sh || return 1
 
 # 树状打印一个结构体变量
@@ -100,7 +100,7 @@ _json_dump ()
                 # 如果是用递归函数,那么用-gt <
                 __json_dump_printf_mark='>'
                 # :TODO: 这里冒泡排序的效率比较低,后续可以优化
-                array_sort __json_dump_var_indexs '<'
+                array_qsort __json_dump_var_indexs '<'
             else
                 __json_dump_printf_mark='='
                 array_revert __json_dump_var_indexs
@@ -159,7 +159,7 @@ _json_dump ()
 #         else
 #             __json_dump_printf_mark='='
 #         fi
-#         array_sort __json_dump_var_indexs "$sort_method"
+#         array_qsort __json_dump_var_indexs "$sort_method"
 
 #         for __json_dump_index in "${__json_dump_var_indexs[@]}" ; do
 #             # 递归调用
@@ -216,7 +216,7 @@ json_dump ()
         # 如果是关联数组按照字典排序,数组的顺序本来就是对的
         _json_dump_printf_mark='>'
         # :TODO: 这里冒泡排序效率比较低,后续可以优化
-        array_sort _json_dump_indexs '>'
+        array_qsort _json_dump_indexs '>'
     }
     printf "%s %s\n" "${2}" "$_json_dump_printf_mark"
 

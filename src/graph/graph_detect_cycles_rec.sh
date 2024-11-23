@@ -7,7 +7,7 @@
 . ./graph/graph_common.sh || return 1
 . ./array/array_contains.sh || return 1
 . ./array/array_index_of.sh || return 1
-. ./array/array_sort.sh || return 1
+. ./array/array_qsort.sh || return 1
 
 # 迭代深度优先搜索检测环并打印所有环
 # 1: 图的变量引用
@@ -54,7 +54,7 @@ graph_detect_cycles_rec ()
     # 这显然不合理
     local -a key_array_N1=()
     key_array_N1=("${!N1[@]}")
-    array_sort key_array_N1
+    array_qsort key_array_N1
 
     for nodeN1 in "${key_array_N1[@]}" ; do
         _graph_detect_cycles_rec_visit "$nodeN1"

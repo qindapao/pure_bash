@@ -3,7 +3,7 @@
 
 . ./base64/base64_decode.sh || return 1
 . ./json/json_common.sh || return 1
-. ./array/array_sort.sh || return 1
+. ./array/array_qsort.sh || return 1
 . ./regex/regex_common.sh || return 1
 . ./cntr/cntr_copy.sh || return 1
 
@@ -107,7 +107,7 @@ json_get ()
             local -a _json_get_indexs=("${!_json_get_tmp_var[@]}")
             case "$_json_get_flags" in
             # 普通数组根本不用排序
-            *A*)    array_sort _json_get_indexs '>' ;;
+            *A*)    array_qsort _json_get_indexs '>' ;;
             esac
             local _json_get_iter_index=''
             for _json_get_iter_index in "${_json_get_indexs[@]}" ; do

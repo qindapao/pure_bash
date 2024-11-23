@@ -1,7 +1,7 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[array_dump]++)) && return 0
 
-. ./array/array_sort.sh || return 1
+. ./array/array_qsort.sh || return 1
 . ./regex/regex_common.sh || return 1
 
 # 树状打印一个数组或者关联数组或者普通字符串
@@ -41,7 +41,7 @@ array_dump ()
                     _array_dump_keys=("${!_array_dump_ref_arr[@]}")
                     if ((${#_array_dump_keys[@]})) ; then
                         if [[ "${_array_dump_ref_arr@a}" == *A* ]] ; then
-                            array_sort _array_dump_keys '>' 
+                            array_qsort _array_dump_keys '>' 
                             _array_dump_key_mark='=>'
                         fi
 
