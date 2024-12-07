@@ -42,7 +42,7 @@ bit_set_conti_bits_value ()
         params_arr+=("${i}:$(( (filed_set_value>>(i-lower_limit))&1 ))")
     done
 
-    bit_set_value_s "$value" "${params_arr[@]}"
+    bit_set_value '' "$value" "${params_arr[@]}"
 }
 
 alias bit_set_conti_bits_value_s='bit_set_conti_bits_value ""'

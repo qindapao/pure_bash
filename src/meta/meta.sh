@@ -47,6 +47,7 @@ unalias -a
 # local -让选项变成局部,但是这里只能local -不能赋值
 # local -=hB这种写法是错误的
 # 目前验证了这种语法在bash4.4.23(1)上是支持的
+# 定义它但是不直接使用(bash4.4的别名扩展问题)
 alias disable_xv='local - ; set +xv'
 # 强制使用C语言环境的字符排序规则，从而确保 [a-z] 和 [A-Z] 按预期工作
 export LC_COLLATE=C
@@ -122,7 +123,7 @@ esac
 #     *":/bin:"*) PURE_BASH_TOOLS_DIR='/bin' ;;
 #     *":/sbin:"*) PURE_BASH_TOOLS_DIR='/sbin' ;;
 #     *":/opt/bin:"*) PURE_BASH_TOOLS_DIR='/opt/bin' ;;
-#     *)  echo "can not find exec dir!" >&2 ; return 1 ;;
+#     *)  echo "can not find exec dir!" >&2 ; exit 1 ;;
 # esac
 
 meta_get_tool_dir ()
@@ -135,7 +136,7 @@ meta_get_tool_dir ()
     *":/bin:"*) printf -v "$1" "%s" '/bin' ;;
     *":/sbin:"*) printf -v "$1" "%s" '/sbin' ;;
     *":/opt/bin:"*) printf -v "$1" "%s" '/opt/bin' ;;
-    *)  echo "can not find exec dir!" >&2 ; exit 1 ;;
+    *)  echo "can not find exec dir!" >&2 ; return 1 ;;
     esac
 }
 

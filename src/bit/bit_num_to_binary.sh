@@ -8,7 +8,7 @@
 # :TODO: 高阶函数适配
 bit_num_to_binary ()
 {
-    disable_xv
+    local - ; set +xv
     local value=${1,,}
     local filed_length=$2
     local filed_char=$3

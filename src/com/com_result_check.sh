@@ -5,7 +5,7 @@
 
 com_result_check ()
 {
-    disable_xv
+    local - ; set +xv
     local -i slot_num=0 exit_code=0
     local -a test_result=() com_logs_contents=()
     local line_str valid_chars=''
@@ -83,6 +83,12 @@ com_result_check ()
         echo ""
         echo "[40;32m ****$TU_NAME $(date_prt)....TEST PASS****[0m"
     fi
+
+    # 恢复标准输出
+    exec 1>&100
+    # 关闭文件描述符100
+    exec 100>&-
+
     exit ${exit_code}
 }
 

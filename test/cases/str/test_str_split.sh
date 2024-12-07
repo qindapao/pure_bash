@@ -33,10 +33,11 @@ test_case1 ()
     fi
 }
 
+# 为了兼容bash4.4,带有别名的执行在子进程中最好用eval来执行
 test_case2 ()
 {
     local str1=" xxoo223ooxx"
-    local str_get=$(echo "$str1" | str_split_i 'oo' 2)
+    local str_get=$(echo "$str1" | eval ${BASH_ALIASES[str_split_i]} 'oo' 2)
     if [[ "$str_get" == '223' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -49,7 +50,7 @@ test_case2 ()
 test_case3 ()
 {
     local str1=" xxoo223ooxx"
-    local str_get=$(str_split_s "$str1" oo 2)
+    local str_get=$(eval ${BASH_ALIASES[str_split_s]} '"$str1"' oo 2)
     if [[ "$str_get" == '223' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -63,7 +64,6 @@ test_case3 ()
 test_case4 ()
 {
     local str1=" xxoo223ooxx"
-    local str_get=$(str_split_s "$str1" oo 2)
     local ret_str
     str_split_sv "$str1" oo 2
     if [[ "$ret_str" == '223' ]] ; then

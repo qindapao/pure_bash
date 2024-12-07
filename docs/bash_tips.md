@@ -3094,6 +3094,7 @@ $xxm 是一个变量，其值会被插入到字符串中。
 
 https://rg1-teaching.mpi-inf.mpg.de/unixffb-ss98/quoting-guide.html
 
+
 ##### 一些可以不使用双引号的情况
 
 1. 一个变量赋值给另外一个变量，不需要加双引号，就算里面有特殊符号也不会被扩展
@@ -3127,7 +3128,7 @@ local IFS=${3-${IFS}}
 
 但是外层的双引号一定要谨慎，请看下面的例子：
 
-```bash```
+```bash
 q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/bit
 $ xyk=${baz:-'$(cat 1.txt)'}
 + xyk='$(cat 1.txt)'
@@ -3609,7 +3610,7 @@ declare -- a
 declare -- a
 declare -- a="test_case1"
 declare -- a="out"
---------------------------
+
 declare -- a="test_case1"
 declare -- a="test_case1"
 declare -- a="test_case1"
@@ -4024,6 +4025,131 @@ echo "${a#???}"
 
 `${a#?}`这个是前缀删除的语法，表示删除字符串的开头一个字符.
 
+## 实用外部工具
+
+### xmllint
+
+`xmllint`是一个用于解析`xml`文件的专业工具。可以方便用于`bash`脚本中对xml文件的解析和处理。  
+
+工具的最新源码下载:
+https://gitlab.gnome.org/GNOME/libxml2/-/releases
+
+编译指导:
+
+1. 运行下面的命令
+
+```bash
+[root@localhost libxml2-v2.13.5]# find /usr/share -name "pkg.m4"
+/usr/share/aclocal/pkg.m4
+
+[root@localhost libxml2-v2.13.5]# 
+[root@localhost libxml2-v2.13.5]# export ACLOCAL_PATH=/usr/share/aclocal
+[root@localhost libxml2-v2.13.5]# 
+[root@localhost libxml2-v2.13.5]# aclocal -I /usr/share/aclocal
+```
+
+
+
+2. 使用`autoconf`工具生成configure脚本
+
+```bash
+[root@localhost libxml2-v2.13.5]# yum install autoconf
+Last metadata expiration check: 0:31:53 ago on Thu 28 Nov 2024 04:28:03 PM CST.
+Package autoconf-2.69-30.oe1.noarch is already installed.
+Dependencies resolved.
+Nothing to do.
+Complete!
+[root@localhost libxml2-v2.13.5]# 
+[root@localhost libxml2-v2.13.5]# autoreconf -iv
+```
+
+3. 如果发现`automake`工具的版本太旧，那么可能需要升级下
+
+```bash
+yum update automake
+```
+
+. 如果自动升级不行，那么我们去手动下载： `wget http://ftp.gnu.org/gnu/automake/automake-1.16.3.tar.gz`
+. 执行配置命令：`./configure --prefix=/usr/local`
+. `make`
+. `make install`
+
+4. 如果发现`m4`相关的报错，可能是`m4`的包也太旧了，那么升级安装下
+
+```bash
+configure.ac:1044: error: possibly undefined macro: m4_ifdef
+      If this token and others are legitimate, please use m4_pattern_allow.
+      See the Autoconf documentation.
+```
+
+. wget `http://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.gz`
+. `./configure --prefix=/usr/local`
+. `make`
+. `make install`
+. `export PATH=/usr/local/bin:$PATH`
+. `export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH`
+
+
+5. 生成`libxml2`的`configure`脚本后我们就可以开始配置了。
+
+```
+./configure
+```
+
+6. `make`
+
+7. 打包和安装
+
+如果要在当前环境安装，直接`make install`即可，如果是要打包到别的环境使用。
+
+运行以下的命令：
+
+```bash
+[root@localhost xx]# mkdir -p libxml2_package/usr/bin libxml2_package/lib64 libxml2_package/include
+[root@localhost xx]# 
+[root@localhost xx]# cp /root/xx/libxml2-v2.13.5/.libs/xmllint libxml2_package/usr/bin/
+[root@localhost xx]# cp /root/xx/libxml2-v2.13.5/.libs/libxml2.so* libxml2_package/lib64/
+[root@localhost xx]# cp -r /root/xx/libxml2-v2.13.5/include/libxml libxml2_package/include/
+[root@localhost xx]# 
+```
+
+如果最后不需要头文件，就把头文件目录删除即可。
+
+8. 基本使用
+
+```bash
+Storage:~/xx # cat example.xml 
+<root>
+  <element id="1">Content 1</element>
+  <element id="2">Content 2</element>
+</root>
+
+Storage:~/xx # xmllint --xpath "//element[@id='2']" example.xml
+<element id="2">Content 2</element>
+Storage:~/xx # xmllint --xpath "//element[@id='2']/text()" example.xml
+Content 2
+Storage:~/xx # xmllint --xpath "string(//element[@id='2'])" example.xml
+Content 2
+Storage:~/xx # 
+```
+
+但是使用`text`才能获取到所有的值:
+
+```bash
+Storage:~/xx # cat example.xml 
+<root>
+  <element id="1">Content 1</element>
+  <element id="2">Content 2</element>
+  <element id="2">Content 2</element>
+  <element id="2">Content 2</element>
+</root>
+
+Storage:~/xx # xmllint --xpath "//element[@id='2']/text()" example.xml
+Content 2
+Content 2
+Content 2
+Storage:~/xx # 
+```
 
 ## git
 
@@ -4126,6 +4252,141 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/fun#
 先看一个例子，不管是`bash`的内置命令还是外部命令，当遇到参数中包含`-`的时候都很
 容易被命令误当成一个选项，而不是参数来执行，规避这种情况的方法是使用`--`明确让命令
 知道后面的都是参数，而不是选项。具体哪些命令受这个规则影响需要具体测试。
+
+## 命令替换
+
+### bash5.3 增加的两种不fork子进程的命令替换方式
+
+1. ${ command;} 语法
+
+注意上面,前面的空格是必须的，当然也可以用`TAB`，或者新行，最后一个命令的`;`也是必须  
+的。(其实也不一定，如果有换行也是可以的)。
+
+举个例子:
+
+```bash
+m=${ local xm=1x;echo "$xm" 2>&1;return 1; }
+echo $?
+declare -p m xm
+```
+
+最后得到的结果是下面:
+
+```bash
+1
+declare -- m=$'1x\n29'
+test.sh: line 29: declare: xm: not found
+```
+
+这种语法就相当于调用了一个匿名的函数，并且这个函数实在当前的`shell`的环境中执行的，  
+所以效率更好，不用开启新的`子shell`。并且函数中的副作用会在当前`shell`中生效。
+
+如果写成下面的形式其实也是可以的：
+
+```bash
+m=${
+    local xm=1x
+    echo "$xm" 2>&1
+    return 1
+    }
+echo $?
+declare -p m xm
+```
+
+这种情况下换行符是会被干掉的。
+
+如果调用函数，可能导致函数中指示的行号不准确，所以最好还是写到一行比较好。有了这种形式的进程替换，某些情况下包含内置命令的打印就会变得非常快速，比如`${ declare -p var; }`。
+
+
+2. ${|command;} 语法
+
+上面那种语法，如果函数中有打印到标准输出的多余信息，那么可能会被我们错误捕捉，而  
+这种语法就更好了，它捕捉调用命令中`REPLY`变量的值，不会产生副作用，举个例子说明下：
+
+
+```bash
+test_use_full ()
+{
+    echo "we can use loging"
+    local array=('1 
+ 2' '3 4' '5 6')
+    # 可以把函数的执行返回值放数组第一个元素
+    REPLY="(1 ${array[@]@Q})"
+}
+
+#set -xv
+eval result=${|test_use_full;}
+declare -p result REPLY x
+```
+
+最终返回的结果如下：
+
+```bash
+we can use loging
+declare -a result=([0]="1" [1]=$'1 \n 2' [2]="3 4" [3]="5 6")
+test.sh: line 50: declare: REPLY: not found
+test.sh: line 50: declare: x: not found
+```
+
+这里有个非常方便的地方是: 构造会自动捕捉调用函数中的`REPLY`变量的值。所以调用  
+函数中的`REPLY`一定不要加`local`或者`declare`关键字限定！但是在构造中是可以加`local`  
+的，比如：
+
+```bash
+eval result=${|test_use_full;local REPLY=$REPLY;}
+```
+
+这不会影响结果，但是没有必要，因为构造本身在调用结束后会清理掉REPLY，非常的简洁。  
+正常情况下`REPLY`用于返回一个字符串，那么可以捕捉构造本身的`$?`作为返回值。但是如果  
+想返回一个数组或者关联数组，就要用我上面的写法了。这种情况下，由于使用了`eval`命令，  
+无法获取到真正的`$?`，那么就需要把函数的成功或者失败的信息保存到返回结果的第一  
+个元素(数组)，或者特定的键`ret_code`(关联数组)中。  
+
+再看一个复杂点的例子:
+
+```bash
+test_use_full2 ()
+{
+    REPLY="haha xx"
+}
+
+test_use_full ()
+{
+    echo "we can use loging"
+    local array=${|test_use_full2;}
+    declare -p REPLY
+    # 可以把函数的执行返回值放数组第一个元素
+    REPLY="(1 ${array[@]@Q})"
+}
+
+#set -xv
+eval result=${|test_use_full;local REPLY=$REPLY;}
+declare -p result REPLY x
+```
+
+
+最终的输出结果：
+
+```bash
+we can use loging
+declare -- REPLY
+declare -a result=([0]="1" [1]="haha xx")
+test.sh: line 55: declare: REPLY: not found
+test.sh: line 55: declare: x: not found
+```
+
+其实可以看到，第一次打印`REPLY`的时候，`declare`并没有上报命令不存在，而是存在一个  
+空槽位，证明构造结构隐式直接调用了`unset`而已。从而保证了整个函数调用链路中的REPLY  
+变量是安全的。
+
+这种情况下，换行符会保留，因为我们获取的是`REPLY`字符串中的内容。  
+
+
+并且上面两种命令替换的方式都是可以嵌套的，这意味著，用它们可以代替管道来实现一些复杂的过滤功能，提高效率，增加可定位性。
+
+
+所以这个语法其实和管道本身并没有多大的关系。
+
 
 
 ## 一些疑问

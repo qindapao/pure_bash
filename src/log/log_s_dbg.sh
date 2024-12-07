@@ -40,7 +40,7 @@ LOG_FILE_NAME="test_log_$(date_log).log"
 #
 log_s_dbg ()
 {
-    disable_xv
+    local - ; set +xv
     if [[ "${#1}" == '1' ]] ; then
         local _log_s_dbg_log_type=${1}
         local -i _log_s_dbg_is_need_break=0

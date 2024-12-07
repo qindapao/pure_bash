@@ -43,7 +43,7 @@ LOG_FILE_NAME="test_log_$(date_log).log"
 #
 log_dbg ()
 {
-    disable_xv
+    local - ; set +xv
     if [[ "${#1}" == '1' ]] ; then
         local _log_dbg_log_type=${1}
         local -i _log_dbg_is_need_break=0
@@ -115,7 +115,7 @@ log_dbg ()
                         _log_dbg_declare_str="$_log_dbg_prt_str"
                         # 横向打印原始字符串,更方便阅读(但是换行的时候就比较难看)
                         # :TODO: 如何打印最合适啊?
-                        _log_dbg_declare_str+=$(json_dump_ho "${!_log_dbg_i}")
+                        _log_dbg_declare_str+=$(eval ${BASH_ALIASES[json_dump_ho]} '"${!_log_dbg_i}"')
                     else
                         # 相等是没有引用变量的情况
                         [[ "$_log_dbg_prt_str" == "${!_log_dbg_i}" ]] && _log_dbg_prt_str='' || _log_dbg_prt_str+=' '
