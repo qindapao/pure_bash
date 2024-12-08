@@ -8,6 +8,7 @@ cd "$root_dir"/src
 . ./date/date_log.sh || return 1
 . ./str/str_split.sh || return 1
 . ./cntr/cntr_map.sh || return 1
+. ./atom/atom_func_upstr.sh || return 1
 
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
@@ -65,7 +66,9 @@ test_case4 ()
 {
     local str1=" xxoo223ooxx"
     local ret_str
-    str_split_sv "$str1" oo 2
+    
+    atom_func_upstr ret_str \
+        str_split_sv "$str1" oo 2
     if [[ "$ret_str" == '223' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0

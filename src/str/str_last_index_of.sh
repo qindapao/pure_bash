@@ -1,11 +1,12 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[str_last_index_of]++)) && return 0
 
+. ./atom/atom_func_upstr.sh || return 1
 . ./str/str_common.sh || return 1
 
 # 预留字符串原型(保证原型字符串的长度足够)
 # 返回
-# ret_str 外层变量
+# REPLY 外层变量
 # | $1   | $2   | result |
 # |------|------|--------|
 # | null | null | -1     |
@@ -16,14 +17,17 @@
 str_last_index_of ()
 {
     local haystack=$1 needle=$2 count=${3:-1}
-    str_common_repeat '"$needle"*' "$count"; local pattern=$ret_str
+    local pattern
+    atom_func_upstr pattern \
+        str_common_repeat '"$needle"*' "$count"
+
     eval -- "local transformed=\${haystack%$pattern}"
     if [[ $transformed == "$haystack" ]]; then
-        ret_str=-1
+        REPLY=-1
     else
-        ret_str=${#transformed}
+        REPLY=${#transformed}
     fi
-    ((ret_str>=0))
+    ((REPLY>=0))
 }
 
 return 0

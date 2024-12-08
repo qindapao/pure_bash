@@ -19,7 +19,7 @@ _array_qsort_use_sort_cmd ()
 
     local _aqusc_joined_str= _aqusc_sorted_str=
     printf -v _aqusc_joined_str "%s\n" "${_aqusc_arr_copy[@]}"
-    _aqusc_sorted_str=$(printf "%s" "$_aqusc_joined_str" | sort "${_aqusc_sort_cmd_param[@]}")
+    _aqusc_sorted_str=$(sort "${_aqusc_sort_cmd_param[@]}" <<<"$_aqusc_joined_str")
     local IFS=$'\n'
     case "$_aqusc_sort_rule" in
         -[gl]t)

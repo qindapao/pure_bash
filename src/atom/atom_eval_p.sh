@@ -3,6 +3,7 @@
 
 . ./str/str_index_of.sh || return 1
 . ./array/array_del_elements_dense.sh || return 1
+. ./atom/atom_func_upstr.sh || return 1
 
 # 处理eval函数的参数,提高eval代码的可读性
 # 之所以这么麻烦就是因为bash的正则无法支持非贪婪搜索和负向断言导致
@@ -18,7 +19,7 @@ atom_eval_p ()
     shift
     local -A params_S1=()
     local -a indexs_keys_S1=()
-    local word_S1 min_index_S1 min_key_S1 ret_str
+    local word_S1 min_index_S1 min_key_S1 ret_index
 
     while (($#)) ; do
         params_S1[$1]=$2 ; indexs_keys_S1+=("$1")
@@ -31,13 +32,14 @@ atom_eval_p ()
     while((${#indexs_keys_S1[@]})) || [[ -n "$script_copy" ]] ; do
         min_index_S1=-1 ; min_key_S1=
         for word_S1 in "${indexs_keys_S1[@]}" ; do
-            if ! str_index_of "$script_copy" "$word_S1" ; then
+            if ! atom_func_upstr ret_index \
+                str_index_of "$script_copy" "$word_S1" ; then
                 array_del_elements_dense indexs_keys_S1 "$word_S1"
                 continue
             fi
 
-            if (((min_index_S1==-1)||(ret_str<min_index_S1))) ; then
-                min_index_S1=$ret_str
+            if (((min_index_S1==-1)||(ret_index<min_index_S1))) ; then
+                min_index_S1=$ret_index
                 min_key_S1=$word_S1
             fi
         done

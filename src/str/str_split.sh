@@ -15,7 +15,6 @@
 #
 str_split ()
 {
-    ret_str=''
     local tmp_str old_str
     declare -i index cnt i_index
     local input_str
@@ -39,14 +38,14 @@ str_split ()
         # 一定把这个设置成第一个参数
         -v)
         # 输出类型1是字符串
-        out_method=1 ; shift
+        REPLY='' ; out_method=1 ; shift
         ;;
         -a)
         # 输出到数组的变量中(数组名和索引占据前两个变量)
         input_str=$4
         out_method=2
         set -- "${2}" "${3}" "${@:5}"
-        local ret_str=''
+        local REPLY=''
         break
         ;;
         esac
@@ -74,16 +73,18 @@ str_split ()
             tmp_str=${tmp_str%%"${!index}"*}
         done
         if ((out_method)) ; then
-            ret_str+="${tmp_str}"$'\n'
+            REPLY+="${tmp_str}"$'\n'
         else
             printf "%s\n" "$tmp_str"
         fi
     done
-    [[ -n "$ret_str" ]] && ret_str=${ret_str%?}
+    if ((out_method)) ; then
+        [[ -n "$REPLY" ]] && REPLY=${REPLY%?}
+    fi
     ((out_method==2)) && {
         # 更新外部数组变量
         local "$1" && atom_unlocal "$1"
-        eval -- $1[\$2]='${ret_str}'
+        eval -- $1[\$2]='${REPLY}'
     }
 }
 

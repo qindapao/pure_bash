@@ -45,7 +45,7 @@ cntr_map ()
             if [[ -o noglob ]] ; then
                 eval alias_arr'$1'=(${BASH_ALIASES[$2]})
             else
-                local - ; set -f ; alias_arr'$1'=(${BASH_ALIASES[$2]}) ; set +f
+                local - ; set -f ; eval alias_arr'$1'=(${BASH_ALIASES[$2]}) ; set +f
             fi
             eval "${alias_arr'$1'[@]}" '\'''$1''\'' '\''"${i'$1'}"'\'' '\''"${'$1'[$i'$1']}"'\'' '\''"${@:3}"'\''
         else

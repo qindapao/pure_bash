@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[str_splits]++)) && return 0
 
 . ./str/str_index_of.sh || return 1
+. ./atom/atom_func_upstr.sh || return 1
 
 # :TODO: 是否有必要模拟awk处理多行字符串?
 # 字符串裁剪成数组
@@ -12,7 +13,7 @@
 str_splits ()
 {
     ret_arr=()
-    local ret_str
+    local ret_index
     local in_str=$1
     local delim=$2
     local is_ignorecase=${3:-0}
@@ -31,10 +32,11 @@ str_splits ()
         local in_str_i=${in_str,,} delim_i=${delim,,} 
         local -i delim_len=${#delim}
         while [[ "$in_str_i" ]] ; do
-            if str_index_of "$in_str_i" "$delim_i" ; then
-                ret_arr+=("${in_str:0:ret_str}")
-                in_str=${in_str:ret_str+delim_len}
-                in_str_i=${in_str_i:ret_str+delim_len}
+            if atom_func_upstr ret_index \
+                str_index_of "$in_str_i" "$delim_i" ; then
+                ret_arr+=("${in_str:0:ret_index}")
+                in_str=${in_str:ret_index+delim_len}
+                in_str_i=${in_str_i:ret_index+delim_len}
             else
                 ret_arr+=("$in_str")
                 break

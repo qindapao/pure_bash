@@ -7,6 +7,7 @@ cd "$root_dir"/src
 . ./log/log_dbg.sh || return 1
 . ./date/date_log.sh || return 1
 . ./str/str_last_index_of.sh || return 1
+. ./atom/atom_func_upstr.sh || return 1
 
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
@@ -21,7 +22,8 @@ test_case1 ()
 {
     local a='是谁' b=我是谁不重要
     local ret_str
-    str_last_index_of "$b" "$a"
+    atom_func_upstr ret_str \
+        str_last_index_of "$b" "$a"
     if [[ "$ret_str" == '1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -35,7 +37,8 @@ test_case2 ()
 {
     local ret_str
     local a='xzyk17829ew829lexx1' b=829
-    str_last_index_of "$a" "$b"
+    atom_func_upstr ret_str \
+        str_last_index_of "$a" "$b"
     if [[ "$ret_str" == '11' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -49,7 +52,8 @@ test_case3 ()
 {
     local a='' b=xzyk1xx1
     local ret_str
-    str_last_index_of "$b" "$a"
+    atom_func_upstr ret_str \
+        str_last_index_of "$b" "$a"
     if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -63,7 +67,8 @@ test_case4 ()
 {
     local a='12399405' b=xzyk1xx1
     local ret_str
-    str_last_index_of "$a" "$b"
+    atom_func_upstr ret_str \
+        str_last_index_of "$a" "$b"
     if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -77,7 +82,8 @@ test_case5 ()
 {
     local a='x1239940123邓恩给1235' b=123
     local ret_str
-    str_last_index_of "$a" "$b" 3
+    atom_func_upstr ret_str \
+        str_last_index_of "$a" "$b" 3
     if [[ "$ret_str" == '1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -92,7 +98,8 @@ test_case6 ()
 {
     local a='' b=
     local ret_str
-    str_last_index_of "$a" "$b"
+    atom_func_upstr ret_str \
+        str_last_index_of "$a" "$b"
     if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -107,7 +114,8 @@ test_case7 ()
 {
     local a='' b=xx
     local ret_str
-    str_last_index_of "$a" "$b"
+    atom_func_upstr ret_str \
+        str_last_index_of "$a" "$b"
     if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
@@ -122,7 +130,8 @@ test_case8 ()
 {
     local a='xx' b=
     local ret_str
-    str_last_index_of "$a" "$b"
+    atom_func_upstr ret_str \
+        str_last_index_of "$a" "$b"
     if [[ "$ret_str" == '-1' ]] ; then
         echo "${FUNCNAME[0]} test pass."
         return 0
