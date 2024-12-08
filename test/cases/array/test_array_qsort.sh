@@ -66,6 +66,89 @@ test_case2 ()
     fi
 }
 
+test_case3 ()
+{
+    local mork_func=$(declare -f array_qsort)
+    local array=()
+    local array_after=()
+    local ret=0
+    local -i sub_case=1
+    # 重新定义函数
+    local array=(90 98 90 8 9 1 10 19 13 8 10009 56)
+    local array_after=([0]="1" [1]="8" [2]="8" [3]="9" [4]="10" [5]="13" [6]="19" [7]="56" [8]="90" [9]="90" [10]="98" [11]="10009")
+    eval "${mork_func}"
+    array_qsort array '-gt'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=(90 98 90 8 9 1 10 19 13 8 10009 56)
+    eval "${mork_func//100/0}"
+    array_qsort array '-gt'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=(90 98 90 8 9 1 10 19 13 8 10009 56)
+    local array_after=([0]="10009" [1]="98" [2]="90" [3]="90" [4]="56" [5]="19" [6]="13" [7]="10" [8]="9" [9]="8" [10]="8" [11]="1")
+    eval "${mork_func}"
+    array_qsort array '-lt'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=(90 98 90 8 9 1 10 19 13 8 10009 56)
+    local array_after=([0]="10009" [1]="98" [2]="90" [3]="90" [4]="56" [5]="19" [6]="13" [7]="10" [8]="9" [9]="8" [10]="8" [11]="1")
+    eval "${mork_func//100/0}"
+    array_qsort array '-lt'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=('dxgg ge10 1' '' ' ' '
+    eg' 'dge7*)L' '*)(dgge)'  '9029' 1 2 3 4 'xx oo')
+    local array_after=([0]=$'\n    eg' [1]=" " [2]="" [3]="*)(dgge)" [4]="1" [5]="2" [6]="3" [7]="4" [8]="9029" [9]="dge7*)L" [10]="dxgg ge10 1" [11]="xx oo")
+    eval "${mork_func}"
+    array_qsort array
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=('dxgg ge10 1' '' ' ' '
+    eg' 'dge7*)L' '*)(dgge)'  '9029' 1 2 3 4 'xx oo')
+    eval "${mork_func//100/0}"
+    array_qsort array
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=('dxgg ge10 1' '' ' ' '
+    eg' 'dge7*)L' '*)(dgge)'  '9029' 1 2 3 4 'xx oo')
+    local array_after=([0]=$'\n    eg' [1]=" " [2]="" [3]="*)(dgge)" [4]="1" [5]="2" [6]="3" [7]="4" [8]="9029" [9]="dge7*)L" [10]="dxgg ge10 1" [11]="xx oo")
+    eval "${mork_func}"
+    array_qsort array '>'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=('dxgg ge10 1' '' ' ' '
+    eg' 'dge7*)L' '*)(dgge)'  '9029' 1 2 3 4 'xx oo')
+    eval "${mork_func//100/0}"
+    array_qsort array '>'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=('dxgg ge10 1' '' ' ' '
+    eg' 'dge7*)L' '*)(dgge)'  '9029' 1 2 3 4 'xx oo')
+    local array_after=([0]="xx oo" [1]="dxgg ge10 1" [2]="dge7*)L" [3]="9029" [4]="4" [5]="3" [6]="2" [7]="1" [8]="*)(dgge)" [9]="" [10]=" " [11]=$'\n    eg')
+    eval "${mork_func}"
+    array_qsort array '<'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+
+    local array=('dxgg ge10 1' '' ' ' '
+    eg' 'dge7*)L' '*)(dgge)'  '9029' 1 2 3 4 'xx oo')
+    eval "${mork_func//100/0}"
+    array_qsort array '<'
+    assert_array 'a' array_after array
+    (($?)) && { echo "${FUNCNAME[0]} $((sub_case++)) test fail." ; return 1; } || echo "${FUNCNAME[0]} $((sub_case++)) test pass."
+}
+
+
 test_case1 &&
-test_case2
+test_case2 &&
+test_case3
 
