@@ -12,7 +12,7 @@
 # 如果截取失败,最终的结果是输入字符串
 str_splits ()
 {
-    ret_arr=()
+    local get_arr=()
     local ret_index
     local in_str=$1
     local delim=$2
@@ -20,10 +20,11 @@ str_splits ()
 
     [[ "$delim" ]] || {
         if [[ -o noglob ]]; then
-            ret_arr=($in_str)
+            get_arr=($in_str)
         else
-            local - ; set -f ; ret_arr=($in_str) ; set +f
+            local - ; set -f ; get_arr=($in_str) ; set +f
         fi
+        REPLY=${get_arr[*]@Q}
         return
     }
 
@@ -34,25 +35,26 @@ str_splits ()
         while [[ "$in_str_i" ]] ; do
             if atom_func_upstr ret_index \
                 str_index_of "$in_str_i" "$delim_i" ; then
-                ret_arr+=("${in_str:0:ret_index}")
+                get_arr+=("${in_str:0:ret_index}")
                 in_str=${in_str:ret_index+delim_len}
                 in_str_i=${in_str_i:ret_index+delim_len}
             else
-                ret_arr+=("$in_str")
+                get_arr+=("$in_str")
                 break
             fi
         done
     else
         while [[ "$in_str" ]] ; do
             if [[ "$in_str" == *"$delim"* ]] ; then
-                ret_arr+=("${in_str%%"$delim"*}")
+                get_arr+=("${in_str%%"$delim"*}")
                 in_str=${in_str#*"$delim"}
             else
-                ret_arr+=("$in_str")
+                get_arr+=("$in_str")
                 break
             fi
         done
     fi
+    REPLY=${get_arr[*]@Q}
 }
 
 return 0

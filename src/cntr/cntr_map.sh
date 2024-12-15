@@ -2,6 +2,7 @@
 ((DEFENSE_VARIABLES[cntr_map]++)) && return 0
 
 . ./cntr/cntr_common.sh || return 1
+. ./str/str_q_to_arr.sh || return 1
 
 # 参数:
 #   1: 需要map的数组或者关联数组名
@@ -42,12 +43,8 @@ cntr_map ()
     local alias_arr'$1'
     for i'$1' in "${!'$1'[@]}" ; do
         if [[ "${BASH_ALIASES[$2]:+set}" ]] ; then
-            if [[ -o noglob ]] ; then
-                eval alias_arr'$1'=(${BASH_ALIASES[$2]})
-            else
-                local - ; set -f ; eval alias_arr'$1'=(${BASH_ALIASES[$2]}) ; set +f
-            fi
-            eval "${alias_arr'$1'[@]}" '\'''$1''\'' '\''"${i'$1'}"'\'' '\''"${'$1'[$i'$1']}"'\'' '\''"${@:3}"'\''
+            str_q_to_arr alias_arr'$1' "${BASH_ALIASES[$2]}"
+            eval '\''"${alias_arr'$1'[@]}"'\'' '\'''$1''\'' '\''"${i'$1'}"'\'' '\''"${'$1'[$i'$1']}"'\'' '\''"${@:3}"'\''
         else
             eval "$2" '\'''$1''\'' '\''"${i'$1'}"'\'' '\''"${'$1'[$i'$1']}"'\'' '\''"${@:3}"'\''
         fi

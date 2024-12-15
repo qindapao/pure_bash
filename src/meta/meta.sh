@@ -6,7 +6,7 @@
 ((__META++)) && return 0
 
 # 主版本号.次版本号.补丁版本号.发布日志
-BASH_UTILS_LIB_VERSION='1.0.0.2024.10.26'
+BASH_UTILS_LIB_VERSION='1.2.0.2024.11.19'
 
 meta_get_lib_version ()
 {
@@ -51,7 +51,6 @@ unalias -a
 alias disable_xv='local - ; set +xv'
 # 强制使用C语言环境的字符排序规则，从而确保 [a-z] 和 [A-Z] 按预期工作
 export LC_COLLATE=C
-
 # # 强制设置语言环境为UTF-8(支持中文)
 # export LANG=en_US.UTF-8
 # # 设置时间的显示格式为英文
@@ -158,6 +157,29 @@ meta_var_clear ()
 declare -ga PURE_BASH_NULL_ARRAY=()
 # 空字典对象
 declare -gA PURE_BASH_NULL_DICT=()
+# 临时文件清理
+PURE_BASH_TEMPORARY_FILE_LIST=()
+# 临时文件搜集器(统一清理)
+meta_temporary_file_cleaner ()
+{
+    if ((${#PURE_BASH_TEMPORARY_FILE_LIST[@]})) ; then
+        rm -f "${PURE_BASH_TEMPORARY_FILE_LIST[@]}"
+        PURE_BASH_TEMPORARY_FILE_LIST=()
+    fi
+}
+
+meta_temporary_file_add ()
+{
+    PURE_BASH_TEMPORARY_FILE_LIST+=("$@")
+}
+
+# 申请一个临时文件
+meta_temporary_file_new ()
+{
+    set -- "$1" "$(mktemp)"
+    meta_temporary_file_add "$2"
+    eval -- ''$1'=$2'
+}
 
 
 return 0

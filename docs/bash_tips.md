@@ -705,6 +705,91 @@ qinqing@DESKTOP-0MVRMOU:/mnt/e/code/pure_bash/test/cases/cntr$
 
 所以通过对引用变量的属性更改，其实是变更了外层的真正的变量的属性，并且`unset`也是对外层变量的操作，如果要删除引用变量自身，那么需要使用`unset -n var_ref`的方式。
 
+:TODO: 多级间接引用在字符串和数组两种数据结构上表现不同，可能需要去社区发邮件咨询下。
+
+先看`数组`的例子:
+
+```bash
+#!/bin/bash
+
+scope3 ()
+{
+    local -n xy=$1
+    local mx=(1 2)
+    xy=( 3  4)
+    declare -p mx
+}
+
+
+scope2 ()
+{
+    local -n xx=$1
+    scope3 xx
+}
+
+scope1 ()
+{
+    local mx=(a b)
+    scope2 mx
+    declare -p mx
+}
+
+scope1
+```
+
+最后得到的结果是这样的：
+
+```bash
+[root@localhost qinqing]# ./bash test3.sh 
+declare -a mx=([0]="3" [1]="4")
+declare -a mx=([0]="a" [1]="b")
+[root@localhost qinqing]# 
+```
+
+就算经过了两级的间接引用，但是最终操作的数据还是`scope3`函数内部的那个`mx`变量，而不是  
+外面的那个`mx`变量。`关联数组`的情况也和这个相同。
+
+
+但是在字符串的情况下，结果又不同:
+
+```bash
+scope3 ()
+{
+    local -n xy=$1
+    local mx=1
+    xy=3
+    declare -p mx
+}
+
+
+scope2 ()
+{
+    local -n xx=$1
+    scope3 xx
+}
+
+scope1 ()
+{
+    local mx=a
+    scope2 mx
+    declare -p mx
+}
+
+scope1
+
+```
+
+最后得到的结果是这样的：
+
+```bash
+[root@localhost qinqing]# ./bash test3.sh 
+declare -- mx="1"
+declare -- mx="3"
+[root@localhost qinqing]# 
+```
+
+`xy`的赋值并没有改变`scope3`中的`mx`的值，它改变了外面的`mx`的值，`scope3`函数内部的值  
+还是`1`。所以和数组并不一样。
 
 
 
@@ -2650,6 +2735,27 @@ root@DESKTOP-0KALMAH:/mnt/d/my_code/pure_bash/test/cases/array#
 - `$'\xNN'`：其中 NN 是一个两位的十六进制数，表示一个字节的字符。例如，`$'\x41'` 表示大写字母 `A`。
 - `$'\uNNNN'`：其中 NNNN 是一个四位的十六进制数，表示一个 Unicode 字符。例如，`$'\u6211'` 表示汉字 `我`。
 
+###### 匹配连续的内容
+
+先看代码:
+
+```bash
+local -a sub_fan_ids=()
+local alarm_message_tmp=$alarm_message
+while [[ "$alarm_message_tmp" =~ ^[^0-9]*([0-9]+) ]] ; do
+    sub_fan_ids+=("${BASH_REMATCH[1]}")
+    alarm_message_tmp=${alarm_message_tmp#*"${BASH_REMATCH[0]}"}
+done
+```
+`alarm_message`字符串的内容是这样的:`0 10 (  gge 90 ) 100`，上面的正则  
+表达式把字符串中的所有的数字提取出来。最终得到的结果是:
+
+
+
+```bash
+declare -a sub_fan_ids=([0]="0" [1]="10" [2]="90" [3]="100")
+```
+这个效率并不高，字符串太长的情况下，还是要用grep专业工具。
 
 
 
@@ -4389,7 +4495,31 @@ test.sh: line 55: declare: x: not found
 
 所以这个语法其实和管道本身并没有多大的关系。
 
+如果函数中有标准输出，然后命令本身也在另外一个打印上下文的情况是怎样的？先看一个  
+例子：
 
+```bash
+test3 ()
+{
+	echo "1 2 3 4"
+	REPLY='1 2 3 4 5'
+}
+
+echo "hah:${|test3;}"
+```
+
+最终终端输出的结果是：
+
+```bash
+1 2 3 4
+hah:1 2 3 4 5
+```
+
+先执行了`test3`函数，然后打印到了标准输出，然后再捕捉了`REPLY`变量，然后把它的值  
+填充到了当前的打印上下文中。所以会输出两条信息。
+
+使用这两种命令替换的语法来做很多接口都会显得很自然，比如数组的`pop`啊，`json`的pop  
+啊之类的，拿回数据方便，并且可以改变原始的数据结构。
 
 ## 一些疑问
 
@@ -4520,6 +4650,22 @@ Storage:~ #
 
 #### 关联数组的追加
 
+在`bash5.2`中下面这种语法已经可以使用。
+
+
+```
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/other
+$ axv+=(5 6 '7 8' 'a b')
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/other
+$ declare -p axv
+declare -A axv=([5]="6" [3]="4" [1]="2" ["7 8"]="a b" )
+
+q00546874@DESKTOP-0KALMAH /cygdrive/d/my_code/pure_bash/test/cases/other
+$ 
+```
+
+
 :TODO: 社区求助
 
 
@@ -4534,4 +4680,74 @@ iBMC-1711 /data/dft/TestPlat/v40elabel_standard_load%card_mode_106/log #
 从上面看到，进程替换的语法出了问题，目前尚不知道原因。所以当前库中所有的这种语法都被替换了。
 
 :TODO: 待研究。
+
+### bash5.3目前发现的一些不对劲的地方
+
+先看这个测试函数:
+
+```bash
+#!/bin/bash
+
+test_big_params ()
+{
+    local -n xx=$1
+    local -a array_copy=()
+    local i
+    time {
+        for i in "${!xx[@]}" ; do
+            array_copy[i]="${xx[i]}"
+        done
+    }
+    
+    local -a array_copy=()
+    
+    time array_copy=("${xx[@]}")
+    
+    
+}
+
+i=0
+array=()
+for i in {0..10000} ; do
+    array+=("$i")
+done
+test_big_params array
+```
+
+然后通过指定解释器的方式执行，时间消耗巨大。
+
+```bash
+[root@localhost qinqing]# ./bash test2.sh 
+
+real    0m1.985s
+user    0m1.981s
+sys     0m0.000s
+
+real    0m2.095s
+user    0m2.089s
+sys     0m0.000s
+[root@localhost qinqing]# 
+```
+
+直接执行的时间消耗很小。其中一次性赋值又比使用循环的效率高3倍。
+
+```bash
+[root@localhost qinqing]# ./test2.sh 
+
+real    0m0.035s
+user    0m0.035s
+sys     0m0.000s
+
+real    0m0.012s
+user    0m0.012s
+sys     0m0.000s
+[root@localhost qinqing]# 
+```
+
+
+:TODO: 去社区咨询下，不确定是`bash5.3`的BUG还是什么原因？
+
+### bash5.3新增加的动态的可加载的kv模块
+
+不确定这个模块的作用是什么。
 

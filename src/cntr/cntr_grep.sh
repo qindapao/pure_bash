@@ -3,6 +3,7 @@
 
 . ./cntr/cntr_copy.sh || return 1
 . ./cntr/cntr_common.sh || return 1
+. ./str/str_q_to_arr.sh || return 1
 
 # 处理后的数组是置密的,筛选函数只接受一个参数就是数组元素值
 # 同时支持过滤条件是函数/别名/代码块
@@ -63,12 +64,8 @@ cntr_grep ()
     local alias_arr'$1$4'
     for i'$1$4' in "${!'$1'[@]}" ; do
         if [[ "${BASH_ALIASES[$2]:+set}" ]] ; then
-            if [[ -o noglob ]] ; then
-                eval alias_arr'$1$4'=(${BASH_ALIASES[$2]})
-            else
-                local - ; set -f ; eval alias_arr'$1$4'=(${BASH_ALIASES[$2]}) ; set +f
-            fi
-            eval "${alias_arr'$1$4'[@]}" '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' '\''"${@:5}"'\''
+            str_q_to_arr alias_arr'$1$4' "${BASH_ALIASES[$2]}"
+            eval '\''"${alias_arr'$1$4'[@]}"'\'' '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' '\''"${@:5}"'\''
         else
             eval "$2" '\''"${'$1'[$i'$1$4']}"'\'' '\''"$i'$1$4'"'\'' '\'''$1''\'' '\''"${@:5}"'\''
         fi

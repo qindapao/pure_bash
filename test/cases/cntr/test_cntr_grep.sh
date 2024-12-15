@@ -23,6 +23,14 @@ filter_func_need_value ()
     [[ "$1" == '2' ]]
 }
 
+filter_func_need_value2 ()
+{
+    [[ "$3" == '2' ]]
+}
+
+alias my_xx_ali='filter_func_need_value2 "1 2 " "3 4 a"'
+
+
 test_case1 ()
 {
     local -A dict
@@ -70,12 +78,28 @@ test_case3 ()
     fi
 }
 
+test_case4 ()
+{
+    local -a array=(1 2 3 4 x x y 2)
+    local -a array_after=(2 2)
+    cntr_grep array my_xx_ali
+    if assert_array 'a' array array_after ; then
+        echo "${FUNCNAME[0]} test pass."
+        return 0
+    else
+        echo "${FUNCNAME[0]} test fail."
+        return 1
+    fi
+}
+
 ret=0
 test_case1
 ((ret|=$?))
 test_case2
 ((ret|=$?))
 test_case3
+((ret|=$?))
+test_case4
 ((ret|=$?))
 
 exit $ret

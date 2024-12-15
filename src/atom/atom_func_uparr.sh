@@ -1,27 +1,24 @@
 . ./meta/meta.sh
 ((DEFENSE_VARIABLES[atom_func_uparr]++)) && return 0
 
-. ./cntr/cntr_copy.sh || return 1
+. ./str/str_q_to_arr.sh || return 1
 
 # 1: 函数名
 # 2: 传出变量名
 # 3~n: 函数传出参数
+# REPLY 保存Q字符串中间用空格分隔便于还原数组(不支持稀疏数组特性了)
 atom_func_uparr () 
 {
-    local -a REPLY=()
+    local REPLY=''
     if [[ "${BASH_ALIASES[$2]:+set}" ]] ; then
-        local alias_arr_$1
-        if [[ -o noglob ]] ; then
-            eval 'alias_arr_'$1'=('${BASH_ALIASES[$2]}')'
-        else
-            local - ; set -f ; eval 'alias_arr_'$1'=('${BASH_ALIASES[$2]}')' ; set +f
-        fi
+        local -a "alias_arr_$1=()"
+        str_q_to_arr alias_arr_$1 "${BASH_ALIASES[$2]}"
         eval '"${alias_arr_'$1'[@]}" "${@:3}"'
     else
         ${2} "${@:3}"
     fi
     set -- "$1" "$?"
-    cntr_copy $1 REPLY
+    eval "$1=($REPLY)"
     return $2
 }
 

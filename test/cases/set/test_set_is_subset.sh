@@ -20,20 +20,20 @@ echo "=========${0} test start in $(date_log)=========="
 
 test_case1 ()
 {
-    local -a ret_arr=()
+    local -a get_arr=()
     local -a ret_spec_arr=(0 1 0)
     local -A set1=(['xgge geg']=1 ['x123 344']=1 ['x  ']=1 ['x']=1 ['x2']=1 ['x3']=1)
     local -A set2=(['xgge geg']=1 ['x']=1 ['x2']=1 ['x3']=1)
     local -A set3=(['xge geg']=1 ['x']=1 ['x2']=1 ['x3']=1)
     local -A set4=()
     set_is_subset set1 set2
-    ret_arr+=("$?")
+    get_arr+=("$?")
     set_is_subset set1 set3
-    ret_arr+=("$?")
+    get_arr+=("$?")
     set_is_subset set1 set4
-    ret_arr+=("$?")
+    get_arr+=("$?")
 
-    if [[ "${ret_arr[*]}" == "${ret_spec_arr[*]}" ]] ; then
+    if [[ "${get_arr[*]}" == "${ret_spec_arr[*]}" ]] ; then
         echo "${FUNCNAME[0]} test pass"
     else
         echo "${FUNCNAME[0]} test fail"

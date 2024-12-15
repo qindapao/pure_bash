@@ -89,6 +89,7 @@ com_result_check ()
     # 关闭文件描述符100
     exec 100>&-
 
+    meta_temporary_file_cleaner
     exit ${exit_code}
 }
 

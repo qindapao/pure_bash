@@ -7,6 +7,7 @@ cd "$root_dir"/src
 . ./log/log_dbg.sh || return 1
 . ./date/date_log.sh || return 1
 . ./str/str_splits.sh || return 1
+. ./atom/atom_func_uparr.sh || return 1
 
 cd "$root_dir"/test/lib
 . ./assert/assert_array.sh || return 1
@@ -26,7 +27,7 @@ test_case1 ()
     local str4="12aBxXo2xC3XXodm1ExxO09"
     local str5="12aBxX12xC3XX2dm1Exx4"
     local ret_code=''
-    local -a ret_arr=()
+    local -a get_arr=()
 
     local -a spec1=([0]="1233 " [1]=" yy " [2]=" 4")
     local -a spec2=([0]="1233 " [1]=" yy ")
@@ -37,22 +38,30 @@ test_case1 ()
     local -a spec7=([0]="12aB" [1]="2xC3" [2]="dm1E" [3]="09")
     local -a spec8=([0]="12aBxX12xC3XX2dm1Exx4")
 
-    str_splits "$str1" 'xxo'
-    assert_array a ret_arr spec1 ; ret_code="$?$ret_code"
-    str_splits "$str2" 'xxo'
-    assert_array a ret_arr spec2 ; ret_code="$?$ret_code"
-    str_splits "$str3" 'xxo'
-    assert_array a ret_arr spec3 ; ret_code="$?$ret_code"
-    str_splits "$str1"
-    assert_array a ret_arr spec4 ; ret_code="$?$ret_code"
-    str_splits "$str2"
-    assert_array a ret_arr spec5 ; ret_code="$?$ret_code"
-    str_splits "$str3"
-    assert_array a ret_arr spec6 ; ret_code="$?$ret_code"
-    str_splits "$str4" 'xxo' 1
-    assert_array a ret_arr spec7 ; ret_code="$?$ret_code"
-    str_splits "$str5" 'xxo' 1
-    assert_array a ret_arr spec8 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str1" 'xxo'
+    assert_array a get_arr spec1 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str2" 'xxo'
+    assert_array a get_arr spec2 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str3" 'xxo'
+    assert_array a get_arr spec3 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str1"
+    assert_array a get_arr spec4 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str2"
+    assert_array a get_arr spec5 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str3"
+    assert_array a get_arr spec6 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str4" 'xxo' 1
+    assert_array a get_arr spec7 ; ret_code="$?$ret_code"
+    atom_func_uparr get_arr \
+        str_splits "$str5" 'xxo' 1
+    assert_array a get_arr spec8 ; ret_code="$?$ret_code"
 
     if [[ "$ret_code" == '00000000' ]] ; then
         echo "${FUNCNAME[0]} test pass."

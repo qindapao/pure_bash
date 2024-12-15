@@ -21,9 +21,9 @@ echo "=========${0} test start in $(date_log)=========="
 
 xx ()
 {
-    eval $1[\$2]='$(("${3}"+2))'
+    eval $3[\$4]='$(("${5}"+2))'
 }
-alias yy=xx
+alias yy="xx '1 2' '3 4'"
 
 map_func ()
 {
