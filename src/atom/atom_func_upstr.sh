@@ -3,8 +3,8 @@
 
 . ./str/str_q_to_arr.sh || return 1
 
-# 1: 函数名
-# 2: 传出变量名
+# 1: 传出变量名
+# 2: 函数名
 # 3~n: 函数传出参数
 atom_func_upstr () 
 {
