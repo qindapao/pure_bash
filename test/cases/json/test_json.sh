@@ -67,6 +67,8 @@ test_case_all ()
         }
     fi
 
+    local load_algorithm=$4
+
     local standard_json_file=$(mktemp)
     local json_str
     local -A bash_json=()
@@ -118,7 +120,7 @@ test_case_all ()
     json_init "$1" "$2" >/dev/null 2>&1
     
     #2. json_load
-    json_load bash_json "$standard_json_file" >/dev/null 2>&1
+    json_load bash_json "$standard_json_file" "$load_algorithm" >/dev/null 2>&1
     
     #3. json_dump
     # declare -p bash_json
@@ -427,12 +429,20 @@ main')
 #   默认
 #   指定
 #
-test_case_all 0 '' &&
-test_case_all 1 '' &&
-test_case_all 0 "my_son" &&
-test_case_all 1 "my_father" &&
-test_case_all 0 '' 'mock_python_fail' &&
-test_case_all 1 '' 'mock_python_fail' &&
-test_case_all 0 "my_son" 'mock_python_fail' &&
-test_case_all 1 "my_father" 'mock_python_fail'
+test_case_all 0 '' '' 'balance' &&
+test_case_all 1 '' '' 'balance' &&
+test_case_all 0 "my_son" '' 'balance' &&
+test_case_all 1 "my_father" '' 'balance' &&
+test_case_all 0 '' 'mock_python_fail' 'balance' &&
+test_case_all 1 '' 'mock_python_fail' 'balance' &&
+test_case_all 0 "my_son" 'mock_python_fail' 'balance' &&
+test_case_all 1 "my_father" 'mock_python_fail' 'balance' &&
+test_case_all 0 '' '' 'normal' &&
+test_case_all 1 '' '' 'normal' &&
+test_case_all 0 "my_son" '' 'normal' &&
+test_case_all 1 "my_father" '' 'normal' &&
+test_case_all 0 '' 'mock_python_fail' 'normal' &&
+test_case_all 1 '' 'mock_python_fail' 'normal' &&
+test_case_all 0 "my_son" 'mock_python_fail' 'normal' &&
+test_case_all 1 "my_father" 'mock_python_fail' 'normal'
 

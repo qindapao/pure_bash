@@ -3,9 +3,12 @@
 
 . ./json/json_common.sh || return 1
 . ./json/json_overlay.sh || return 1
-. ./awk/awk_json.sh || return 1
 . ./json/json_pack.sh || return 1
+. ./json/json_balance_load.sh || return 1
+. ./json/json_normal_load.sh || return 1
+. ./awk/awk_json.sh || return 1
 . ./array/array_qsort.sh || return 1
+. ./awk/awk_json_files.sh || return 1
 
 # _json_load_key_values =
 #     0 = '001' $'[ag\n \t"e]' '' '30'
@@ -25,7 +28,9 @@ json_awk_load ()
     # :TODO: json_awk_load的效率完全可以按照python的版本来优化
     # 并且更简单支持子json提取
     # 因为可以直接处理排序获取后的数组即可
-    local -a _json_awk_load_json_sub_keys=("${@:3}")
+    local  _json_awk_load_json_algorithm=${3:-'balance'}
+    local -a _json_awk_load_json_sub_keys=("${@:4}")
+    local _json_awk_load_filter_head_str=''
     local -a _json_awk_load_json_array=()
     local _json_awk_load_item
     local _json_awk_load_json_key _json_awk_load_json_key_tmp
@@ -34,6 +39,10 @@ json_awk_load ()
     local -a _json_awk_load_key_value_line=()
     local _json_awk_load_json_value
     local _json_awk_load_sort_num
+
+    ((${#_json_awk_load_json_sub_keys[@]})) && {
+        _json_awk_load_filter_head_str="${_json_awk_load_json_sub_keys[*]@Q}"
+    }
 
     awk_json_files "$_json_awk_load_json_out_file" "$_json_awk_load_json_in_file"
     mapfile -t _json_awk_load_json_array < "$_json_awk_load_json_out_file"
@@ -76,22 +85,19 @@ json_awk_load ()
 
             printf -v _json_awk_load_sort_num "%03d" $((${#_json_awk_load_json_key_array[@]}-1))
             _json_awk_load_key_value_line=("$_json_awk_load_sort_num" "${_json_awk_load_json_key_array[@]:1}" "" "$_json_awk_load_json_value")
-            _json_awk_load_key_values+=("${_json_awk_load_key_value_line[*]@Q}")
+
+            if [[ -z "$_json_awk_load_filter_head_str" ]] ||
+               [[ "${_json_awk_load_json_key_array[*]@Q}" == "${_json_awk_load_filter_head_str}"* ]] ; then
+                _json_awk_load_key_values+=("${_json_awk_load_key_value_line[*]@Q}")
+            fi
             
             # # 设置数据结构的值(都按照字符串设置),默认情况下不要第一个顶级键
             # json_overlay _json_awk_load_json_ref _json_awk_load_json_value "${_json_awk_load_json_key_array[@]:1}"
         fi
     done
 
-    # 先过滤再
-    ldebug_bp "show _json_awk_load_json_array" _json_awk_load_json_array
-    array_qsort _json_awk_load_key_values ">"
-    ldebug_bp "show vars" _json_awk_load_key_values >json_awk_load.txt
-
-
-
-    # :TODO: 暂时没有进行错误处理
-    return ${JSON_COMMON_ERR_DEFINE[ok]}
+    # normal or balance
+    json_${_json_awk_load_json_algorithm}_load _json_awk_load_key_values _json_awk_load_json_ref
 }
 
 return 0

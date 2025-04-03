@@ -69,7 +69,6 @@ test_case_all ()
 
     local standard_json_file=$(mktemp)
     local json_str
-    local -A bash_json=()
 
     {
     IFS= read -r -d '' json_str <<'    EOF'
@@ -151,8 +150,9 @@ test_case_all ()
     json_init "$1" "$2" >/dev/null 2>&1
     
     #2. json_load
-    time json_load bash_json "$standard_json_file"
-    
+    local -A bash_json=()
+    time json_load bash_json "$standard_json_file" 'balance' '[person]' '[project_in_process]'
+
     #3. json_dump
     # declare -p bash_json
     # json_dump_ho bash_json
@@ -198,5 +198,5 @@ test_case_all ()
 #
 test_case_all 0 '' &&
 test_case_all 1 ''
-# test_case_all 0 '' 'mock_python_fail'
+test_case_all 0 '' 'mock_python_fail'
 
