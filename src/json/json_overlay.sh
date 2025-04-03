@@ -43,14 +43,16 @@ json_overlay ()
     json_del _json_overlay_father_json_ref "${_json_overlay_add_keys_nude[@]}"
 
     # 开始挂接(子数是数组和关联数组传入的参数是不同的)
-    if [[ "${_json_overlay_son_json_ref@a}" == *[aA]* ]] ; then
-        for _json_overlay_son_index in "${!_json_overlay_son_json_ref[@]}" ; do
-            _json_overlay_is_son_json_null=0
-            json_set _json_overlay_father_json_ref "${_json_overlay_add_keys[@]}" "${_json_overlay_param_left_padding}${_json_overlay_son_index}${_json_overlay_param_right_padding}" '' "${_json_overlay_son_json_ref["$_json_overlay_son_index"]}"
-            _json_overlay_ret_code=$?
-            ((_json_overlay_ret_code)) && return $_json_overlay_ret_code
-        done  
-    fi
+    [[ "${_json_overlay_son_json_ref@a}" == *[aA]* ]] &&
+    ((${#_json_overlay_son_json_ref[@]})) && {
+        # 为了提高效率,先打包数组或者关联数组,然后一次性写入
+        _json_overlay_is_son_json_null=0
+        local _json_overlay_pack_str
+        json_pack 0 _json_overlay_son_json_ref _json_overlay_pack_str
+        json_set _json_overlay_father_json_ref "${_json_overlay_add_keys[@]}" '' "$_json_overlay_pack_str"
+        _json_overlay_ret_code=$?
+        ((_json_overlay_ret_code)) && return $_json_overlay_ret_code
+    }
 
     # 空数组或者空hash或者字符串
     if ((_json_overlay_is_son_json_null)) ; then
