@@ -4,17 +4,10 @@
 . ./str/str_trim.sh || return 1
 . ./json/json_common.sh || return 1
 . ./json/json_set.sh || return 1
-. ./json/json_overlay.sh || return 1
 . ./json/json_awk_load.sh || return 1
-. ./json/json_set_params_del_bracket.sh || return 1
-. ./json/json_pack.sh || return 1
 . ./json/json_balance_load.sh || return 1
 . ./json/json_normal_load.sh || return 1
 . ./regex/regex_common.sh || return 1
-. ./cntr/cntr_copy.sh || return 1
-. ./cntr/cntr_extend.sh || return 1
-. ./array/array_qsort.sh || return 1
-. ./str/str_ltrim_zeros.sh || return 1
 
 # . ./log/log_dbg.sh || return 1
 
@@ -71,6 +64,10 @@ json_load ()
     local _json_load_json_str=$(<${_json_load_json_input_file_path})
     str_trim _json_load_json_str
 
+    local -a _json_load_bash_filter_keys=()
+    local _json_load_bash_filter_str=''
+    local _json_load_bash_filter_num=0
+
     if [[ "${_json_load_json_str:0:1}" == '{' ]] ; then
         case "$JSON_COMMON_STANDARD_JSON_PARSER" in
         python3)
@@ -90,6 +87,10 @@ json_load ()
             return ${JSON_COMMON_ERR_DEFINE[load_unknown_parser]}
             ;;
         esac
+    else
+        _json_load_bash_filter_keys=("${@:4}")
+        _json_load_bash_filter_str="${_json_load_bash_filter_keys[*]@Q}"
+        _json_load_bash_filter_num=${#_json_load_bash_filter_keys[@]}
     fi
 
     local -a _json_load_json_file_contents=()
@@ -99,6 +100,7 @@ json_load ()
     local _json_load_line_{last_char=,cnt=,content=}
     local _json_load_leaf_set_key=''
     local -i _json_load_lev=0 _json_load_pop_cnt=0
+    local -a _json_load_line_all_keys=()
     
     mapfile -t _json_load_json_file_contents_tmp < "$_json_load_json_input_file_path"
     for _json_load_line_content in "${_json_load_json_file_contents_tmp[@]}" ; do
@@ -114,7 +116,13 @@ json_load ()
         return ${JSON_COMMON_ERR_DEFINE[ok]} 
     }
 
-    _json_load_json_out_ref=()
+    # 先把顶级键记录下来(不可能是叶子)
+    local _json_load_top_key=''
+    _json_load_top_key=${_json_load_json_file_contents[0]:0: -2}
+    eval -- "_json_load_top_key=$_json_load_top_key"
+    if [[ "${_json_load_json_file_contents[0]: -1}" == '>' ]] ; then
+        _json_load_top_key="[${_json_load_top_key}]"
+    fi
 
     # 每个孤键的类型由栈里面的最后一个元素决定
     _json_load_line_last_char="${_json_load_json_file_contents[0]: -1}"
@@ -177,9 +185,26 @@ json_load ()
             fi
 
             # json_set '_json_load_json_out_ref' "${_json_load_key_stack[@]}" "${_json_load_leaf_set_key}" '' "$_json_load_value"
-            printf -v _json_load_sort_num "%03d" $((${#_json_load_key_stack[@]}+1))
-            _json_load_key_value_line=("$_json_load_sort_num" "${_json_load_key_stack[@]}" "${_json_load_leaf_set_key}" "" "$_json_load_value")
-            _json_load_key_values+=("${_json_load_key_value_line[*]@Q}")
+            _json_load_line_all_keys=("$_json_load_top_key" "${_json_load_key_stack[@]}" "${_json_load_leaf_set_key}")
+
+            if [[ -z "$_json_load_bash_filter_str" ]] ||
+                [[ "${_json_load_line_all_keys[*]@Q}" == "$_json_load_bash_filter_str"* ]] ; then
+
+                # 这里首先要去掉需要过滤掉的键
+                _json_load_line_all_keys=("${_json_load_line_all_keys[@]:_json_load_bash_filter_num}")
+                # 如果过滤掉以后变成了空数组，那么证明获取的是一个字符串直接返回
+                ((${#_json_load_line_all_keys[@]})) || {
+                    _json_load_json_out_ref="$_json_load_value"
+                    return ${JSON_COMMON_ERR_DEFINE[ok]}
+                }
+
+                # 去掉顶级键
+                ((_json_load_bash_filter_num)) || unset -v _json_load_line_all_keys[0]
+
+                printf -v _json_load_sort_num "%03d" ${#_json_load_line_all_keys[@]}
+                _json_load_key_value_line=("$_json_load_sort_num" "${_json_load_line_all_keys[@]}" "" "$_json_load_value")
+                _json_load_key_values+=("${_json_load_key_value_line[*]@Q}")
+            fi
 
             ((_json_load_line_cnt+=2))
         else
@@ -192,6 +217,8 @@ json_load ()
             ((_json_load_line_cnt++))
         fi
     done
+
+    _json_load_json_out_ref=()
 
     # normal or balance
     json_${_json_load_json_load_algorithm}_load _json_load_key_values _json_load_json_out_ref

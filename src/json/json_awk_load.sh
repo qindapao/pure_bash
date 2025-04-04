@@ -8,7 +8,6 @@
 . ./json/json_normal_load.sh || return 1
 . ./awk/awk_json.sh || return 1
 . ./array/array_qsort.sh || return 1
-. ./awk/awk_json_files.sh || return 1
 
 # _json_load_key_values =
 #     0 = '001' $'[ag\n \t"e]' '' '30'
@@ -31,6 +30,7 @@ json_awk_load ()
     local  _json_awk_load_json_algorithm=${3:-'balance'}
     local -a _json_awk_load_json_sub_keys=("${@:4}")
     local _json_awk_load_filter_head_str=''
+    local -i _json_awk_load_filter_num=0
     local -a _json_awk_load_json_array=()
     local _json_awk_load_item
     local _json_awk_load_json_key _json_awk_load_json_key_tmp
@@ -42,6 +42,7 @@ json_awk_load ()
 
     ((${#_json_awk_load_json_sub_keys[@]})) && {
         _json_awk_load_filter_head_str="${_json_awk_load_json_sub_keys[*]@Q}"
+        _json_awk_load_filter_num=${#_json_awk_load_json_sub_keys[@]}
     }
 
     awk_json_files "$_json_awk_load_json_out_file" "$_json_awk_load_json_in_file"
@@ -83,11 +84,21 @@ json_awk_load ()
                 fi
             done
 
-            printf -v _json_awk_load_sort_num "%03d" $((${#_json_awk_load_json_key_array[@]}-1))
-            _json_awk_load_key_value_line=("$_json_awk_load_sort_num" "${_json_awk_load_json_key_array[@]:1}" "" "$_json_awk_load_json_value")
-
             if [[ -z "$_json_awk_load_filter_head_str" ]] ||
                [[ "${_json_awk_load_json_key_array[*]@Q}" == "${_json_awk_load_filter_head_str}"* ]] ; then
+
+                # 这里首先要去掉需要过滤的键
+                _json_awk_load_json_key_array=("${_json_awk_load_json_key_array[@]:_json_awk_load_filter_num}")
+                # 如果过滤后变成了空数组,那么证明获取的是一个字符串
+                ((${#_json_awk_load_json_key_array[@]})) || {
+                    _json_awk_load_json_ref="$_json_awk_load_json_value"
+                    return ${JSON_COMMON_ERR_DEFINE[ok]}
+                }
+                # 去掉顶级键
+                ((_json_awk_load_filter_num)) || unset -v _json_awk_load_json_key_array[0]
+
+                printf -v _json_awk_load_sort_num "%03d" ${#_json_awk_load_json_key_array[@]}
+                _json_awk_load_key_value_line=("$_json_awk_load_sort_num" "${_json_awk_load_json_key_array[@]}" "" "$_json_awk_load_json_value")
                 _json_awk_load_key_values+=("${_json_awk_load_key_value_line[*]@Q}")
             fi
             
