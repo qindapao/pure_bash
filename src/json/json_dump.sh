@@ -81,10 +81,10 @@ _json_dump ()
                 printf -v __json_dump_tree_node_key_padding "%-$((4*__json_dump_tree_node_lev))s" ' '
                 __json_dump_tree_node_key_padding=${__json_dump_tree_node_key//$'\n'/$'\n'$__json_dump_tree_node_key_padding}
                 
-                printf "%*s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding" " ${__json_dump_printf_mark}" 
+                printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%s%s" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding" " ${__json_dump_printf_mark}" 
                 ;;
             0|2)
-                printf "%*s%q%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key" " ${__json_dump_printf_mark}" ;;
+                printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%q%s" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key" " ${__json_dump_printf_mark}" ;;
             esac
 
             # 变量类型可能改变,这里必须unset,这里和递归不同,递归只用一次
@@ -119,19 +119,20 @@ _json_dump ()
                 printf -v __json_dump_tree_node_value_padding "%-$((4*(__json_dump_tree_node_lev+1)))s" ' '
                 __json_dump_tree_node_value_padding=${__json_dump_tree_node_value//$'\n'/$'\n'$__json_dump_tree_node_value_padding}
                 ;;&
-            0)  printf "%*s%q%s%q\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark}${__json_dump_space_str}" "$__json_dump_tree_node_value" ;;
-            1)  printf "%*s%s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark}${__json_dump_space_str}" "$__json_dump_tree_node_value_padding" ;;
+            0)  printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%q%s%q" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark}${__json_dump_space_str}" "$__json_dump_tree_node_value" ;;
+            1)  printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%s%s%s" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark}${__json_dump_space_str}" "$__json_dump_tree_node_value_padding" ;;
             2)
-                printf "%*s%q%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark}${__json_dump_space_str}"
-                printf "%*s%q\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_value"
+                printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%q%s" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key"  " ${__json_dump_printf_mark}${__json_dump_space_str}"
+                printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%q" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_value"
                 ;;
             3)
-                printf "%*s%s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark}${__json_dump_space_str}"
-                printf "%*s%s\n" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_value_padding"
+                printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%s%s" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_key_padding"  " ${__json_dump_printf_mark}${__json_dump_space_str}"
+                printf -v _json_dump_output_arr[_json_dump_output_index++] "%*s%s" "$((4*__json_dump_tree_node_lev))" ' ' "$__json_dump_tree_node_value_padding"
                 ;;
             esac
         fi
     done
+
 }
 
 # # 递归实现json_dump 深度优先遍历DFS(多叉树)
@@ -220,9 +221,16 @@ json_dump ()
     }
     printf "%s %s\n" "${2}" "$_json_dump_printf_mark"
 
+    local -i _json_dump_output_index=0
+    local -a _json_dump_output_arr=()
+
     for _json_dump_index in "${_json_dump_indexs[@]}" ; do
         _json_dump "$_json_dump_print_type_map" '1' "$_json_dump_index" "${_json_dump_json_ref["$_json_dump_index"]}" "$_json_dump_printf_mark"
     done
+
+    ((_json_dump_output_index)) && {
+        printf "%s\n" "${_json_dump_output_arr[@]}"
+    }
 }
 
 # 默认打印类型
