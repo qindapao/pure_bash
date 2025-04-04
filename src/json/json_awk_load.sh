@@ -95,8 +95,12 @@ json_awk_load ()
                 _json_awk_load_json_key_array=("${_json_awk_load_json_key_array[@]:_json_awk_load_filter_num}")
                 # 如果过滤后变成了空数组,那么证明获取的是一个字符串
                 ((${#_json_awk_load_json_key_array[@]})) || {
-                    _json_awk_load_json_ref="$_json_awk_load_json_value"
-                    return ${JSON_COMMON_ERR_DEFINE[ok]}
+                    if [[ "${_json_awk_load_json_ref@a}" != *[aA]* ]] ; then
+                        _json_awk_load_json_ref="$_json_awk_load_json_value"
+                        return ${JSON_COMMON_ERR_DEFINE[ok]}
+                    else
+                        return ${JSON_COMMON_ERR_DEFINE[get_str_but_declare_not_str_outside]}
+                    fi
                 }
                 # 去掉顶级键
                 ((_json_awk_load_filter_num)) || unset -v _json_awk_load_json_key_array[0]

@@ -194,8 +194,12 @@ json_load ()
                 _json_load_line_all_keys=("${_json_load_line_all_keys[@]:_json_load_bash_filter_num}")
                 # 如果过滤掉以后变成了空数组，那么证明获取的是一个字符串直接返回
                 ((${#_json_load_line_all_keys[@]})) || {
-                    _json_load_json_out_ref="$_json_load_value"
-                    return ${JSON_COMMON_ERR_DEFINE[ok]}
+                    if [[ "${_json_load_json_out_ref@a}" != *[aA]* ]] ; then
+                        _json_load_json_out_ref="$_json_load_value"
+                        return ${JSON_COMMON_ERR_DEFINE[ok]}
+                    else
+                        return ${JSON_COMMON_ERR_DEFINE[get_str_but_declare_not_str_outside]}
+                    fi
                 }
 
                 # 去掉顶级键
