@@ -76,41 +76,11 @@ test_case_all ()
      {
     "person": {
         "n:am,[]{}e": "John",
-        "ag\n \t\"e": "30",
+        "ag\\n \\t\\\"e\\n": "30",
         "habbit": ["xxoo", "ccccccccccccccc", "kkyy"],
         "other": [],
         "other": {},
         "otheragain": [[], {},
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
-                "\b\f\n\r\t/\\,\"agegg123344",
                 "\b\f\n\r\t/\\,\"agegg123344",
                 "\b\f\n\r\t/\\,\"agegg123344",
                 "中文的情况？是不是没有处理啊",
@@ -123,12 +93,6 @@ test_case_all ()
                 "",
                 null,
                 "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
                 ""
                 ],
         "paart": "part2",
@@ -138,8 +102,6 @@ test_case_all ()
         }
     }
 }     
-
-
      
     EOF
     } || true
@@ -151,7 +113,7 @@ test_case_all ()
     
     #2. json_load
     local -A bash_json=()
-    time json_load bash_json "$standard_json_file" 'balance' '[person]' '[project_in_process]'
+    time json_load bash_json "$standard_json_file" 'balance'
 
     #3. json_dump
     # declare -p bash_json

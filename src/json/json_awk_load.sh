@@ -18,6 +18,10 @@
 #     5 = '001' '[other]' '' 'declare -A _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=KCk='
 #     6 = '002' '[otheragain]' '0' '' 'declare -a _json_set_chen_xu_yuan_yao_mo_hao_zhi_ji_de_dao_data_lev1=KCk='
 
+# :TODO: 这个函数并不支持嵌套转义的情况,比如下面这个字符串无法正确处理
+# 是因为JSON.awk本身不支持导致的
+# "ag\\n \\t\\\"e\\n"
+# 但是python3的json模块是可以正确处理的
 json_awk_load ()
 {
     meta_var_clear "$1"
